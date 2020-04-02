@@ -1,0 +1,1 @@
+qemu-system-x86_64 -cdrom GrubbyOS.iso -nographic -m 2G -no-reboot
