@@ -79,4 +79,4 @@ namespace memory {
             freePageAt(addr);
         }
     }
-}; // namespace memorya
+}; // namespace memory

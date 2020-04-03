@@ -80,7 +80,9 @@ namespace memory {
             cutPool(pool);
             MemoryArea* result = pool->allocNode();
             insertPool(pool);
-            lastCheckedIndex--;
+            if (lastCheckedIndex != 1) {
+                lastCheckedIndex--;
+            }
             result->next = nullptr;
             result->prev = nullptr;
             return result;
@@ -226,6 +228,9 @@ namespace memory {
     VAddr KernelVirtualAllocator::getMapping(Uint64 size, PAddr physBase,
                                              bool managed) {
         MemoryArea* bestFit = findBestFit(size);
+        if (bestFit == nullptr) {
+            return 0;
+        }
         VAddr offset = bestFit->offset;
         bestFit->offset += size;
         bestFit->size -= size;
@@ -234,9 +239,9 @@ namespace memory {
             freeMemoryArea(bestFit);
         }
         if (physBase == 0) {
-            VirtualMemoryMapper::mapNewPages(offset, size);
+            VirtualMemoryMapper::mapNewPages(offset, offset + size);
         } else {
-            VirtualMemoryMapper::mapPages(offset, size, physBase, managed);
+            VirtualMemoryMapper::mapPages(offset, offset + size, physBase, managed);
         }
         freePools();
         return offset;
@@ -265,7 +270,6 @@ namespace memory {
             // should not fail this time
             area = allocMemoryArea();
         }
-        kprintf("area is %p\n\r", area);
         area->offset = virtualAddr;
         area->size = size;
         freeMapping(area);

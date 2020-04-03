@@ -43,6 +43,12 @@ INLINE static void zeroPage(void* addr) {
     }
 }
 
+INLINE static void memcpy(void* dst, void* src, Uint64 size) {
+    for(Uint64 i = 0; i < size; ++i) {
+        ((char*)dst)[i] = ((char*)src)[i];
+    }
+}
+
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
 #endif

@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom GrubbyOS.iso -m 2G -no-reboot
+qemu-system-x86_64 -cdrom YaYaOS.iso -m 2G -no-reboot
