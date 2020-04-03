@@ -37,13 +37,16 @@ namespace multiboot {
         Defective = 5
     };
 
+    #pragma pack(1)
     struct MemoryMapEntry {
         Uint64 baseAddr;
         Uint64 length;
         MemoryMapEntryType type;
         Uint32 : 32;
-    } PACKED;
+    };
+    #pragma pack()
 
+    #pragma pack(1)
     struct MemoryMapTag {
         Uint32 type;
         Uint32 size;
@@ -53,8 +56,10 @@ namespace multiboot {
         INLINE Uint32 getEntriesCount() const {
             return (size - 16) / sizeof(MemoryMapEntry);
         }
-    } PACKED;
+    };
+    #pragma pack()
 
+    #pragma pack(1)
     struct ElfSectionHeader {
         Uint32 name;
         Uint32 type;
@@ -66,8 +71,10 @@ namespace multiboot {
         Uint32 info;
         Uint64 addrAlign;
         Uint64 entSize;
-    } PACKED;
+    };
+    #pragma pack(0)
 
+    #pragma pack(1)
     struct ElfSectionsTag {
         Uint32 type;
         Uint32 size;
@@ -80,8 +87,10 @@ namespace multiboot {
         INLINE Uint32 getEntriesCount() const {
             return (size - 16) / sizeof(ElfSectionHeader);
         }
-    } PACKED;
+    };
+    #pragma pack(0)
 
+    #pragma pack(1)
     struct BootInfoTag {
         BootInfoTagType type;
         Uint32 size;
@@ -95,13 +104,16 @@ namespace multiboot {
             return (ElfSectionsTag*)(this);
         }
         INLINE bool isTerminator() const { return type == 0; }
-    } PACKED;
+    };
+    #pragma pack(0)
 
+    #pragma pack(1)
     struct BootInfoHeader {
         Uint32 totalSize;
         Uint32 reserved;
         BootInfoTag firstTag[];
-    } PACKED;
+    };
+    #pragma pack(1)
 
 }; // namespace multiboot
 

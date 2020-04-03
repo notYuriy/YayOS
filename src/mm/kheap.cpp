@@ -4,6 +4,7 @@
 namespace memory {
     bool KernelHeap::initialized;
 
+    #pragma pack(1)
     struct ObjectHeader {
         Uint64 realSize;
         ObjectHeader* next;
@@ -12,9 +13,14 @@ namespace memory {
         INLINE static ObjectHeader* getHeader(void* ptr) {
             return (ObjectHeader*)(ptr)-1;
         }
-    } PACKED;
+    };
+    #pragma pack()
 
+    static_assert(sizeof(ObjectHeader) == 16);
+
+    #pragma pack(1)
     struct SmallObjectPool {
+        #pragma pack(1)
         struct PoolMetadata {
             ObjectHeader* first;
             Uint64 objectSize;
@@ -22,7 +28,9 @@ namespace memory {
             SmallObjectPool* next;
             Uint64 objectsCount;
             Uint64 : 64;
-        } PACKED meta;
+        } meta;
+        #pragma pack(0)
+
         static_assert(sizeof(PoolMetadata) == 48);
 
         INLINE ObjectHeader* headerAt(Uint64 index) const {
@@ -59,7 +67,8 @@ namespace memory {
             meta.first = header;
             meta.objectsCount++;
         }
-    } PACKED;
+    };
+    #pragma pack(0)
 
     const Uint64 maxSizeForSlubs = 2000;
     constexpr Uint64 poolsSizesCount = maxSizeForSlubs / 16;

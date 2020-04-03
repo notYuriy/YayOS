@@ -5,12 +5,14 @@ namespace memory {
 
     bool KernelVirtualAllocator::initialized = false;
 
+    #pragma pack(1)
     struct MemoryArea {
         MemoryArea* next;
         MemoryArea* prev;
         VAddr offset;
         Uint64 size;
-    } PACKED;
+    };
+    #pragma pack(0)
 
     static_assert(sizeof(MemoryArea) == 32);
 

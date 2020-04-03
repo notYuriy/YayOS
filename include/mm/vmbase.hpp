@@ -31,6 +31,7 @@ namespace memory {
                                  4096ULL * 512ULL * 512ULL * 512ULL,
                                  4096ULL * 512ULL * 512ULL * 512ULL * 512ULL};
 
+    #pragma pack(1)
     union PageTableEntry {
         PAddr addr;
         struct {
@@ -48,16 +49,18 @@ namespace memory {
                     bool flag1 : 1;
                     bool flag2 : 1;
                     bool flag3 : 1;
-                } PACKED;
+                };
                 Uint16 lowFlags : 12;
-            } PACKED;
-        } PACKED;
-    } PACKED;
+            };
+        };
+    };
+    #pragma pack(0)
 
     static_assert(sizeof(PageTableEntry) == 8);
 
+    #pragma pack(1)
     struct PageTable {
-        PageTableEntry entries[512] PACKED;
+        PageTableEntry entries[512];
         PageTableEntry& operator[](Uint16 index) { return entries[index]; }
 
         INLINE PageTable* walkTo(VIndex index) {
@@ -69,7 +72,8 @@ namespace memory {
 
         PageTable* walkToWithAlloc(VIndex index, PAddr currentAddr);
 
-    } PACKED;
+    };
+    #pragma pack(0)
 
     static_assert(sizeof(PageTable) == 4096);
 

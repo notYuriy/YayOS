@@ -44,8 +44,14 @@ INLINE static void zeroPage(void* addr) {
 }
 
 INLINE static void memcpy(void* dst, void* src, Uint64 size) {
-    for(Uint64 i = 0; i < size; ++i) {
+    for (Uint64 i = 0; i < size; ++i) {
         ((char*)dst)[i] = ((char*)src)[i];
+    }
+}
+
+INLINE static void memset(void* dst, Uint64 size, Uint8 fill) {
+    for (Uint64 i = 0; i < size; ++i) {
+        ((char*)dst)[i] = fill;
     }
 }
 
