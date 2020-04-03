@@ -6,6 +6,12 @@ namespace interrupts {
     IdtPointer Idt::pointer;
     bool Idt::initialized;
 
+    void intDefaultHandler() {
+        panic("[Idt] Unhandled interrupt\n\r");
+        while (true) {
+            asm("pause");
+        }
+    }
     extern "C" void intLoadIdt(IdtPointer* pointer);
 
     void Idt::init() {
@@ -14,6 +20,9 @@ namespace interrupts {
         pointer.limit = sizeof(table);
         intLoadIdt(&pointer);
         initialized = true;
+        for(Uint64 i = 0; i < 256; ++i) {
+            install(i, (IdtVector)intDefaultHandler);
+        }
     }
 
     void Idt::install(Uint8 index, IdtVector vec) {

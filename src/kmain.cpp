@@ -11,8 +11,6 @@
 #include <vmmap.hpp>
 #include <interrupts.hpp>
 
-extern "C" void intDefaultHandler();
-
 extern "C" void kmain(Uint64 mbPointer) {
     IO::Serial::init(IO::SerialPort::COM1);
     memory::BootMemoryInfo::init(mbPointer);
@@ -22,7 +20,6 @@ extern "C" void kmain(Uint64 mbPointer) {
     memory::KernelVirtualAllocator::init();
     memory::KernelHeap::init();
     interrupts::Idt::init();
-    interrupts::Idt::install(0x80, (interrupts::IdtVector)intDefaultHandler);
     asm("int $0x80");
     kprintf("It didn't crash!\n\r");
 }
