@@ -14,7 +14,7 @@ namespace memory {
             return (ObjectHeader*)(ptr)-1;
         }
     };
-    #pragma pack()
+    #pragma pack(0)
 
     static_assert(sizeof(ObjectHeader) == 16);
 

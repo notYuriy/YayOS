@@ -9,6 +9,9 @@
 #include <tmpphysalloc.hpp>
 #include <tmpvalloc.hpp>
 #include <vmmap.hpp>
+#include <interrupts.hpp>
+
+extern "C" void intDefaultHandler();
 
 extern "C" void kmain(Uint64 mbPointer) {
     IO::Serial::init(IO::SerialPort::COM1);
@@ -18,5 +21,8 @@ extern "C" void kmain(Uint64 mbPointer) {
     memory::PhysAllocator::init();
     memory::KernelVirtualAllocator::init();
     memory::KernelHeap::init();
+    interrupts::Idt::init();
+    interrupts::Idt::install(0x80, (interrupts::IdtVector)intDefaultHandler);
+    asm("int $0x80");
     kprintf("It didn't crash!\n\r");
 }

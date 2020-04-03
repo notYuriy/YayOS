@@ -20,7 +20,7 @@ namespace interrupts {
         Uint32 addrHigh;
         Uint32 zeroed3;
     };
-    #pragma pack()
+    #pragma pack(0)
 
     static_assert(sizeof(IdtEntry) == 16);
 
@@ -42,8 +42,8 @@ namespace interrupts {
 
     public:
         INLINE static bool isInitialized() { return initialized; }
-        void init();
-        void install(Uint8 index, IdtVector handler);
+        static void init();
+        static void install(Uint8 index, IdtVector handler);
     };
 
 }; // namespace interrupts

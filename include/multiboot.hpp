@@ -44,7 +44,7 @@ namespace multiboot {
         MemoryMapEntryType type;
         Uint32 : 32;
     };
-    #pragma pack()
+    #pragma pack(0)
 
     #pragma pack(1)
     struct MemoryMapTag {
@@ -57,7 +57,7 @@ namespace multiboot {
             return (size - 16) / sizeof(MemoryMapEntry);
         }
     };
-    #pragma pack()
+    #pragma pack(0)
 
     #pragma pack(1)
     struct ElfSectionHeader {
