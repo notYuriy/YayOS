@@ -31,7 +31,7 @@ namespace memory {
                                  4096ULL * 512ULL * 512ULL * 512ULL,
                                  4096ULL * 512ULL * 512ULL * 512ULL * 512ULL};
 
-    #pragma pack(1)
+#pragma pack(1)
     union PageTableEntry {
         PAddr addr;
         struct {
@@ -54,11 +54,11 @@ namespace memory {
             };
         };
     };
-    #pragma pack(0)
+#pragma pack(0)
 
     static_assert(sizeof(PageTableEntry) == 8);
 
-    #pragma pack(1)
+#pragma pack(1)
     struct PageTable {
         PageTableEntry entries[512];
         PageTableEntry& operator[](Uint16 index) { return entries[index]; }
@@ -71,9 +71,8 @@ namespace memory {
         PageTable* walkToWithTempAlloc(VIndex index);
 
         PageTable* walkToWithAlloc(VIndex index, PAddr currentAddr);
-
     };
-    #pragma pack(0)
+#pragma pack(0)
 
     static_assert(sizeof(PageTable) == 4096);
 

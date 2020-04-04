@@ -1,32 +1,27 @@
 #include <interrupts.hpp>
 
-
 namespace interrupts {
-    IdtEntry Idt::table[256];
-    IdtPointer Idt::pointer;
-    bool Idt::initialized;
+    IDTEntry IDT::table[256];
+    IDTPointer IDT::pointer;
+    bool IDT::initialized;
 
-    void intDefaultHandler() {
-        panic("[Idt] Unhandled interrupt\n\r");
-        while (true) {
-            asm("pause");
-        }
-    }
-    extern "C" void intLoadIdt(IdtPointer* pointer);
+    void intDefaultHandler() { panic("[IDT] Unhandled interrupt\n\r"); }
 
-    void Idt::init() {
-        memset(table, 256 * sizeof(IdtEntry), 0);
+    extern "C" void intLoadIDT(IDTPointer* pointer);
+
+    void IDT::init() {
+        memset(table, 256 * sizeof(IDTEntry), 0);
         pointer.base = (Uint64)(&table);
         pointer.limit = sizeof(table);
-        intLoadIdt(&pointer);
+        intLoadIDT(&pointer);
         initialized = true;
-        for(Uint64 i = 0; i < 256; ++i) {
-            install(i, (IdtVector)intDefaultHandler);
+        for (Uint64 i = 0; i < 256; ++i) {
+            install(i, (IDTVector)intDefaultHandler);
         }
     }
 
-    void Idt::install(Uint8 index, IdtVector vec) {
-        IdtEntry& entry = table[index];
+    void IDT::install(Uint8 index, IDTVector vec) {
+        IDTEntry& entry = table[index];
         entry.addrLow = (Uint16)vec;
         entry.addrMiddle = (Uint16)(vec >> 16);
         entry.addrHigh = (Uint32)(vec >> 32);
@@ -40,5 +35,4 @@ namespace interrupts {
         entry.selector = 0x8;
         entry.present = 1;
     }
-
-};
+}; // namespace interrupts

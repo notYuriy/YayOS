@@ -5,8 +5,8 @@
 
 namespace interrupts {
 
-    #pragma pack(1)
-    struct IdtEntry {
+#pragma pack(1)
+    struct IDTEntry {
         Uint16 addrLow;
         Uint16 selector;
         Uint8 ist : 3;
@@ -20,30 +20,30 @@ namespace interrupts {
         Uint32 addrHigh;
         Uint32 zeroed3;
     };
-    #pragma pack(0)
+#pragma pack(0)
 
-    static_assert(sizeof(IdtEntry) == 16);
+    static_assert(sizeof(IDTEntry) == 16);
 
-    #pragma pack(1)
-    struct IdtPointer {
+#pragma pack(1)
+    struct IDTPointer {
         Uint16 limit;
         Uint64 base;
     };
-    #pragma pack(0)
+#pragma pack(0)
 
-    static_assert(sizeof(IdtPointer) == 10);
+    static_assert(sizeof(IDTPointer) == 10);
 
-    typedef Uint64 IdtVector;
+    typedef Uint64 IDTVector;
 
-    class Idt {
-        static IdtPointer pointer;
-        static IdtEntry table[256];
+    class IDT {
+        static IDTPointer pointer;
+        static IDTEntry table[256];
         static bool initialized;
 
     public:
         INLINE static bool isInitialized() { return initialized; }
         static void init();
-        static void install(Uint8 index, IdtVector handler);
+        static void install(Uint8 index, IDTVector handler);
     };
 
 }; // namespace interrupts

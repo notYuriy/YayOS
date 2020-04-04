@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom YaYaOS.iso -m 2G -no-reboot -nographic
+qemu-system-x86_64 -cdrom YaYaOS.iso -m 2G -no-reboot

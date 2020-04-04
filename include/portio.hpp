@@ -16,6 +16,9 @@ namespace IO {
             asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
             return ret;
         }
+        INLINE static void waitForIO() {
+            asm volatile("outb %%al, $0x80" : : "a"(0));
+        }
     };
 
 } // namespace IO

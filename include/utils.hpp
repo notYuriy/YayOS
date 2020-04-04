@@ -2,6 +2,7 @@
 #define __UTILS_HPP_INCLUDED__
 
 #include <attributes.hpp>
+#include <cpprt.hpp>
 #include <inttypes.hpp>
 #include <kprintf.hpp>
 #include <stdarg.h>

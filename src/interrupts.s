@@ -1,8 +1,8 @@
 bits 64
 section .text
 
-global intLoadIdt
+global intLoadIDT
 
-intLoadIdt:
+intLoadIDT:
     lidt [rdi]
     ret
