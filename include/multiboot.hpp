@@ -91,17 +91,31 @@ namespace multiboot {
 #pragma pack(0)
 
 #pragma pack(1)
+    struct ACPIWithOldRSDPTag {
+        Uint32 type;
+        Uint32 size;
+        char table[];
+    };
+#pragma pack(0)
+
+#pragma pack(1)
+    struct ACPIWithNewRSDPTag {
+        Uint32 type;
+        Uint32 size;
+        char table[];
+    };
+#pragma pack(0)
+
+#pragma pack(1)
     struct BootInfoTag {
         BootInfoTagType type;
         Uint32 size;
         INLINE BootInfoTag* next() const {
             return (BootInfoTag*)ALIGN_UP(((char*)this) + size, 8);
         }
-        INLINE MemoryMapTag* toMemoryMapTag() const {
-            return (MemoryMapTag*)(this);
-        }
-        INLINE ElfSectionsTag* toElfSectionsTag() const {
-            return (ElfSectionsTag*)(this);
+        template<class T>
+        INLINE T* as() const {
+            return (T*)this;
         }
         INLINE bool isTerminator() const { return type == 0; }
     };

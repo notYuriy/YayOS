@@ -22,10 +22,10 @@ namespace memory {
         multiboot::ElfSectionsTag* elfSectionsTag = nullptr;
         while (!tag->isTerminator()) {
             if (tag->type == multiboot::BootInfoTagType::MemoryMap) {
-                memoryMapTag = tag->toMemoryMapTag();
+                memoryMapTag = tag->as<multiboot::MemoryMapTag>();
             }
             if (tag->type == multiboot::BootInfoTagType::ElfSections) {
-                elfSectionsTag = tag->toElfSectionsTag();
+                elfSectionsTag = tag->as<multiboot::ElfSectionsTag>();
             }
             tag = tag->next();
         }

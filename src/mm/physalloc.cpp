@@ -97,6 +97,13 @@ namespace memory {
             // prevent deallocation of currently used tables
             pageInfo[i / 4096] = {.refCount = 1, .mapCount = 1};
         }
+        bitmapSetRange(alignDown(memory::BootMemoryInfo::multibootBase, 4096),
+                       alignUp(memory::BootMemoryInfo::multibootLimit, 4096));
+        for (Uint64 i = 0; i < TempPhysAllocator::getFirstUnusedFrame();
+             i += 4096) {
+            // prevent deallocation of multiboot info
+            pageInfo[i / 4096] = {.refCount = 1, .mapCount = 1};
+        }
         bitmapClearRange(TempPhysAllocator::getFirstUnusedFrame(),
                          pagesCount * 4096);
         for (Uint64 i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
