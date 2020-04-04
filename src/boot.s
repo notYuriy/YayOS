@@ -153,7 +153,7 @@ map_p2_entry:
 
 enable_paging:
     ; load P4 to cr3 register (cpu uses this to access the P4 table)
-    mov eax, p4_table
+    mov eax, p4_table - KERNEL_MAPPING_BASE
     mov cr3, eax
 
     ; enable PAE-flag in cr4 (Physical Address Extension)
