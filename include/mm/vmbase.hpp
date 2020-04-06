@@ -46,7 +46,7 @@ namespace memory {
                     bool dirty : 1;
                     bool hugePage : 1;
                     bool global : 1;
-                    bool flag1 : 1;
+                    bool managed : 1;
                     bool flag2 : 1;
                     bool flag3 : 1;
                 };
@@ -55,6 +55,10 @@ namespace memory {
         };
     };
 #pragma pack(0)
+
+    const Uint64 defaultKernelFlags = (1 << 0) | (1 << 1) | (1 << 10);
+    const Uint64 defaultUnmanagedFlags = (1 << 0) | (1 << 1);
+    const Uint64 defaultVolatileDevFlags = (1 << 0) | (1 << 1) | (1 << 5);
 
     static_assert(sizeof(PageTableEntry) == 8);
 

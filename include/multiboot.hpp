@@ -44,9 +44,7 @@ namespace multiboot {
         MemoryMapEntryType type;
         Uint32 : 32;
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct MemoryMapTag {
         Uint32 type;
         Uint32 size;
@@ -57,9 +55,7 @@ namespace multiboot {
             return (size - 16) / sizeof(MemoryMapEntry);
         }
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct ElfSectionHeader {
         Uint32 name;
         Uint32 type;
@@ -72,9 +68,7 @@ namespace multiboot {
         Uint64 addrAlign;
         Uint64 entSize;
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct ElfSectionsTag {
         Uint32 type;
         Uint32 size;
@@ -88,25 +82,19 @@ namespace multiboot {
             return (size - 16) / sizeof(ElfSectionHeader);
         }
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct ACPIWithOldRSDPTag {
         Uint32 type;
         Uint32 size;
         char table[];
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct ACPIWithNewRSDPTag {
         Uint32 type;
         Uint32 size;
         char table[];
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct BootInfoTag {
         BootInfoTagType type;
         Uint32 size;
@@ -119,9 +107,7 @@ namespace multiboot {
         }
         INLINE bool isTerminator() const { return type == 0; }
     };
-#pragma pack(0)
 
-#pragma pack(1)
     struct BootInfoHeader {
         Uint32 totalSize;
         Uint32 reserved;

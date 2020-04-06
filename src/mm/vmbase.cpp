@@ -10,6 +10,7 @@ namespace memory {
             entries[index].lowFlags = 0;
             entries[index].writable = true;
             entries[index].present = true;
+            entries[index].managed = false;
             zeroPage(walkTo(index));
             vmbaseInvalidateCache((memory::VAddr)this);
         }
@@ -25,6 +26,7 @@ namespace memory {
             entries[index].lowFlags = 0;
             entries[index].writable = true;
             entries[index].present = true;
+            entries[index].managed = true;
             zeroPage(walkTo(index));
             vmbaseInvalidateCache((memory::VAddr)this);
         }

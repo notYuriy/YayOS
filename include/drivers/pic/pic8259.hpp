@@ -11,10 +11,10 @@ namespace drivers {
         Uint8 picSlaveMask;
     public:
         void init();
-        virtual Uint8 legacyIrq2SystemInt(Uint8 irq);
-        virtual void enableLegacyIrq(Uint8 irq);
-        virtual void disableLegacyIrq(Uint8 irq);
-        virtual void endOfLegacyIrq(Uint8 irq);
+        virtual bool registerLegacyIrq(Uint8 irq, interrupts::IDTVector vec);
+        virtual bool enableLegacyIrq(Uint8 irq);
+        virtual bool disableLegacyIrq(Uint8 irq);
+        virtual bool endOfLegacyIrq(Uint8 irq);
     };
 
 }; // namespace drivers

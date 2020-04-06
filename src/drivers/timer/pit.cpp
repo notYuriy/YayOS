@@ -1,13 +1,13 @@
 #include <interrupts.hpp>
 #include <pic.hpp>
-#include <pictimer.hpp>
+#include <pit.hpp>
 #include <portio.hpp>
 
 namespace drivers {
 
-    Uint16 PICTimerIrq = 0;
+    Uint16 PITIrq = 0;
 
-    void PICTimer::init(Uint32 frequency) {
+    void PIT::init(Uint32 frequency) {
         if (!PIC::isInitialized()) {
             panic("[PICTimer] Dependency \"PIC\" is not satisfied\n\r");
         }
@@ -23,16 +23,16 @@ namespace drivers {
         initialized = true;
     }
 
-    void PICTimer::enable() {
-        PIC::getSystemPIC()->enableLegacyIrq(PICTimerIrq);
+    void PIT::enable() {
+        PIC::getSystemPIC()->enableLegacyIrq(PITIrq);
     }
 
-    void PICTimer::disable() {
-        PIC::getSystemPIC()->disableLegacyIrq(PICTimerIrq);
+    void PIT::disable() {
+        PIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
-    void PICTimer::setCallback(interrupts::IDTVector vec) {
-        PIC::getSystemPIC()->installLegacyIrqHandler(PICTimerIrq, vec);
+    void PIT::setCallback(interrupts::IDTVector vec) {
+        PIC::getSystemPIC()->registerLegacyIrq(PITIrq, vec);
     }
 
 }; // namespace drivers

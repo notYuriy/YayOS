@@ -11,9 +11,9 @@ namespace drivers {
 
     public:
         INLINE bool isInitialized() { return initialized; }
-        virtual void setCallback(interrupts::IDTVector callback) = 0;
-        virtual void enable() =  0;
-        virtual void disable() = 0;
+        virtual bool setCallback(interrupts::IDTVector callback) = 0;
+        virtual bool enable() =  0;
+        virtual bool disable() = 0;
     };
 }; // namespace drivers
 

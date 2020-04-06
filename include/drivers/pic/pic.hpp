@@ -13,21 +13,15 @@ namespace drivers {
         bool picInstanceInitialized;
 
     public:
-        virtual Uint8 legacyIrq2SystemInt(Uint8 irq) = 0;
-        virtual void enableLegacyIrq(Uint8 irq) = 0;
-        virtual void disableLegacyIrq(Uint8 irq) = 0;
-        virtual void endOfLegacyIrq(Uint8 irq) = 0;
+        virtual bool registerLegacyIrq(Uint8 irq, interrupts::IDTVector vec) = 0;
+        virtual bool enableLegacyIrq(Uint8 irq) = 0;
+        virtual bool disableLegacyIrq(Uint8 irq) = 0;
+        virtual bool endOfLegacyIrq(Uint8 irq) = 0;
 
         INLINE bool isInstanceInitialized() { return picInstanceInitialized; }
         INLINE static bool isInitialized() { return picInitialized; }
 
-        INLINE void installLegacyIrqHandler(Uint8 num,
-                                            interrupts::IDTVector vec) {
-            interrupts::IDT::install(legacyIrq2SystemInt(num), vec);
-        };
-
         INLINE static PIC* getSystemPIC() { return systemPic; }
-
         static void detectPIC();
     };
 

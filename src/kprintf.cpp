@@ -53,6 +53,12 @@ void puts(char* str) {
     }
 }
 
+void putsn(char* str, Uint64 len) {
+    for (Uint64 i = 0; i < len; ++i) {
+        Serial::send(SerialPort::COM1, str[i]);
+    }
+}
+
 void vkprintf(const char* fmt, va_list args) {
     for (Uint64 i = 0; fmt[i] != '\0'; ++i) {
         if (fmt[i] != '%') {

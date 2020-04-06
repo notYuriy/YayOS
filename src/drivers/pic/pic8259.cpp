@@ -44,7 +44,7 @@ namespace drivers {
         picInstanceInitialized = true;
     }
 
-    void PIC8259::enableLegacyIrq(Uint8 irq) {
+    bool PIC8259::enableLegacyIrq(Uint8 irq) {
         if (irq < 8) {
             picMasterMask &= ~(1 << irq);
         } else {
@@ -52,9 +52,10 @@ namespace drivers {
         }
         IO::Ports::outb(picMasterDataPort, picMasterMask);
         IO::Ports::outb(picSlaveDataPort, picSlaveMask);
+        return true;
     }
 
-    void PIC8259::disableLegacyIrq(Uint8 irq) {
+    bool PIC8259::disableLegacyIrq(Uint8 irq) {
         if (irq < 8) {
             picMasterMask |= (1 << irq);
         } else {
@@ -62,17 +63,22 @@ namespace drivers {
         }
         IO::Ports::outb(picMasterDataPort, picMasterMask);
         IO::Ports::outb(picSlaveDataPort, picSlaveMask);
+        return true;
     }
 
-    void PIC8259::endOfLegacyIrq(Uint8 irq) {
-        if(irq >= 8) {
+    bool PIC8259::endOfLegacyIrq(Uint8 irq) {
+        if (irq >= 8) {
             IO::Ports::outb(picSlaveCommandPort, picEOI);
         }
         IO::Ports::outb(picMasterCommandPort, picEOI);
+        return true;
     }
 
-    Uint8 PIC8259::legacyIrq2SystemInt(Uint8 irq) {
-        return irq;
+    bool PIC8259::registerLegacyIrq(Uint8 irq, interrupts::IDTVector vec) {
+        if (irq >= 16) {
+            return false;
+        }
+        interrupts::IDT::install(irq + 32, vec);
     }
 
-}
+} // namespace drivers

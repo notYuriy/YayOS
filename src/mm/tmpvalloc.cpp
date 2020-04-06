@@ -30,6 +30,7 @@ namespace memory {
             entry->addr = physAddr;
             entry->writable = true;
             entry->present = true;
+            entry->managed = false;
             vmbaseInvalidateCache((VAddr)addr);
         }
     } // namespace

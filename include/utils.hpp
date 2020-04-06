@@ -6,6 +6,7 @@
 #include <inttypes.hpp>
 #include <kprintf.hpp>
 #include <stdarg.h>
+#include <cpuid.h>
 
 #define KB *1024
 #define MB *1024 * 1024
@@ -54,6 +55,27 @@ INLINE static void memset(void* dst, Uint64 size, Uint8 fill) {
     for (Uint64 i = 0; i < size; ++i) {
         ((char*)dst)[i] = fill;
     }
+}
+
+INLINE static bool streqn(const char* str1, const char* str2, Uint64 n) {
+    for (Uint64 i = 0; i < n; ++i) {
+        if (str1[i] != str2[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+struct CPUIDInfo {
+    Uint32 leaf;
+    Uint32 eax, ebx, ecx, edx;
+};
+
+INLINE CPUIDInfo cpuid(Uint32 leaf) {
+    CPUIDInfo result;
+    result.leaf = leaf;
+    __get_cpuid(leaf, &result.eax, &result.ebx, &result.ecx, &result.edx);
+    return result;
 }
 
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF

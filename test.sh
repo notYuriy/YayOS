@@ -1,1 +1,1 @@
-qemu-system-x86_64 -cdrom YayOS.iso -m 2G -no-reboot
+qemu-system-x86_64 -cdrom YayOS.iso -m 2G -no-reboot 2> /dev/null

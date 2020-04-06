@@ -228,7 +228,7 @@ namespace memory {
     }
 
     VAddr KernelVirtualAllocator::getMapping(Uint64 size, PAddr physBase,
-                                             bool managed) {
+                                             Uint64 flags) {
         MemoryArea* bestFit = findBestFit(size);
         if (bestFit == nullptr) {
             return 0;
@@ -243,7 +243,7 @@ namespace memory {
         if (physBase == 0) {
             VirtualMemoryMapper::mapNewPages(offset, offset + size);
         } else {
-            VirtualMemoryMapper::mapPages(offset, offset + size, physBase, managed);
+            VirtualMemoryMapper::mapPages(offset, offset + size, physBase, flags);
         }
         freePools();
         return offset;
@@ -279,7 +279,7 @@ namespace memory {
     }
 
     void KernelVirtualAllocator::unmapAt(VAddr start, Uint64 size) {
-        memory::VirtualMemoryMapper::freePages(start, start + size);
+        memory::VirtualMemoryMapper::freePages(start, start + size);        
         freeRange(start, size);
     }
 

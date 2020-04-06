@@ -1,10 +1,10 @@
-#ifndef __PIC_TIMER_HPP_INCLUDED__
-#define __PIC_TIMER_HPP_INCLUDED__
+#ifndef __PIT_HPP_INCLUDED__
+#define __PIT_HPP_INCLUDED__
 
 #include <timer.hpp>
 
 namespace drivers {
-    class PICTimer : public Timer {
+    class PIT : public Timer {
         bool initialized;
         Uint32 frequency;
     public:
