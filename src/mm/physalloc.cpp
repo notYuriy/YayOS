@@ -1,4 +1,5 @@
 #include <physalloc.hpp>
+#include <spinlock.hpp>
 
 namespace memory {
     bool PhysAllocator::initialized;
@@ -7,6 +8,8 @@ namespace memory {
     Uint64 PhysAllocator::pagesCount;
     Uint64 PhysAllocator::bitmapSize;
     Uint64 PhysAllocator::leastUncheckedIndex;
+    lock::Spinlock physLock;
+
 
     INLINE void setBit(Uint64& num, Uint8 bit) { num |= (1ULL << bit); }
     INLINE void clearBit(Uint64& num, Uint8 bit) { num &= ~(1ULL << bit); }
@@ -103,10 +106,12 @@ namespace memory {
             }
         }
         leastUncheckedIndex = 0;
-        initialized = 1;
+        physLock.lockValue = 0;
+        initialized = true;
     }
 
     PAddr PhysAllocator::newPage(UNUSED VAddr addrHint) {
+        physLock.lock();
         PAddr addr = leastUncheckedIndex * 64 * 4096;
         for (Uint64 i = leastUncheckedIndex; i < bitmapSize;
              ++i, addr += 64 * 4096) {
@@ -114,11 +119,14 @@ namespace memory {
                 continue;
             }
             Uint8 index = bitScanForward(~bitmap[i]);
-            pageInfo[64 * i + index] = {.refCount = 1, .mapCount = 0};
+            pageInfo[64 * i + index].refCount = 1;
+            pageInfo[64 * i + index].mapCount = 1;
             setBit(bitmap[i], index);
             leastUncheckedIndex = i;
+            physLock.unlock();
             return addr + (Uint64)index * 4096;
         }
+        physLock.unlock();
         return 0;
     }
 
@@ -132,10 +140,12 @@ namespace memory {
     }
 
     void PhysAllocator::freePage(PAddr addr) {
+        physLock.lock();
         if (--pageInfo[addr / 4096].refCount == 0) {
             clearBit(bitmap[addr / (4096ULL * 64ULL)], (addr / 4096) % 64);
             leastUncheckedIndex = 0;
         }
+        physLock.unlock();
     }
 
     void PhysAllocator::freePages(PAddr addr, Uint64 count) {
@@ -146,11 +156,11 @@ namespace memory {
     }
 
     void PhysAllocator::incrementRefCount(PAddr addr) {
-        pageInfo[addr / 4096].refCount++;
+        ++(pageInfo[addr / 4096].refCount);
     }
 
     void PhysAllocator::incrementMapCount(PAddr addr) {
-        pageInfo[addr / 4096].mapCount++;
+        ++(pageInfo[addr / 4096].mapCount);
     }
 
     bool PhysAllocator::decrementMapCount(PAddr addr) {

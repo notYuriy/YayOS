@@ -23,16 +23,16 @@ namespace drivers {
         initialized = true;
     }
 
-    void PIT::enable() {
-        PIC::getSystemPIC()->enableLegacyIrq(PITIrq);
+    bool PIT::enable() {
+        return PIC::getSystemPIC()->enableLegacyIrq(PITIrq);
     }
 
-    void PIT::disable() {
-        PIC::getSystemPIC()->disableLegacyIrq(PITIrq);
+    bool PIT::disable() {
+        return PIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
-    void PIT::setCallback(interrupts::IDTVector vec) {
-        PIC::getSystemPIC()->registerLegacyIrq(PITIrq, vec);
+    bool PIT::setCallback(interrupts::IDTVector vec) {
+        return PIC::getSystemPIC()->registerLegacyIrq(PITIrq, vec);
     }
 
 }; // namespace drivers

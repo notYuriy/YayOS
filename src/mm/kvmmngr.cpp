@@ -1,5 +1,6 @@
 #include <kvmmngr.hpp>
 #include <vmmap.hpp>
+#include <spinlock.hpp>
 
 namespace memory {
 
@@ -17,8 +18,10 @@ namespace memory {
     static_assert(sizeof(MemoryArea) == 32);
 
     struct MemoryAreaPool* poolHeads[128];
-    volatile Uint64 lastCheckedIndex;
+
+    Uint64 lastCheckedIndex;
     MemoryArea* kernelAreas;
+    lock::Spinlock kvmmngrLock;
 
     struct MemoryAreaPool {
         MemoryArea* first;
@@ -229,8 +232,10 @@ namespace memory {
 
     VAddr KernelVirtualAllocator::getMapping(Uint64 size, PAddr physBase,
                                              Uint64 flags) {
+        kvmmngrLock.lock();
         MemoryArea* bestFit = findBestFit(size);
         if (bestFit == nullptr) {
+            kvmmngrLock.unlock();
             return 0;
         }
         VAddr offset = bestFit->offset;
@@ -246,6 +251,7 @@ namespace memory {
             VirtualMemoryMapper::mapPages(offset, offset + size, physBase, flags);
         }
         freePools();
+        kvmmngrLock.unlock();
         return offset;
     }
 
@@ -279,8 +285,10 @@ namespace memory {
     }
 
     void KernelVirtualAllocator::unmapAt(VAddr start, Uint64 size) {
+        kvmmngrLock.lock();
         memory::VirtualMemoryMapper::freePages(start, start + size);        
         freeRange(start, size);
+        kvmmngrLock.unlock();
     }
 
     void KernelVirtualAllocator::init() {
@@ -301,6 +309,7 @@ namespace memory {
                                   ->walkTo(0));
         lastCheckedIndex = 127;
         freeRange(initAreaStart, initAreaEnd - initAreaStart);
+        kvmmngrLock.lockValue = 0;
         initialized = true;
     }
 

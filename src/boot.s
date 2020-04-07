@@ -1,4 +1,4 @@
-; taken from phill-opp higher half github demo
+; See LICENSE-MIT file for license
 
 global start
 extern kmain

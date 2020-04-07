@@ -11,9 +11,9 @@ namespace drivers {
         void init(Uint32 frequency);
         INLINE bool isInitilaized() { return initialized; }
         INLINE Uint64 getFrequency() { return frequency; }
-        virtual void setCallback(interrupts::IDTVector callback);
-        virtual void enable();
-        virtual void disable();
+        virtual bool setCallback(interrupts::IDTVector callback);
+        virtual bool enable();
+        virtual bool disable();
     };
 } // namespace drivers
 

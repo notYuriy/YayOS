@@ -79,6 +79,7 @@ namespace drivers {
             return false;
         }
         interrupts::IDT::install(irq + 32, vec);
+        return true;
     }
 
 } // namespace drivers
