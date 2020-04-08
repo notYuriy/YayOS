@@ -23,7 +23,7 @@ do
     $CPP -c -o $objectPath $cppSource $includeString\
     -ffreestanding -funroll-loops -Wall -Wextra -O2 -mno-sse -mno-sse2 -mno-sse3\
     -mcmodel=large -mno-red-zone -fno-exceptions -fno-rtti\
-    -fno-asynchronous-unwind-tables -mno-red-zone -Wno-attributes || exit
+    -mno-red-zone -Wno-attributes || exit
 done
 
 asmPaths="eval find . -type f -name '*.s'"

@@ -203,6 +203,7 @@ namespace memory {
         for (Uint64 i = 0; i < areanasCount; ++i) {
             arenas[i].init(i);
         }
+        initialized = true;
     }
 
     void* KernelHeap::alloc(Uint64 size) { 

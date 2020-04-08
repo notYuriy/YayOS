@@ -5,16 +5,16 @@
 
 namespace drivers {
 
-    Uint16 PITIrq = 0;
+    const Uint16 PITIrq = 0;
 
     void PIT::init(Uint32 frequency) {
         if (!PIC::isInitialized()) {
-            panic("[PICTimer] Dependency \"PIC\" is not satisfied\n\r");
+            //panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
         }
         this->frequency = frequency;
         Uint32 divisor = 1193180 / frequency;
         if (divisor > 65536) {
-            panic("[PICTimer] Can't handle such a small frequency\n\r");
+            panic("[PIT] Can't handle such a small frequency\n\r");
         }
         IO::Ports::outb(0x43, 0x36);
         Uint16 lowDivisor = (Uint16)divisor;
@@ -32,7 +32,13 @@ namespace drivers {
     }
 
     bool PIT::setCallback(interrupts::IDTVector vec) {
-        return PIC::getSystemPIC()->registerLegacyIrq(PITIrq, vec);
+        drivers::PIC* pic = PIC::getSystemPIC();
+        bool result = pic->registerLegacyIrq(PITIrq, vec);
+        return result;
+    }
+
+    void PIT::onTerm() {
+        PIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
     }
 
 }; // namespace drivers

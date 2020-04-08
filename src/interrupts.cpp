@@ -27,7 +27,6 @@ namespace interrupts {
         entry.addrHigh = (Uint32)(vec >> 32);
         entry.zeroed1 = 0;
         entry.zeroed2 = 0;
-        entry.zeroed3 = 0;
         entry.type = 0;
         entry.ist = 0;
         entry.dpl = 0;

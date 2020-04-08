@@ -14,6 +14,7 @@ namespace drivers {
         virtual bool setCallback(interrupts::IDTVector callback) = 0;
         virtual bool enable() =  0;
         virtual bool disable() = 0;
+        virtual void onTerm() = 0;
     };
 }; // namespace drivers
 

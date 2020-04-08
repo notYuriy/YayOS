@@ -17,15 +17,21 @@ SECTIONS {
         *(.text)
     }
 
+    . = ALIGN(4096); 
+
     .bss : AT(ADDR(.bss) - KERNEL_MAPPING_BASE) {
         *(.bss)
     }
 
+    . = ALIGN(4096); 
+
     .rodata : AT(ADDR(.rodata) - KERNEL_MAPPING_BASE) {
         *(.rodata)
     }
+
+    . = ALIGN(4096); 
         
     .data : AT(ADDR(.data) - KERNEL_MAPPING_BASE) {
-        *(.rodata)
+        *(.data)
     }
 }

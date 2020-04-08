@@ -11,7 +11,7 @@ namespace drivers {
         Uint8 picSlaveMask;
     public:
         void init();
-        virtual bool registerLegacyIrq(Uint8 irq, interrupts::IDTVector vec);
+        bool registerLegacyIrq(Uint8 irq, interrupts::IDTVector vec);
         virtual bool enableLegacyIrq(Uint8 irq);
         virtual bool disableLegacyIrq(Uint8 irq);
         virtual bool endOfLegacyIrq(Uint8 irq);
