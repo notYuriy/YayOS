@@ -64,7 +64,7 @@ namespace proc {
         processData[initPid].next = &processData[initPid];
         processData[initPid].prev = &processData[initPid];
         schedListHead = &processData[initPid];
-        interrupts::IDT::install(32, (interrupts::IDTVector)schedulerIntHandler);
+        timer->setCallback((interrupts::IDTVector)schedulerIntHandler);
         lock.lockValue = 0;
     }
 
