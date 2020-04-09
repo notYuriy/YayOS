@@ -2,9 +2,7 @@
 #include <kvmmngr.hpp>
 #include <proc.hpp>
 
-extern "C" void timerEOI() {
-    proc::ProcessManager::timer->onTerm();
-}
+extern "C" void timerEOI() { proc::ProcessManager::timer->onTerm(); }
 
 namespace proc {
 
@@ -13,14 +11,25 @@ namespace proc {
     Process* ProcessManager::processData;
     Uint64* ProcessManager::pidBitmap;
     Uint64 ProcessManager::lastCheckedIndex;
-    lock::Spinlock ProcessManager::lock;
+    lock::Spinlock ProcessManager::modifierLock;
     Uint64 ProcessManager::pidBitmapSize;
-    Process* ProcessManager::execAlternative;
     drivers::Timer* ProcessManager::timer;
+    bool ProcessManager::yieldFlag;
+    bool ProcessManager::unlockSpinlock;
 
     extern "C" void schedulerIntHandler();
+    extern "C" void schedulerYield();
+
     extern "C" void scheduleUsingFrame(SchedulerIntFrame* frame) {
         ProcessManager::schedule(frame);
+    }
+
+    extern "C" void setYieldFlag() {
+        ProcessManager::yieldFlag = true;
+    }
+
+    extern "C" void clearYieldFlag() {
+        ProcessManager::yieldFlag = false;
     }
 
     Pid ProcessManager::pidAlloc() {
@@ -36,7 +45,13 @@ namespace proc {
     }
 
     void ProcessManager::schedule(SchedulerIntFrame* frame) {
-        kprintf("Switch\n\r");
+        if (yieldFlag) {
+            return;
+        }
+        if (unlockSpinlock) {
+            unlockSpinlock = false;
+            modifierLock.unlock();
+        }
         schedListHead->state.loadFromFrame(frame);
         schedListHead = schedListHead->next;
         schedListHead->state.loadToFrame(frame);
@@ -56,16 +71,65 @@ namespace proc {
         }
         timer = schedTimer;
         processData = (Process*)memory::KernelVirtualAllocator::getMapping(
-            alignUp(sizeof(Process) * pidCount, 4096), 0, memory::defaultKernelFlags);
+            alignUp(sizeof(Process) * pidCount, 4096), 0,
+            memory::defaultKernelFlags);
         pidBitmap = new Uint64[alignUp(pidCount, 64)];
         pidBitmapSize = alignUp(pidCount, 64) / 64;
         memset(pidBitmap, alignUp(pidCount, 64) / 64, 0);
         Pid initPid = pidAlloc();
         processData[initPid].next = &processData[initPid];
         processData[initPid].prev = &processData[initPid];
+        processData[initPid].pid = initPid;
         schedListHead = &processData[initPid];
         timer->setCallback((interrupts::IDTVector)schedulerIntHandler);
-        lock.lockValue = 0;
+        modifierLock.lockValue = 0;
+        unlockSpinlock = false;
+        yieldFlag = false;
+        initialized = true;
+    }
+
+    Process* ProcessManager::newProc() {
+        modifierLock.lock();
+        Pid pid = pidAlloc();
+        if (pid == pidCount) {
+            modifierLock.unlock();
+            return nullptr;
+        }
+        return &processData[pid];
+        modifierLock.unlock();
+    }
+
+    bool ProcessManager::addToRunList(Process* proc) {
+        Process* head = schedListHead;
+        modifierLock.lock();
+        proc->next = head;
+        head->prev = proc;
+        Process* prev = head->prev;
+        proc->prev = prev;
+        // assuming this operation is atomic
+        prev->next = proc;
+        modifierLock.unlock();
+        return true;
+    }
+
+    void ProcessManager::yield() {
+        schedulerYield();
+    }
+
+    bool ProcessManager::suspendFromRunList(Pid pid) {
+        modifierLock.lock();
+        Process* proc = &processData[pid];
+        Process* prev = proc->prev;
+        freePid(pid);
+        proc->next->prev = prev;
+        unlockSpinlock = true;
+        prev->next = proc->next;
+        if (pid == schedListHead->pid) {
+            while (1) {
+                asm("pause");
+            }
+        }
+        return true;
     }
 
 }; // namespace proc

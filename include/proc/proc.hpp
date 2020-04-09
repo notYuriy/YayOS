@@ -10,6 +10,7 @@ namespace proc {
 
     typedef Uint64 Pid;
     const Pid pidCount = 65536;
+    typedef void (*EntryPoint)();
 
     struct Process {
         ProcessState state;
@@ -21,7 +22,6 @@ namespace proc {
 
     static_assert(sizeof(Process) % 64 == 0);
 
-    typedef void (*EntryPoint)();
 
     class ProcessManager {
         static bool initialized;
@@ -30,19 +30,23 @@ namespace proc {
         static Uint64* pidBitmap;
         static Uint64 pidBitmapSize;
         static Uint64 lastCheckedIndex;
-        static lock::Spinlock lock;
-        static Process* execAlternative;
+        static lock::Spinlock modifierLock;
+        static bool unlockSpinlock;
 
         static Pid pidAlloc();
         static void freePid(Pid pid);
 
     public:
         static drivers::Timer* timer;
+        static bool yieldFlag;
         
         INLINE static bool isInitilaized() { return initialized; }
         static void schedule(SchedulerIntFrame* frame);
+        static void yield();
         static void init(drivers::Timer* timer);
-        static Pid newProc(Process *proc);
+        static Process* newProc();
+        static bool addToRunList(Process *proc);
+        static bool suspendFromRunList(Pid pid);
     };
 
 }; // namespace proc
