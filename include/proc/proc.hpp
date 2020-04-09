@@ -17,28 +17,27 @@ namespace proc {
         Pid pid;
         Process* next;
         Process* prev;
-        Uint64 padding[3];
+        Uint64 padding[4];
     };
 
     static_assert(sizeof(Process) % 64 == 0);
 
-
     class ProcessManager {
-        static bool initialized;
         static Process* schedListHead;
         static Process* processData;
         static Uint64* pidBitmap;
         static Uint64 pidBitmapSize;
         static Uint64 lastCheckedIndex;
         static lock::Spinlock modifierLock;
-        static bool unlockSpinlock;
+        static Uint64 unlockSpinlock;
+        static bool initialized;
 
         static Pid pidAlloc();
         static void freePid(Pid pid);
 
     public:
         static drivers::Timer* timer;
-        static bool yieldFlag;
+        static Uint64 yieldFlag;
         
         INLINE static bool isInitilaized() { return initialized; }
         static void schedule(SchedulerIntFrame* frame);

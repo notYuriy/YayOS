@@ -80,4 +80,13 @@ INLINE CPUIDInfo cpuid(Uint32 leaf) {
 
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
+extern "C" Uint64 getPageTable();
+extern "C" Uint64 getFlags();
+extern "C" Uint64 getFS();
+extern "C" Uint64 getGS();
+extern "C" Uint64 getCS();
+extern "C" Uint64 getDS();
+extern "C" Uint64 getES();
+extern "C" Uint64 getSS();
+
 #endif

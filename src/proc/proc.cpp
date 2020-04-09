@@ -14,8 +14,8 @@ namespace proc {
     lock::Spinlock ProcessManager::modifierLock;
     Uint64 ProcessManager::pidBitmapSize;
     drivers::Timer* ProcessManager::timer;
-    bool ProcessManager::yieldFlag;
-    bool ProcessManager::unlockSpinlock;
+    Uint64 ProcessManager::yieldFlag;
+    Uint64 ProcessManager::unlockSpinlock;
 
     extern "C" void schedulerIntHandler();
     extern "C" void schedulerYield();
@@ -25,11 +25,18 @@ namespace proc {
     }
 
     extern "C" void setYieldFlag() {
-        ProcessManager::yieldFlag = true;
+        ProcessManager::yieldFlag = 1;
     }
 
     extern "C" void clearYieldFlag() {
-        ProcessManager::yieldFlag = false;
+        ProcessManager::yieldFlag = 0;
+    }
+
+    extern "C" void scheduleForIntUsingFrame(SchedulerIntFrame* frame) {
+        if (ProcessManager::yieldFlag) {
+            return;
+        }
+        scheduleUsingFrame(frame);
     }
 
     Pid ProcessManager::pidAlloc() {
@@ -45,9 +52,7 @@ namespace proc {
     }
 
     void ProcessManager::schedule(SchedulerIntFrame* frame) {
-        if (yieldFlag) {
-            return;
-        }
+        //kprintf("pid: %ull\n\r", schedListHead->pid);
         if (unlockSpinlock) {
             unlockSpinlock = false;
             modifierLock.unlock();
@@ -83,8 +88,8 @@ namespace proc {
         schedListHead = &processData[initPid];
         timer->setCallback((interrupts::IDTVector)schedulerIntHandler);
         modifierLock.lockValue = 0;
-        unlockSpinlock = false;
-        yieldFlag = false;
+        unlockSpinlock = 1;
+        yieldFlag = 0;
         initialized = true;
     }
 
@@ -95,18 +100,18 @@ namespace proc {
             modifierLock.unlock();
             return nullptr;
         }
-        return &processData[pid];
         modifierLock.unlock();
+        processData[pid].pid = pid;
+        return &processData[pid];
     }
 
     bool ProcessManager::addToRunList(Process* proc) {
-        Process* head = schedListHead;
         modifierLock.lock();
+        Process* head = schedListHead;
+        Process* prev = schedListHead->prev;
         proc->next = head;
-        head->prev = proc;
-        Process* prev = head->prev;
         proc->prev = prev;
-        // assuming this operation is atomic
+        head->prev = proc;
         prev->next = proc;
         modifierLock.unlock();
         return true;
@@ -129,6 +134,7 @@ namespace proc {
                 asm("pause");
             }
         }
+        modifierLock.unlock();
         return true;
     }
 

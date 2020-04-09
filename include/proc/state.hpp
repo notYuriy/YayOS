@@ -13,7 +13,6 @@ namespace proc {
         Uint64 r15, r14;
         Uint64 r13, r12, r11, r10, r9, r8;
         Uint64 rbp, rsi, rdi, rdx, rcx, rbx, rax;
-        Uint64 errcode;
         Uint64 rip, cs, rflags, rsp, ss;
     };
 
@@ -33,12 +32,12 @@ namespace proc {
         GeneralRegs generalRegs;
 
         INLINE void loadToFrame(SchedulerIntFrame* frame) {
-            memcpy(frame, &generalRegs, sizeof(frame));
+            memcpy(frame, &generalRegs, sizeof(*frame));
             extendedRegs.loadToFPU();
         }
 
         INLINE void loadFromFrame(SchedulerIntFrame* frame) {
-            memcpy(&generalRegs, frame, sizeof(frame));
+            memcpy(&generalRegs, frame, sizeof(*frame));
             extendedRegs.loadFromFPU();
         }
     };

@@ -3,6 +3,7 @@ bits 64
 section .text
 
 extern scheduleUsingFrame
+extern scheduleForIntUsingFrame
 extern timerEOI
 extern setYieldFlag
 extern clearYieldFlag
@@ -36,7 +37,7 @@ schedulerIntHandler:
     mov rax, fs
     push rax
     mov rdi, rsp
-    call scheduleUsingFrame
+    call scheduleForIntUsingFrame
     call timerEOI
     pop rax
     mov fs, rax
