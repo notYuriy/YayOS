@@ -4,7 +4,7 @@
 #include <attributes.hpp>
 #include <cpprt.hpp>
 #include <inttypes.hpp>
-#include <kprintf.hpp>
+#include <log.hpp>
 #include <stdarg.h>
 #include <cpuid.h>
 
@@ -21,8 +21,8 @@ INLINE static Uint64 alignDown(Uint64 value, Uint64 align) {
 }
 
 INLINE static void panic(const char* msg) {
-    kprintf("\u001b[31m");
-    kprintf(msg);
+    core::log("\u001b[31m");
+    core::log(msg);
     while (1) {
         asm("pause");
     }

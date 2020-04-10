@@ -11,7 +11,7 @@ namespace proc {
     Process* ProcessManager::processData;
     Uint64* ProcessManager::pidBitmap;
     Uint64 ProcessManager::lastCheckedIndex;
-    lock::Spinlock ProcessManager::modifierLock;
+    proc::Spinlock ProcessManager::modifierLock;
     Uint64 ProcessManager::pidBitmapSize;
     drivers::Timer* ProcessManager::timer;
     Uint64 ProcessManager::yieldFlag;
@@ -39,6 +39,10 @@ namespace proc {
         scheduleUsingFrame(frame);
     }
 
+    extern "C" void procYield() {
+        ProcessManager::yield();
+    }
+
     Pid ProcessManager::pidAlloc() {
         for (; lastCheckedIndex < pidBitmapSize; ++lastCheckedIndex) {
             if (~pidBitmap[lastCheckedIndex] == 0) {
@@ -52,7 +56,7 @@ namespace proc {
     }
 
     void ProcessManager::schedule(SchedulerIntFrame* frame) {
-        //kprintf("pid: %ull\n\r", schedListHead->pid);
+        //core::log("pid: %ull\n\r", schedListHead->pid);
         if (unlockSpinlock) {
             unlockSpinlock = false;
             modifierLock.unlock();
@@ -86,7 +90,7 @@ namespace proc {
         processData[initPid].prev = &processData[initPid];
         processData[initPid].pid = initPid;
         schedListHead = &processData[initPid];
-        timer->setCallback((interrupts::IDTVector)schedulerIntHandler);
+        timer->setCallback((core::IDTVector)schedulerIntHandler);
         modifierLock.lockValue = 0;
         unlockSpinlock = 1;
         yieldFlag = 0;

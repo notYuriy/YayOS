@@ -7,7 +7,7 @@ namespace drivers {
     bool PIC::picInitialized;
 
     void PIC::detectPIC() {
-        if(!interrupts::IDT::isInitialized()) {
+        if(!core::IDT::isInitialized()) {
             panic("[PIC] Dependency \"IDT\" is not satisfied");
         }
         if(!memory::KernelHeap::isInitialized()) {

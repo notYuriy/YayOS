@@ -21,7 +21,7 @@ namespace memory {
 
     Uint64 lastCheckedIndex;
     MemoryArea* kernelAreas;
-    lock::Spinlock kvmmngrLock;
+    proc::Spinlock kvmmngrLock;
 
     struct MemoryAreaPool {
         MemoryArea* first;

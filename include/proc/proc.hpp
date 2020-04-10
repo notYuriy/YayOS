@@ -28,7 +28,7 @@ namespace proc {
         static Uint64* pidBitmap;
         static Uint64 pidBitmapSize;
         static Uint64 lastCheckedIndex;
-        static lock::Spinlock modifierLock;
+        static proc::Spinlock modifierLock;
         static Uint64 unlockSpinlock;
         static bool initialized;
 

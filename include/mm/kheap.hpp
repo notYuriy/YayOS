@@ -17,7 +17,7 @@ namespace memory {
         Uint64 poolsMaxCount[poolsSizesCount];
         Uint64 poolsLastCheckedIndices[poolsSizesCount];
         Uint64 arenaId;
-        lock::Spinlock lock;
+        proc::Spinlock lock;
 
         void cutPoolFrom(SmallObjectPool* pool, Uint64 sizeIndex,
                          Uint64 headsIndex);

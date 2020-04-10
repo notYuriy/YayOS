@@ -16,10 +16,10 @@ namespace drivers {
         if (divisor > 65536) {
             panic("[PIT] Can't handle such a small frequency\n\r");
         }
-        IO::Ports::outb(0x43, 0x36);
+        core::Ports::outb(0x43, 0x36);
         Uint16 lowDivisor = (Uint16)divisor;
-        IO::Ports::outb(0x40, lowDivisor & 0xff);
-        IO::Ports::outb(0x40, lowDivisor >> 8);
+        core::Ports::outb(0x40, lowDivisor & 0xff);
+        core::Ports::outb(0x40, lowDivisor >> 8);
         initialized = true;
     }
 
@@ -31,7 +31,7 @@ namespace drivers {
         return PIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
-    bool PIT::setCallback(interrupts::IDTVector vec) {
+    bool PIT::setCallback(core::IDTVector vec) {
         drivers::PIC* pic = PIC::getSystemPIC();
         bool result = pic->registerLegacyIrq(PITIrq, vec);
         return result;

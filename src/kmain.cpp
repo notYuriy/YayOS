@@ -1,5 +1,5 @@
 #include <interrupts.hpp>
-#include <kprintf.hpp>
+#include <log.hpp>
 #include <mminit.hpp>
 #include <pic.hpp>
 #include <pic8259.hpp>
@@ -9,15 +9,15 @@
 
 void kekich() {
     while(1) {
-        kprintf("Thread 2\n\r");
+        core::log("2");
         ///proc::ProcessManager::yield();
     }
 }
 
 extern "C" void kmain(Uint64 mbPointer) {
-    IO::Serial::init(IO::SerialPort::COM1);
+    drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
-    interrupts::IDT::init();
+    core::IDT::init();
     drivers::PIC::detectPIC();
     drivers::PIT timer;
     timer.init(20);
@@ -26,7 +26,7 @@ extern "C" void kmain(Uint64 mbPointer) {
 
     proc::Process* newProc = proc::ProcessManager::newProc();
     proc::Pid pid = newProc->pid;
-    kprintf("pid: %ull\n\r", pid);
+    core::log("pid: %ull\n\r", pid);
 
     memset(newProc->state.extendedRegs.buf,
            sizeof(newProc->state.extendedRegs.buf), 0);
@@ -45,11 +45,12 @@ extern "C" void kmain(Uint64 mbPointer) {
     newProc->state.generalRegs.gs = getGS();
     newProc->state.generalRegs.es = getES();
     newProc->state.generalRegs.ss = getSS();
-    kprintf("%ull %ull %ull %ull %ull %ull\n\r", getCS(), getDS(), getFS(), getGS(), getES(), getSS());
     newProc->state.generalRegs.rip = (Uint64)kekich;
+
     proc::ProcessManager::addToRunList(newProc);
-    while(1) {
-        kprintf("Thread 1\n\r");
-        //proc::ProcessManager::yield();
+    for(Uint64 i = 0; i < 100000; ++i) {
+        core::log("1");
     }
+    //proc::ProcessManager::suspendFromRunList(pid);
+    while(1) {}
 }

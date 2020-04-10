@@ -8,7 +8,7 @@ namespace memory {
     Uint64 PhysAllocator::pagesCount;
     Uint64 PhysAllocator::bitmapSize;
     Uint64 PhysAllocator::leastUncheckedIndex;
-    lock::Spinlock physLock;
+    proc::Spinlock physLock;
 
 
     INLINE void setBit(Uint64& num, Uint8 bit) { num |= (1ULL << bit); }

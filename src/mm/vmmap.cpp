@@ -27,6 +27,7 @@ namespace memory {
             }
             PhysAllocator::incrementMapCount(p1addr);
         }
+        vmbaseInvalidateCache(addr);
     }
 
     void VirtualMemoryMapper::freePageAt(VAddr addr) {
@@ -72,6 +73,7 @@ namespace memory {
             PhysAllocator::freePage(p3addr);
             p4Table->entries[p4Index].addr = 0;
         }
+        vmbaseInvalidateCache(addr);
     }
 
     void VirtualMemoryMapper::mapNewPages(VAddr start, VAddr end) {
