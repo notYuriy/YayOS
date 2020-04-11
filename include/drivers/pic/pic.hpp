@@ -1,12 +1,12 @@
 #ifndef __PIC_HPP_INCLUDED__
 #define __PIC_HPP_INCLUDED__
 
-#include <interrupts.hpp>
+#include <core/interrupts.hpp>
 #include <utils.hpp>
 
 namespace drivers {
-    class PIC {
-        static PIC* systemPic;
+    class IPIC {
+        static IPIC* systemPic;
         static bool picInitialized;
 
     protected:
@@ -21,12 +21,12 @@ namespace drivers {
         INLINE bool isInstanceInitialized() { return picInstanceInitialized; }
         INLINE static bool isInitialized() { return picInitialized; }
 
-        INLINE static PIC* getSystemPIC() { return systemPic; }
+        INLINE static IPIC* getSystemPIC() { return systemPic; }
         static void detectPIC();
     };
 
-    void setPIC(PIC* pic);
-    PIC* getPIC();
+    void setPIC(IPIC* pic);
+    IPIC* getPIC();
 
 } // namespace drivers
 

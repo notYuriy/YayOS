@@ -1,4 +1,4 @@
-#include <interrupts.hpp>
+#include <core/interrupts.hpp>
 
 namespace core {
     IDTEntry IDT::table[256];

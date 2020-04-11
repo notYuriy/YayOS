@@ -1,8 +1,8 @@
 #ifndef __LOW_PHYS_ALLOC_HPP_INCLUDED__
 #define __LOW_PHYS_ALLOC_HPP_INCLUDED__
 
-#include <memoryinfo.hpp>
-#include <physbase.hpp>
+#include <mm/memoryinfo.hpp>
+#include <mm/physbase.hpp>
 #include <utils.hpp>
 
 namespace memory {

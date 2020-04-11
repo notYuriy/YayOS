@@ -1,8 +1,8 @@
 #ifndef __TMP_VALLOC_HPP_INCLUDED__
 #define __TMP_VALLOC_HPP_INCLUDED__
 
-#include <physalloc.hpp>
-#include <vmbase.hpp>
+#include <mm/physalloc.hpp>
+#include <mm/vmbase.hpp>
 
 namespace memory {
     class TempVirtualAllocator {

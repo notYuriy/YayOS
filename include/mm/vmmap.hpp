@@ -1,8 +1,8 @@
 #ifndef __VMMAP_HPP_INLCUDED__
 #define __VMMAP_HPP_INCLUDED__
 
-#include <physalloc.hpp>
-#include <vmbase.hpp>
+#include <mm/physalloc.hpp>
+#include <mm/vmbase.hpp>
 
 namespace memory {
     class VirtualMemoryMapper {

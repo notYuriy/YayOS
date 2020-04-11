@@ -2,10 +2,10 @@
 #define __TIMER_H_INCLUDED__
 
 #include <utils.hpp>
-#include <interrupts.hpp>
+#include <core/interrupts.hpp>
 
 namespace drivers {
-    class Timer {
+    class ITimer {
     protected:
         bool initialized;
 

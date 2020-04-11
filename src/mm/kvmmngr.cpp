@@ -1,6 +1,6 @@
-#include <kvmmngr.hpp>
-#include <vmmap.hpp>
-#include <spinlock.hpp>
+#include <mm/kvmmngr.hpp>
+#include <mm/vmmap.hpp>
+#include <proc/spinlock.hpp>
 
 namespace memory {
 

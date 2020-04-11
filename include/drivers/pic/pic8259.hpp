@@ -2,11 +2,11 @@
 #define __PIC_8259_HPP_INCLUDED__
 
 #include <utils.hpp>
-#include <pic.hpp>
+#include <drivers/pic/pic.hpp>
 
 namespace drivers {
 
-    class PIC8259 : public PIC {
+    class PIC8259 : public IPIC {
         Uint8 picMasterMask;
         Uint8 picSlaveMask;
     public:

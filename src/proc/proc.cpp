@@ -1,6 +1,6 @@
-#include <kheap.hpp>
-#include <kvmmngr.hpp>
-#include <proc.hpp>
+#include <mm/kheap.hpp>
+#include <mm/kvmmngr.hpp>
+#include <proc/proc.hpp>
 
 extern "C" void timerEOI() { proc::ProcessManager::timer->onTerm(); }
 
@@ -13,7 +13,7 @@ namespace proc {
     Uint64 ProcessManager::lastCheckedIndex;
     proc::Spinlock ProcessManager::modifierLock;
     Uint64 ProcessManager::pidBitmapSize;
-    drivers::Timer* ProcessManager::timer;
+    drivers::ITimer* ProcessManager::timer;
     Uint64 ProcessManager::yieldFlag;
     Uint64 ProcessManager::unlockSpinlock;
 
@@ -74,7 +74,7 @@ namespace proc {
         pidBitmap[index] &= ~(1ULL << (pid % 64));
     }
 
-    void ProcessManager::init(drivers::Timer* schedTimer) {
+    void ProcessManager::init(drivers::ITimer* schedTimer) {
         if (!memory::KernelHeap::isInitialized()) {
             return;
         }

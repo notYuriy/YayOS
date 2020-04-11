@@ -1,7 +1,7 @@
 #ifndef __MEMORY_INFO_HPP_INCLUDED__
 #define __MEMORY_INFO_HPP_INCLUDED__
 
-#include <multiboot.hpp>
+#include <boot/multiboot.hpp>
 
 #define KERNEL_MAPPING_BASE 0xffff800000000000ULL
 

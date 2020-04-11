@@ -1,9 +1,9 @@
 #ifndef __PROC_HPP_INCLUDED__
 #define __PROC_HPP_INLCUDED__
 
-#include <spinlock.hpp>
-#include <state.hpp>
-#include <timer.hpp>
+#include <proc/spinlock.hpp>
+#include <proc/state.hpp>
+#include <drivers/timer/timer.hpp>
 #include <utils.hpp>
 
 namespace proc {
@@ -36,13 +36,13 @@ namespace proc {
         static void freePid(Pid pid);
 
     public:
-        static drivers::Timer* timer;
+        static drivers::ITimer* timer;
         static Uint64 yieldFlag;
         
         INLINE static bool isInitilaized() { return initialized; }
         static void schedule(SchedulerIntFrame* frame);
         static void yield();
-        static void init(drivers::Timer* timer);
+        static void init(drivers::ITimer* timer);
         static Process* newProc();
         static bool addToRunList(Process *proc);
         static bool suspendFromRunList(Pid pid);

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export PREFIX="$HOME/opt/cross"
 export CPP="$PREFIX/bin/x86_64-elf-g++"
 export ASM="nasm"
@@ -6,21 +8,13 @@ export LD="$PREFIX/bin/x86_64-elf-g++"
 mkdir obj
 mkdir isotree
 
-includePaths="eval find include -type d"
-includeString=""
-
-for includePath in $($includePaths)
-do
-    includeString="${includeString} -I${includePath}"
-done
-
 cppPaths="eval find . -type f -name '*.cpp'"
 for cppSource in $($cppPaths)
 do
     echo "[ CC ] $cppSource"
     objectPath="obj/cpp_$(basename "$cppSource" .c).o"
 
-    $CPP -c -o $objectPath $cppSource $includeString\
+    $CPP -c -o $objectPath $cppSource -Iinclude\
     -ffreestanding -funroll-loops -Wall -Wextra -O2 -mno-sse -mno-sse2 -mno-sse3\
     -mcmodel=large -mno-red-zone -fno-exceptions -fno-rtti\
     -mno-red-zone -Wno-attributes || exit

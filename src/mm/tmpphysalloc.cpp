@@ -1,4 +1,4 @@
-#include <tmpphysalloc.hpp>
+#include <mm/tmpphysalloc.hpp>
 
 namespace memory {
     memory::MemoryMapEntry* TempPhysAllocator::currentEntry;

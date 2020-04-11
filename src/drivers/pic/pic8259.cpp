@@ -1,5 +1,5 @@
-#include <pic8259.hpp>
-#include <portio.hpp>
+#include <drivers/pic/pic8259.hpp>
+#include <core/portio.hpp>
 
 namespace drivers {
 

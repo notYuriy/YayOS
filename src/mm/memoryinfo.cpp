@@ -1,4 +1,4 @@
-#include <memoryinfo.hpp>
+#include <mm/memoryinfo.hpp>
 
 namespace memory {
     bool BootMemoryInfo::initialized;

@@ -2,9 +2,9 @@
 #define __UTILS_HPP_INCLUDED__
 
 #include <attributes.hpp>
-#include <cpprt.hpp>
+#include <core/cpprt.hpp>
 #include <inttypes.hpp>
-#include <log.hpp>
+#include <core/log.hpp>
 #include <stdarg.h>
 #include <cpuid.h>
 

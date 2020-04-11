@@ -1,12 +1,12 @@
 #ifndef __PHYS_ALLOC_HPP_INCLUDED__
 #define __PHYS_ALLOC_HPP_INCLUDED__
 
-#include <memoryinfo.hpp>
-#include <physbase.hpp>
-#include <tmpphysalloc.hpp>
-#include <tmpvalloc.hpp>
+#include <mm/memoryinfo.hpp>
+#include <mm/physbase.hpp>
+#include <mm/tmpphysalloc.hpp>
+#include <mm/tmpvalloc.hpp>
 #include <utils.hpp>
-#include <vmbase.hpp>
+#include <mm/vmbase.hpp>
 
 namespace memory {
     struct PhysicalPageInfo {

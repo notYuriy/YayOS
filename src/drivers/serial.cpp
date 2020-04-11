@@ -1,5 +1,5 @@
-#include <portio.hpp>
-#include <serial.hpp>
+#include <core/portio.hpp>
+#include <drivers/serial.hpp>
 
 namespace drivers {
 

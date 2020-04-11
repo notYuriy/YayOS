@@ -1,14 +1,14 @@
 #ifndef __MM_INIT_HPP_INCLUDED__
 #define __MM_INIT_HPP_INCLUDED__
 
-#include <kheap.hpp>
-#include <kvmmngr.hpp>
-#include <memoryinfo.hpp>
-#include <multiboot.hpp>
-#include <physalloc.hpp>
-#include <tmpphysalloc.hpp>
-#include <tmpvalloc.hpp>
-#include <vmmap.hpp>
+#include <mm/kheap.hpp>
+#include <mm/kvmmngr.hpp>
+#include <mm/memoryinfo.hpp>
+#include <boot/multiboot.hpp>
+#include <mm/physalloc.hpp>
+#include <mm/tmpphysalloc.hpp>
+#include <mm/tmpvalloc.hpp>
+#include <mm/vmmap.hpp>
 
 namespace memory {
     INLINE void init(Uint64 mbPointer) {

@@ -1,9 +1,9 @@
 #ifndef __KVMMNGR_HPP_INCLUDED__
 #define __KVMMNGR_HPP_INCLUDED__
 
-#include <physbase.hpp>
+#include <mm/physbase.hpp>
 #include <utils.hpp>
-#include <vmbase.hpp>
+#include <mm/vmbase.hpp>
 
 namespace memory {
     class KernelVirtualAllocator {

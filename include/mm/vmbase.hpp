@@ -1,7 +1,7 @@
 #ifndef __VM_BASE_HPP_INCLUDED__
 #define __VM_BASE_HPP_INCLUDED__
 
-#include <physbase.hpp>
+#include <mm/physbase.hpp>
 #include <utils.hpp>
 
 namespace memory {

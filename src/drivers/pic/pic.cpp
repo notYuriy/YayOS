@@ -1,12 +1,12 @@
-#include <pic.hpp>
-#include <pic8259.hpp>
-#include <kheap.hpp>
+#include <drivers/pic/pic.hpp>
+#include <drivers/pic/pic8259.hpp>
+#include <mm/kheap.hpp>
 
 namespace drivers {
-    PIC* PIC::systemPic;
-    bool PIC::picInitialized;
+    IPIC* IPIC::systemPic;
+    bool IPIC::picInitialized;
 
-    void PIC::detectPIC() {
+    void IPIC::detectPIC() {
         if(!core::IDT::isInitialized()) {
             panic("[PIC] Dependency \"IDT\" is not satisfied");
         }

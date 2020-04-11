@@ -1,5 +1,5 @@
-#include <physalloc.hpp>
-#include <spinlock.hpp>
+#include <mm/physalloc.hpp>
+#include <proc/spinlock.hpp>
 
 namespace memory {
     bool PhysAllocator::initialized;

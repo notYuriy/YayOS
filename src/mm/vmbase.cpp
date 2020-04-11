@@ -1,6 +1,6 @@
-#include <physalloc.hpp>
-#include <tmpphysalloc.hpp>
-#include <vmbase.hpp>
+#include <mm/physalloc.hpp>
+#include <mm/tmpphysalloc.hpp>
+#include <mm/vmbase.hpp>
 
 namespace memory {
 

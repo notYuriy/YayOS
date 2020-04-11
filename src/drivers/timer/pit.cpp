@@ -1,14 +1,14 @@
-#include <interrupts.hpp>
-#include <pic.hpp>
-#include <pit.hpp>
-#include <portio.hpp>
+#include <core/interrupts.hpp>
+#include <drivers/pic/pic.hpp>
+#include <drivers/timer/pit.hpp>
+#include <core/portio.hpp>
 
 namespace drivers {
 
     const Uint16 PITIrq = 0;
 
     void PIT::init(Uint32 frequency) {
-        if (!PIC::isInitialized()) {
+        if (!IPIC::isInitialized()) {
             //panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
         }
         this->frequency = frequency;
@@ -24,21 +24,21 @@ namespace drivers {
     }
 
     bool PIT::enable() {
-        return PIC::getSystemPIC()->enableLegacyIrq(PITIrq);
+        return IPIC::getSystemPIC()->enableLegacyIrq(PITIrq);
     }
 
     bool PIT::disable() {
-        return PIC::getSystemPIC()->disableLegacyIrq(PITIrq);
+        return IPIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
     bool PIT::setCallback(core::IDTVector vec) {
-        drivers::PIC* pic = PIC::getSystemPIC();
+        drivers::IPIC* pic = IPIC::getSystemPIC();
         bool result = pic->registerLegacyIrq(PITIrq, vec);
         return result;
     }
 
     void PIT::onTerm() {
-        PIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
+        IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
     }
 
 }; // namespace drivers

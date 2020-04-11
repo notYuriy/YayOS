@@ -1,5 +1,5 @@
 #include <inttypes.hpp>
-#include <serial.hpp>
+#include <drivers/serial.hpp>
 #include <stdarg.h>
 
 using namespace drivers;

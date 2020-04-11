@@ -2,7 +2,7 @@
 #define __KHEAP_HPP_INCLUDED__
 
 #include <utils.hpp>
-#include <spinlock.hpp>
+#include <proc/spinlock.hpp>
 
 namespace memory {
 

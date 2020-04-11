@@ -2,8 +2,8 @@
 #define __SERIAL_HPP_INCLUDED__
 
 #include <inttypes.hpp>
-#include <portio.hpp>
-#include <serial.hpp>
+#include <core/portio.hpp>
+#include <drivers/serial.hpp>
 #include <stdarg.h>
 
 namespace drivers {

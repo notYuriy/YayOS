@@ -1,5 +1,5 @@
-#include <kheap.hpp>
-#include <kvmmngr.hpp>
+#include <mm/kheap.hpp>
+#include <mm/kvmmngr.hpp>
 
 namespace memory {
 

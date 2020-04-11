@@ -1,10 +1,10 @@
 #ifndef __PIT_HPP_INCLUDED__
 #define __PIT_HPP_INCLUDED__
 
-#include <timer.hpp>
+#include <drivers/timer/timer.hpp>
 
 namespace drivers {
-    class PIT : public Timer {
+    class PIT : public ITimer {
         bool initialized;
         Uint32 frequency;
     public:
