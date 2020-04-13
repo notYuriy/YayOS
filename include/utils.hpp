@@ -3,10 +3,10 @@
 
 #include <attributes.hpp>
 #include <core/cpprt.hpp>
-#include <inttypes.hpp>
 #include <core/log.hpp>
-#include <stdarg.h>
 #include <cpuid.h>
+#include <inttypes.hpp>
+#include <stdarg.h>
 
 #define KB *1024
 #define MB *1024 * 1024
@@ -45,7 +45,7 @@ INLINE static void zeroPage(void* addr) {
     }
 }
 
-INLINE static void memcpy(void* dst, void* src, Uint64 size) {
+INLINE static void memcpy(void* dst, const void* src, Uint64 size) {
     for (Uint64 i = 0; i < size; ++i) {
         ((char*)dst)[i] = ((char*)src)[i];
     }
@@ -54,6 +54,17 @@ INLINE static void memcpy(void* dst, void* src, Uint64 size) {
 INLINE static void memset(void* dst, Uint64 size, Uint8 fill) {
     for (Uint64 i = 0; i < size; ++i) {
         ((char*)dst)[i] = fill;
+    }
+}
+
+INLINE static bool streq(const char* str1, const char* str2) {
+    for (Uint64 i = 0;; ++i) {
+        if (str1[i] != str2[i]) {
+            return false;
+        }
+        if (str1[i] == '\0' && str2[i] == '\0') {
+            return true;
+        }
     }
 }
 
@@ -66,6 +77,22 @@ INLINE static bool streqn(const char* str1, const char* str2, Uint64 n) {
     return true;
 }
 
+INLINE static Uint64 strlen(const char* str) {
+    for (Uint64 i = 0;; ++i) {
+        if (str[i] == 0) {
+            return i;
+        }
+    }
+}
+
+INLINE static char* strdup(const char* str) {
+    Uint64 len = strlen(str);
+    char* result = new char[len + 1];
+    memcpy(result, str, len);
+    result[len] = '\0';
+    return result;
+}
+
 struct CPUIDInfo {
     Uint32 leaf;
     Uint32 eax, ebx, ecx, edx;
@@ -76,6 +103,14 @@ INLINE CPUIDInfo cpuid(Uint32 leaf) {
     result.leaf = leaf;
     __get_cpuid(leaf, &result.eax, &result.ebx, &result.ecx, &result.edx);
     return result;
+}
+
+INLINE Uint64 strhash(const Uint8* str) {
+    Uint64 hash = 5381;
+    for(Uint64 i = 0; str[i] != '\0'; ++i) {
+        hash = ((hash << 5) + hash) + str[i];
+    }
+    return hash;
 }
 
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
