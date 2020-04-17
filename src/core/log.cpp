@@ -1,5 +1,5 @@
-#include <inttypes.hpp>
 #include <drivers/serial.hpp>
+#include <inttypes.hpp>
 #include <stdarg.h>
 
 using namespace drivers;
@@ -49,19 +49,19 @@ namespace core {
         Serial::send(SerialPort::COM1, getCharFromDigit(pointer % 16));
     }
 
-    void puts(char* str) {
+    void puts(char *str) {
         for (Uint64 i = 0; str[i] != '\0'; ++i) {
             Serial::send(SerialPort::COM1, str[i]);
         }
     }
 
-    void putsn(char* str, Uint64 len) {
+    void putsn(char *str, Uint64 len) {
         for (Uint64 i = 0; i < len; ++i) {
             Serial::send(SerialPort::COM1, str[i]);
         }
     }
 
-    void logVarargs(const char* fmt, va_list args) {
+    void logVarargs(const char *fmt, va_list args) {
         for (Uint64 i = 0; fmt[i] != '\0'; ++i) {
             if (fmt[i] != '%') {
                 Serial::send(SerialPort::COM1, fmt[i]);
@@ -81,7 +81,7 @@ namespace core {
                     printPointer(va_arg(args, Uint64), 16);
                     break;
                 case 's':
-                    puts(va_arg(args, char*));
+                    puts(va_arg(args, char *));
                     break;
                 case 'c':
                     Serial::send(SerialPort::COM1, (char)va_arg(args, int));
@@ -119,7 +119,7 @@ namespace core {
         }
     }
 
-    void log(const char* fmt, ...) {
+    void log(const char *fmt, ...) {
         va_list args;
         va_start(args, fmt);
         logVarargs(fmt, args);

@@ -6,7 +6,7 @@
 
 namespace drivers {
     class IPIC {
-        static IPIC* systemPic;
+        static IPIC *systemPic;
         static bool picInitialized;
 
     protected:
@@ -21,12 +21,12 @@ namespace drivers {
         INLINE bool isInstanceInitialized() { return picInstanceInitialized; }
         INLINE static bool isInitialized() { return picInitialized; }
 
-        INLINE static IPIC* getSystemPIC() { return systemPic; }
+        INLINE static IPIC *getSystemPIC() { return systemPic; }
         static void detectPIC();
     };
 
-    void setPIC(IPIC* pic);
-    IPIC* getPIC();
+    void setPIC(IPIC *pic);
+    IPIC *getPIC();
 
 } // namespace drivers
 

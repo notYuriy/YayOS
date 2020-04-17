@@ -1,9 +1,9 @@
 #ifndef __SERIAL_HPP_INCLUDED__
 #define __SERIAL_HPP_INCLUDED__
 
-#include <inttypes.hpp>
 #include <core/portio.hpp>
 #include <drivers/serial.hpp>
+#include <inttypes.hpp>
 #include <stdarg.h>
 
 namespace drivers {
@@ -25,6 +25,6 @@ namespace drivers {
         static Uint8 recieve(SerialPort port);
     };
 
-} // namespace IO
+} // namespace drivers
 
 #endif

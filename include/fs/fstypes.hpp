@@ -13,6 +13,6 @@ namespace fs {
     typedef Uint64 TimeStamp;
     typedef Uint64 Offset;
     typedef Uint8 Type;
-};
+}; // namespace fs
 
 #endif

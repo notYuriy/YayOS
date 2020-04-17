@@ -7,6 +7,7 @@ namespace drivers {
     class PIT : public ITimer {
         bool initialized;
         Uint32 frequency;
+
     public:
         void init(Uint32 frequency);
         INLINE bool isInitilaized() { return initialized; }

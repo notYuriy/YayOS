@@ -1,10 +1,10 @@
 #ifndef __MM_INIT_HPP_INCLUDED__
 #define __MM_INIT_HPP_INCLUDED__
 
+#include <boot/multiboot.hpp>
 #include <mm/kheap.hpp>
 #include <mm/kvmmngr.hpp>
 #include <mm/memoryinfo.hpp>
-#include <boot/multiboot.hpp>
 #include <mm/physalloc.hpp>
 #include <mm/tmpphysalloc.hpp>
 #include <mm/tmpvalloc.hpp>

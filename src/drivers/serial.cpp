@@ -35,4 +35,4 @@ namespace drivers {
         return core::Ports::inb(port);
     }
 
-} // namespace IO
+} // namespace drivers

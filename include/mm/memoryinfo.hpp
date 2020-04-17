@@ -26,7 +26,7 @@ namespace memory {
         static Uint64 multibootLimit;
         static Uint64 upperLimit;
         static Uint32 mmapEntriesCount;
-        static MemoryMapEntry* mmapEntries;
+        static MemoryMapEntry *mmapEntries;
     };
 
 } // namespace memory

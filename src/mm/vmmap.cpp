@@ -3,17 +3,17 @@
 namespace memory {
     void VirtualMemoryMapper::mapNewPageAt(VAddr addr, PAddr physAddr,
                                            Uint64 flags) {
-        PageTable* root = (PageTable*)p4TableVirtualAddress;
+        PageTable *root = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         PAddr p3addr, p2addr, p1addr;
         p3addr = root->entries[p4Index].addr && (~pageTableEntryFlagsMask);
-        PageTable* next = root->walkToWithAlloc(p4Index, (PAddr) nullptr);
+        PageTable *next = root->walkToWithAlloc(p4Index, (PAddr) nullptr);
         p2addr = next->entries[p3Index].addr && (~pageTableEntryFlagsMask);
         next = next->walkToWithAlloc(p3Index, p3addr);
         p1addr = next->entries[p2Index].addr && (~pageTableEntryFlagsMask);
         next = next->walkToWithAlloc(p2Index, p2addr);
-        PageTableEntry& entry = next->entries[p1Index];
+        PageTableEntry &entry = next->entries[p1Index];
         if (!entry.present) {
             entry.addr = flags;
             entry.present = true;
@@ -31,7 +31,7 @@ namespace memory {
     }
 
     void VirtualMemoryMapper::freePageAt(VAddr addr) {
-        PageTable* p4Table = (PageTable*)p4TableVirtualAddress;
+        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         PageTable *p3Table, *p2Table, *p1Table;

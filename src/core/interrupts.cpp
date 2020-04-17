@@ -7,7 +7,7 @@ namespace core {
 
     void intDefaultHandler() { panic("[IDT] Unhandled interrupt\n\r"); }
 
-    extern "C" void intLoadIDT(IDTPointer* pointer);
+    extern "C" void intLoadIDT(IDTPointer *pointer);
 
     void IDT::init() {
         memset(table, 256 * sizeof(IDTEntry), 0);
@@ -21,7 +21,7 @@ namespace core {
     }
 
     void IDT::install(Uint8 index, IDTVector vec) {
-        IDTEntry& entry = table[index];
+        IDTEntry &entry = table[index];
         entry.addrLow = (Uint16)vec;
         entry.addrMiddle = (Uint16)(vec >> 16);
         entry.addrHigh = (Uint32)(vec >> 32);
@@ -34,4 +34,4 @@ namespace core {
         entry.selector = 0x8;
         entry.present = 1;
     }
-}; // namespace interrupts
+}; // namespace core

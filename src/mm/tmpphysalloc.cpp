@@ -1,7 +1,7 @@
 #include <mm/tmpphysalloc.hpp>
 
 namespace memory {
-    memory::MemoryMapEntry* TempPhysAllocator::currentEntry;
+    memory::MemoryMapEntry *TempPhysAllocator::currentEntry;
     Uint64 TempPhysAllocator::areaUsed;
     PAddr TempPhysAllocator::currentPhysAddr;
     bool TempPhysAllocator::initialized;

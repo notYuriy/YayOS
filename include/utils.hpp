@@ -20,7 +20,7 @@ INLINE static Uint64 alignDown(Uint64 value, Uint64 align) {
     return (value / align) * align;
 }
 
-INLINE static void panic(const char* msg) {
+INLINE static void panic(const char *msg) {
     core::log("\u001b[31m");
     core::log(msg);
     while (1) {
@@ -38,26 +38,26 @@ INLINE Uint8 bitScanForward(Uint64 x) {
 #define ALIGN_UP(x, align) (alignUp((Uint64)x, (Uint64)align))
 #define ALIGN_DOWN(x, align) (alignUp((Uint64)x, (Uint64)align))
 
-INLINE static void zeroPage(void* addr) {
-    Uint64* p = (Uint64*)addr;
+INLINE static void zeroPage(void *addr) {
+    Uint64 *p = (Uint64 *)addr;
     for (Uint16 i = 0; i < 512; ++i) {
         p[i] = 0;
     }
 }
 
-INLINE static void memcpy(void* dst, const void* src, Uint64 size) {
+INLINE static void memcpy(void *dst, const void *src, Uint64 size) {
     for (Uint64 i = 0; i < size; ++i) {
-        ((char*)dst)[i] = ((char*)src)[i];
+        ((char *)dst)[i] = ((char *)src)[i];
     }
 }
 
-INLINE static void memset(void* dst, Uint64 size, Uint8 fill) {
+INLINE static void memset(void *dst, Uint64 size, Uint8 fill) {
     for (Uint64 i = 0; i < size; ++i) {
-        ((char*)dst)[i] = fill;
+        ((char *)dst)[i] = fill;
     }
 }
 
-INLINE static bool streq(const char* str1, const char* str2) {
+INLINE static bool streq(const char *str1, const char *str2) {
     for (Uint64 i = 0;; ++i) {
         if (str1[i] != str2[i]) {
             return false;
@@ -68,7 +68,7 @@ INLINE static bool streq(const char* str1, const char* str2) {
     }
 }
 
-INLINE static bool streqn(const char* str1, const char* str2, Uint64 n) {
+INLINE static bool streqn(const char *str1, const char *str2, Uint64 n) {
     for (Uint64 i = 0; i < n; ++i) {
         if (str1[i] != str2[i]) {
             return false;
@@ -77,7 +77,7 @@ INLINE static bool streqn(const char* str1, const char* str2, Uint64 n) {
     return true;
 }
 
-INLINE static Uint64 strlen(const char* str) {
+INLINE static Uint64 strlen(const char *str) {
     for (Uint64 i = 0;; ++i) {
         if (str[i] == 0) {
             return i;
@@ -85,9 +85,9 @@ INLINE static Uint64 strlen(const char* str) {
     }
 }
 
-INLINE static char* strdup(const char* str) {
+INLINE static char *strdup(const char *str) {
     Uint64 len = strlen(str);
-    char* result = new char[len + 1];
+    char *result = new char[len + 1];
     memcpy(result, str, len);
     result[len] = '\0';
     return result;
@@ -105,9 +105,9 @@ INLINE CPUIDInfo cpuid(Uint32 leaf) {
     return result;
 }
 
-INLINE Uint64 strhash(const Uint8* str) {
+INLINE Uint64 strhash(const Uint8 *str) {
     Uint64 hash = 5381;
-    for(Uint64 i = 0; str[i] != '\0'; ++i) {
+    for (Uint64 i = 0; str[i] != '\0'; ++i) {
         hash = ((hash << 5) + hash) + str[i];
     }
     return hash;

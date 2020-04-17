@@ -3,16 +3,15 @@
 
 namespace memory {
     bool PhysAllocator::initialized;
-    Uint64* PhysAllocator::bitmap;
-    PhysicalPageInfo* PhysAllocator::pageInfo;
+    Uint64 *PhysAllocator::bitmap;
+    PhysicalPageInfo *PhysAllocator::pageInfo;
     Uint64 PhysAllocator::pagesCount;
     Uint64 PhysAllocator::bitmapSize;
     Uint64 PhysAllocator::leastUncheckedIndex;
     proc::Spinlock physLock;
 
-
-    INLINE void setBit(Uint64& num, Uint8 bit) { num |= (1ULL << bit); }
-    INLINE void clearBit(Uint64& num, Uint8 bit) { num &= ~(1ULL << bit); }
+    INLINE void setBit(Uint64 &num, Uint8 bit) { num |= (1ULL << bit); }
+    INLINE void clearBit(Uint64 &num, Uint8 bit) { num &= ~(1ULL << bit); }
 
     void PhysAllocator::bitmapClearIndexRange(Uint64 start, Uint64 end) {
         if (start >= pagesCount) {
@@ -91,8 +90,8 @@ namespace memory {
 
         pagesCount = BootMemoryInfo::upperLimit / 4096;
         bitmapSize = alignUp(pagesCount, 64) / 64;
-        bitmap = (Uint64*)TempVirtualAllocator::valloc(bitmapSize * 8);
-        pageInfo = (PhysicalPageInfo*)TempVirtualAllocator::valloc(
+        bitmap = (Uint64 *)TempVirtualAllocator::valloc(bitmapSize * 8);
+        pageInfo = (PhysicalPageInfo *)TempVirtualAllocator::valloc(
             pagesCount * sizeof(PhysicalPageInfo));
         bitmapSetRange(0, TempPhysAllocator::getFirstUnusedFrame());
         bitmapSetRange(alignDown(memory::BootMemoryInfo::multibootBase, 4096),
@@ -100,7 +99,7 @@ namespace memory {
         bitmapClearRange(TempPhysAllocator::getFirstUnusedFrame(),
                          pagesCount * 4096);
         for (Uint64 i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
-            MemoryMapEntry& entry = BootMemoryInfo::mmapEntries[i];
+            MemoryMapEntry &entry = BootMemoryInfo::mmapEntries[i];
             if (entry.type != multiboot::MemoryMapEntryType::Available) {
                 bitmapSetRange(entry.base, entry.limit);
             }

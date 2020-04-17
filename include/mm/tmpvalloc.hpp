@@ -13,7 +13,7 @@ namespace memory {
     public:
         static void init(VAddr initMappingEnd);
         INLINE static bool isInitialized() { return initialized; }
-        static void* valloc(Uint64 size);
+        static void *valloc(Uint64 size);
         INLINE static VAddr getBrk() { return pageEnd; }
     };
 }; // namespace memory

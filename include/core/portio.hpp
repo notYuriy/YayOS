@@ -21,6 +21,6 @@ namespace core {
         }
     };
 
-} // namespace IO
+} // namespace core
 
 #endif

@@ -1,7 +1,7 @@
 #include <core/interrupts.hpp>
+#include <core/portio.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/timer/pit.hpp>
-#include <core/portio.hpp>
 
 namespace drivers {
 
@@ -9,7 +9,7 @@ namespace drivers {
 
     void PIT::init(Uint32 frequency) {
         if (!IPIC::isInitialized()) {
-            //panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
+            // panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
         }
         this->frequency = frequency;
         Uint32 divisor = 1193180 / frequency;
@@ -23,22 +23,18 @@ namespace drivers {
         initialized = true;
     }
 
-    bool PIT::enable() {
-        return IPIC::getSystemPIC()->enableLegacyIrq(PITIrq);
-    }
+    bool PIT::enable() { return IPIC::getSystemPIC()->enableLegacyIrq(PITIrq); }
 
     bool PIT::disable() {
         return IPIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
     bool PIT::setCallback(core::IDTVector vec) {
-        drivers::IPIC* pic = IPIC::getSystemPIC();
+        drivers::IPIC *pic = IPIC::getSystemPIC();
         bool result = pic->registerLegacyIrq(PITIrq, vec);
         return result;
     }
 
-    void PIT::onTerm() {
-        IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
-    }
+    void PIT::onTerm() { IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq); }
 
 }; // namespace drivers

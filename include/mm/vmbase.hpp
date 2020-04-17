@@ -65,16 +65,16 @@ namespace memory {
 #pragma pack(1)
     struct PageTable {
         PageTableEntry entries[512];
-        PageTableEntry& operator[](Uint16 index) { return entries[index]; }
+        PageTableEntry &operator[](Uint16 index) { return entries[index]; }
 
-        INLINE PageTable* walkTo(VIndex index) {
-            return (PageTable*)((((Uint64)this) << 9ULL) |
-                                ((Uint64)(index) << 12ULL));
+        INLINE PageTable *walkTo(VIndex index) {
+            return (PageTable *)((((Uint64)this) << 9ULL) |
+                                 ((Uint64)(index) << 12ULL));
         }
 
-        PageTable* walkToWithTempAlloc(VIndex index);
+        PageTable *walkToWithTempAlloc(VIndex index);
 
-        PageTable* walkToWithAlloc(VIndex index, PAddr currentAddr);
+        PageTable *walkToWithAlloc(VIndex index, PAddr currentAddr);
     };
 #pragma pack(0)
 

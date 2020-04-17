@@ -6,27 +6,27 @@ namespace memory {
 
     bool KernelVirtualAllocator::initialized = false;
 
-    #pragma pack(1)
+#pragma pack(1)
     struct MemoryArea {
-        MemoryArea* next;
-        MemoryArea* prev;
+        MemoryArea *next;
+        MemoryArea *prev;
         VAddr offset;
         Uint64 size;
     };
-    #pragma pack(0)
+#pragma pack(0)
 
     static_assert(sizeof(MemoryArea) == 32);
 
-    struct MemoryAreaPool* poolHeads[128];
+    struct MemoryAreaPool *poolHeads[128];
 
     Uint64 lastCheckedIndex;
-    MemoryArea* kernelAreas;
+    MemoryArea *kernelAreas;
     proc::Spinlock kvmmngrLock;
 
     struct MemoryAreaPool {
-        MemoryArea* first;
-        MemoryAreaPool* next;
-        MemoryAreaPool* prev;
+        MemoryArea *first;
+        MemoryAreaPool *next;
+        MemoryAreaPool *prev;
         Uint64 count;
         MemoryArea areas[127];
 
@@ -39,14 +39,14 @@ namespace memory {
             areas[126].next = nullptr;
         }
 
-        MemoryArea* allocNode() {
-            MemoryArea* result = first;
+        MemoryArea *allocNode() {
+            MemoryArea *result = first;
             first = first->next;
             count--;
             return result;
         }
 
-        void freeNode(MemoryArea* node) {
+        void freeNode(MemoryArea *node) {
             node->next = first;
             first = node;
             count++;
@@ -55,7 +55,7 @@ namespace memory {
 
     static_assert(sizeof(MemoryAreaPool) == 4096);
 
-    void cutPool(MemoryAreaPool* pool) {
+    void cutPool(MemoryAreaPool *pool) {
         if (pool->prev == nullptr) {
             poolHeads[pool->count] = pool->next;
         } else {
@@ -66,7 +66,7 @@ namespace memory {
         }
     }
 
-    void insertPool(MemoryAreaPool* pool) {
+    void insertPool(MemoryAreaPool *pool) {
         pool->prev = nullptr;
         pool->next = poolHeads[pool->count];
         if (pool->next != nullptr) {
@@ -76,14 +76,14 @@ namespace memory {
         }
     }
 
-    MemoryArea* allocMemoryArea() {
+    MemoryArea *allocMemoryArea() {
         for (; lastCheckedIndex < 128ULL; ++lastCheckedIndex) {
             if (poolHeads[lastCheckedIndex] == nullptr) {
                 continue;
             }
-            MemoryAreaPool* pool = poolHeads[lastCheckedIndex];
+            MemoryAreaPool *pool = poolHeads[lastCheckedIndex];
             cutPool(pool);
-            MemoryArea* result = pool->allocNode();
+            MemoryArea *result = pool->allocNode();
             insertPool(pool);
             if (lastCheckedIndex != 1) {
                 lastCheckedIndex--;
@@ -95,8 +95,8 @@ namespace memory {
         return nullptr;
     }
 
-    void freeMemoryArea(MemoryArea* node) {
-        MemoryAreaPool* pool = (MemoryAreaPool*)alignDown((Uint64)node, 4096);
+    void freeMemoryArea(MemoryArea *node) {
+        MemoryAreaPool *pool = (MemoryAreaPool *)alignDown((Uint64)node, 4096);
         cutPool(pool);
         pool->freeNode(node);
         insertPool(pool);
@@ -106,8 +106,8 @@ namespace memory {
         return;
     }
 
-    INLINE void insertBefore(MemoryArea* area, MemoryArea* point) {
-        MemoryArea* prev = point->prev;
+    INLINE void insertBefore(MemoryArea *area, MemoryArea *point) {
+        MemoryArea *prev = point->prev;
         if (prev != nullptr) {
             prev->next = area;
         } else {
@@ -118,7 +118,7 @@ namespace memory {
         point->prev = area;
     }
 
-    INLINE void cutNode(MemoryArea* area) {
+    INLINE void cutNode(MemoryArea *area) {
         if (area->prev != nullptr) {
             area->prev->next = area->next;
         }
@@ -127,7 +127,7 @@ namespace memory {
         }
     }
 
-    INLINE void mergeAdjacent(MemoryArea* area) {
+    INLINE void mergeAdjacent(MemoryArea *area) {
         bool mergeLeft = false, mergeRight = false;
         if (area->prev != nullptr) {
             mergeLeft = (area->prev->offset + area->prev->size == area->offset);
@@ -136,7 +136,7 @@ namespace memory {
             mergeRight = (area->offset + area->size == area->next->offset);
         }
         if (mergeLeft) {
-            MemoryArea* prev = area->prev;
+            MemoryArea *prev = area->prev;
             if (area->prev->prev == nullptr) {
                 kernelAreas = area;
             }
@@ -146,15 +146,15 @@ namespace memory {
             freeMemoryArea(prev);
         }
         if (mergeRight) {
-            MemoryArea* next = area->next;
+            MemoryArea *next = area->next;
             area->size += area->next->size;
             cutNode(next);
             freeMemoryArea(next);
         }
     }
 
-    void freeMapping(MemoryArea* area) {
-        MemoryArea* current = kernelAreas;
+    void freeMapping(MemoryArea *area) {
+        MemoryArea *current = kernelAreas;
         if (current == nullptr) {
             kernelAreas = area;
             return;
@@ -182,8 +182,8 @@ namespace memory {
             if (lastCheckedIndex == 127 && poolHeads[127]->next == nullptr) {
                 return;
             }
-            MemoryArea* area = allocMemoryArea();
-            MemoryAreaPool* pool = poolHeads[127];
+            MemoryArea *area = allocMemoryArea();
+            MemoryAreaPool *pool = poolHeads[127];
             poolHeads[127] = pool->next;
             poolHeads[127]->prev = nullptr;
             VAddr addr = (VAddr)pool;
@@ -203,19 +203,19 @@ namespace memory {
         kernelAreas->offset += 4096;
         kernelAreas->size -= 4096;
         if (kernelAreas->size == 0) {
-            MemoryArea* next = kernelAreas->next;
+            MemoryArea *next = kernelAreas->next;
             freeMemoryArea(kernelAreas);
             kernelAreas = next;
             kernelAreas->prev = nullptr;
         }
-        MemoryAreaPool* pool = (MemoryAreaPool*)newPoolAddr;
+        MemoryAreaPool *pool = (MemoryAreaPool *)newPoolAddr;
         pool->init();
         pool->next = poolHeads[127];
         poolHeads[127] = pool;
         return true;
     }
 
-    MemoryArea* findBestFit(Uint64 requestedSize) {
+    MemoryArea *findBestFit(Uint64 requestedSize) {
         MemoryArea *bestFit = nullptr, *current = kernelAreas;
         while (current != nullptr) {
             if (current->size >= requestedSize) {
@@ -233,7 +233,7 @@ namespace memory {
     VAddr KernelVirtualAllocator::getMapping(Uint64 size, PAddr physBase,
                                              Uint64 flags) {
         kvmmngrLock.lock();
-        MemoryArea* bestFit = findBestFit(size);
+        MemoryArea *bestFit = findBestFit(size);
         if (bestFit == nullptr) {
             kvmmngrLock.unlock();
             return 0;
@@ -248,7 +248,8 @@ namespace memory {
         if (physBase == 0) {
             VirtualMemoryMapper::mapNewPages(offset, offset + size);
         } else {
-            VirtualMemoryMapper::mapPages(offset, offset + size, physBase, flags);
+            VirtualMemoryMapper::mapPages(offset, offset + size, physBase,
+                                          flags);
         }
         freePools();
         kvmmngrLock.unlock();
@@ -259,14 +260,14 @@ namespace memory {
         if (size == 0) {
             return;
         }
-        MemoryArea* area = allocMemoryArea();
+        MemoryArea *area = allocMemoryArea();
         if (area == nullptr) {
             if (!allocNewPool()) {
                 VAddr offset = virtualAddr;
                 virtualAddr += 4096;
                 size -= 4096;
                 VirtualMemoryMapper::mapNewPages(offset, offset + 4096);
-                MemoryAreaPool* pool = (MemoryAreaPool*)offset;
+                MemoryAreaPool *pool = (MemoryAreaPool *)offset;
                 pool->init();
                 pool->next = poolHeads[127];
                 poolHeads[127] = pool;
@@ -286,7 +287,7 @@ namespace memory {
 
     void KernelVirtualAllocator::unmapAt(VAddr start, Uint64 size) {
         kvmmngrLock.lock();
-        memory::VirtualMemoryMapper::freePages(start, start + size);        
+        memory::VirtualMemoryMapper::freePages(start, start + size);
         freeRange(start, size);
         kvmmngrLock.unlock();
     }
@@ -302,7 +303,7 @@ namespace memory {
         }
         VAddr initAreaStart, initAreaEnd;
         initAreaStart = TempVirtualAllocator::getBrk();
-        initAreaEnd = (VAddr)(((PageTable*)p4TableVirtualAddress)
+        initAreaEnd = (VAddr)(((PageTable *)p4TableVirtualAddress)
                                   ->walkTo(511)
                                   ->walkTo(0)
                                   ->walkTo(0)

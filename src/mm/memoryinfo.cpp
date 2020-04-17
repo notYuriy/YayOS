@@ -8,18 +8,18 @@ namespace memory {
     Uint64 BootMemoryInfo::multibootLimit;
     Uint64 BootMemoryInfo::upperLimit;
     Uint32 BootMemoryInfo::mmapEntriesCount;
-    MemoryMapEntry* BootMemoryInfo::mmapEntries;
+    MemoryMapEntry *BootMemoryInfo::mmapEntries;
 
     void BootMemoryInfo::init(Uint64 physHeader) {
         upperLimit = 0;
-        multiboot::BootInfoHeader* header =
-            (multiboot::BootInfoHeader*)(physHeader + KERNEL_MAPPING_BASE);
+        multiboot::BootInfoHeader *header =
+            (multiboot::BootInfoHeader *)(physHeader + KERNEL_MAPPING_BASE);
         BootMemoryInfo::multibootBase = alignDown(physHeader, 4096);
         BootMemoryInfo::multibootLimit =
             alignUp(physHeader + (Uint64)(header->totalSize), 4096);
-        multiboot::BootInfoTag* tag = header->firstTag;
-        multiboot::MemoryMapTag* memoryMapTag = nullptr;
-        multiboot::ElfSectionsTag* elfSectionsTag = nullptr;
+        multiboot::BootInfoTag *tag = header->firstTag;
+        multiboot::MemoryMapTag *memoryMapTag = nullptr;
+        multiboot::ElfSectionsTag *elfSectionsTag = nullptr;
         while (!tag->isTerminator()) {
             if (tag->type == multiboot::BootInfoTagType::MemoryMap) {
                 memoryMapTag = tag->as<multiboot::MemoryMapTag>();
@@ -31,8 +31,8 @@ namespace memory {
         }
 
         if (memoryMapTag != nullptr) {
-            MemoryMapEntry* entries =
-                (memory::MemoryMapEntry*)memoryMapTag->map;
+            MemoryMapEntry *entries =
+                (memory::MemoryMapEntry *)memoryMapTag->map;
             BootMemoryInfo::mmapEntries = entries;
             BootMemoryInfo::mmapEntriesCount = memoryMapTag->getEntriesCount();
             for (Uint64 i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
@@ -53,7 +53,7 @@ namespace memory {
 
         if (elfSectionsTag != nullptr) {
             for (Uint64 i = 0; i < elfSectionsTag->getEntriesCount(); ++i) {
-                multiboot::ElfSectionHeader& header =
+                multiboot::ElfSectionHeader &header =
                     elfSectionsTag->headers[i];
                 Uint64 physBase = header.addr;
                 if (physBase == 0) {

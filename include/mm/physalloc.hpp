@@ -5,8 +5,8 @@
 #include <mm/physbase.hpp>
 #include <mm/tmpphysalloc.hpp>
 #include <mm/tmpvalloc.hpp>
-#include <utils.hpp>
 #include <mm/vmbase.hpp>
+#include <utils.hpp>
 
 namespace memory {
     struct PhysicalPageInfo {
@@ -16,8 +16,8 @@ namespace memory {
 
     class PhysAllocator {
         static bool initialized;
-        static Uint64* bitmap;
-        static PhysicalPageInfo* pageInfo;
+        static Uint64 *bitmap;
+        static PhysicalPageInfo *pageInfo;
         static Uint64 pagesCount;
         static Uint64 bitmapSize;
         static Uint64 leastUncheckedIndex;

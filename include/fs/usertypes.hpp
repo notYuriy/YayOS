@@ -22,6 +22,6 @@ namespace fs {
         char name[];
     };
 
-};
+}; // namespace fs
 
 #endif

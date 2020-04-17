@@ -6,6 +6,6 @@
 namespace memory {
     typedef Uint64 PAddr;
     typedef Uint32 PAddr32;
-}
+} // namespace memory
 
 #endif

@@ -4,7 +4,7 @@
 
 namespace memory {
 
-    PageTable* PageTable::walkToWithTempAlloc(VIndex index) {
+    PageTable *PageTable::walkToWithTempAlloc(VIndex index) {
         if (!entries[index].present) {
             entries[index].addr = TempPhysAllocator::newFrame();
             entries[index].lowFlags = 0;
@@ -17,7 +17,7 @@ namespace memory {
         return walkTo(index);
     }
 
-    PageTable* PageTable::walkToWithAlloc(VIndex index, PAddr currentAddr) {
+    PageTable *PageTable::walkToWithAlloc(VIndex index, PAddr currentAddr) {
         if (!entries[index].present) {
             entries[index].addr = PhysAllocator::newPage();
             if (currentAddr != (PAddr) nullptr) {

@@ -7,7 +7,7 @@
 
 namespace memory {
     class TempPhysAllocator {
-        static memory::MemoryMapEntry* currentEntry;
+        static memory::MemoryMapEntry *currentEntry;
         static PAddr currentPhysAddr;
         static Uint64 areaUsed;
         static bool initialized;

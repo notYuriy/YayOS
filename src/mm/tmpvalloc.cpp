@@ -21,11 +21,11 @@ namespace memory {
             p3Index = getP3Index(addr);
             p2Index = getP2Index(addr);
             p1Index = getP1Index(addr);
-            PageTable* root = (PageTable*)p4TableVirtualAddress;
+            PageTable *root = (PageTable *)p4TableVirtualAddress;
             root = root->walkToWithTempAlloc(p4Index);
             root = root->walkToWithTempAlloc(p3Index);
             root = root->walkToWithTempAlloc(p2Index);
-            PageTableEntry* entry = root->entries + p1Index;
+            PageTableEntry *entry = root->entries + p1Index;
             PAddr physAddr = TempPhysAllocator::newFrame();
             entry->addr = physAddr;
             entry->writable = true;
@@ -35,8 +35,8 @@ namespace memory {
         }
     } // namespace
 
-    void* TempVirtualAllocator::valloc(Uint64 size) {
-        void* result = (void*)unalignedEnd;
+    void *TempVirtualAllocator::valloc(Uint64 size) {
+        void *result = (void *)unalignedEnd;
         Uint64 newUnalignedEnd = (Uint64)unalignedEnd + size;
         Uint64 newPageEnd = alignUp(newUnalignedEnd, 4096);
         for (VAddr addr = pageEnd; addr < newPageEnd; addr += 4096) {

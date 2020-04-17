@@ -1,12 +1,12 @@
 #include <core/interrupts.hpp>
 #include <core/log.hpp>
-#include <mm/mminit.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
-#include <drivers/timer/pit.hpp>
-#include <proc/proc.hpp>
 #include <drivers/serial.hpp>
+#include <drivers/timer/pit.hpp>
 #include <fs/vfs.hpp>
+#include <mm/mminit.hpp>
+#include <proc/proc.hpp>
 
 extern "C" void kmain(Uint64 mbPointer) {
     drivers::Serial::init(drivers::SerialPort::COM1);
@@ -19,5 +19,6 @@ extern "C" void kmain(Uint64 mbPointer) {
     fs::VFS::init(nullptr);
     timer.enable();
     core::log("YayOS up and running\n\r");
-    while(true) {}
+    while (true) {
+    }
 }

@@ -18,8 +18,8 @@ namespace proc {
 
     typedef GeneralRegs SchedulerIntFrame;
 
-    extern "C" void extendedRegsLoadFromFpu(char* loc);
-    extern "C" void extendedRegsSaveToFpu(char* loc);
+    extern "C" void extendedRegsLoadFromFpu(char *loc);
+    extern "C" void extendedRegsSaveToFpu(char *loc);
 
     struct ExtendedRegs {
         char buf[512];
@@ -31,12 +31,12 @@ namespace proc {
         ExtendedRegs extendedRegs;
         GeneralRegs generalRegs;
 
-        INLINE void loadToFrame(SchedulerIntFrame* frame) {
+        INLINE void loadToFrame(SchedulerIntFrame *frame) {
             memcpy(frame, &generalRegs, sizeof(*frame));
             extendedRegs.loadToFPU();
         }
 
-        INLINE void loadFromFrame(SchedulerIntFrame* frame) {
+        INLINE void loadFromFrame(SchedulerIntFrame *frame) {
             memcpy(&generalRegs, frame, sizeof(*frame));
             extendedRegs.loadFromFPU();
         }

@@ -7,41 +7,35 @@ extern "C" void timerEOI() { proc::ProcessManager::timer->onTerm(); }
 namespace proc {
 
     bool ProcessManager::initialized;
-    Process* ProcessManager::schedListHead;
-    Process* ProcessManager::processData;
-    Uint64* ProcessManager::pidBitmap;
+    Process *ProcessManager::schedListHead;
+    Process *ProcessManager::processData;
+    Uint64 *ProcessManager::pidBitmap;
     Uint64 ProcessManager::lastCheckedIndex;
     proc::Spinlock ProcessManager::modifierLock;
     Uint64 ProcessManager::pidBitmapSize;
-    drivers::ITimer* ProcessManager::timer;
+    drivers::ITimer *ProcessManager::timer;
     Uint64 ProcessManager::yieldFlag;
     Uint64 ProcessManager::unlockSpinlock;
 
     extern "C" void schedulerIntHandler();
     extern "C" void schedulerYield();
 
-    extern "C" void scheduleUsingFrame(SchedulerIntFrame* frame) {
+    extern "C" void scheduleUsingFrame(SchedulerIntFrame *frame) {
         ProcessManager::schedule(frame);
     }
 
-    extern "C" void setYieldFlag() {
-        ProcessManager::yieldFlag = 1;
-    }
+    extern "C" void setYieldFlag() { ProcessManager::yieldFlag = 1; }
 
-    extern "C" void clearYieldFlag() {
-        ProcessManager::yieldFlag = 0;
-    }
+    extern "C" void clearYieldFlag() { ProcessManager::yieldFlag = 0; }
 
-    extern "C" void scheduleForIntUsingFrame(SchedulerIntFrame* frame) {
+    extern "C" void scheduleForIntUsingFrame(SchedulerIntFrame *frame) {
         if (ProcessManager::yieldFlag) {
             return;
         }
         scheduleUsingFrame(frame);
     }
 
-    extern "C" void procYield() {
-        ProcessManager::yield();
-    }
+    extern "C" void procYield() { ProcessManager::yield(); }
 
     Pid ProcessManager::pidAlloc() {
         for (; lastCheckedIndex < pidBitmapSize; ++lastCheckedIndex) {
@@ -55,8 +49,8 @@ namespace proc {
         return pidCount;
     }
 
-    void ProcessManager::schedule(SchedulerIntFrame* frame) {
-        //core::log("pid: %ull\n\r", schedListHead->pid);
+    void ProcessManager::schedule(SchedulerIntFrame *frame) {
+        // core::log("pid: %ull\n\r", schedListHead->pid);
         if (unlockSpinlock) {
             unlockSpinlock = false;
             modifierLock.unlock();
@@ -74,12 +68,12 @@ namespace proc {
         pidBitmap[index] &= ~(1ULL << (pid % 64));
     }
 
-    void ProcessManager::init(drivers::ITimer* schedTimer) {
+    void ProcessManager::init(drivers::ITimer *schedTimer) {
         if (!memory::KernelHeap::isInitialized()) {
             return;
         }
         timer = schedTimer;
-        processData = (Process*)memory::KernelVirtualAllocator::getMapping(
+        processData = (Process *)memory::KernelVirtualAllocator::getMapping(
             alignUp(sizeof(Process) * pidCount, 4096), 0,
             memory::defaultKernelFlags);
         pidBitmap = new Uint64[alignUp(pidCount, 64)];
@@ -97,7 +91,7 @@ namespace proc {
         initialized = true;
     }
 
-    Process* ProcessManager::newProc() {
+    Process *ProcessManager::newProc() {
         modifierLock.lock();
         Pid pid = pidAlloc();
         if (pid == pidCount) {
@@ -109,10 +103,10 @@ namespace proc {
         return &processData[pid];
     }
 
-    bool ProcessManager::addToRunList(Process* proc) {
+    bool ProcessManager::addToRunList(Process *proc) {
         modifierLock.lock();
-        Process* head = schedListHead;
-        Process* prev = schedListHead->prev;
+        Process *head = schedListHead;
+        Process *prev = schedListHead->prev;
         proc->next = head;
         proc->prev = prev;
         head->prev = proc;
@@ -121,14 +115,12 @@ namespace proc {
         return true;
     }
 
-    void ProcessManager::yield() {
-        schedulerYield();
-    }
+    void ProcessManager::yield() { schedulerYield(); }
 
     bool ProcessManager::suspendFromRunList(Pid pid) {
         modifierLock.lock();
-        Process* proc = &processData[pid];
-        Process* prev = proc->prev;
+        Process *proc = &processData[pid];
+        Process *prev = proc->prev;
         freePid(pid);
         proc->next->prev = prev;
         unlockSpinlock = true;
