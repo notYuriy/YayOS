@@ -2,6 +2,7 @@
 #include <mm/kvmmngr.hpp>
 
 namespace memory {
+    bool KernelHeap::initialized;
 
 #pragma pack(1)
     struct ObjectHeader {
@@ -26,7 +27,7 @@ namespace memory {
             SmallObjectPool *prev;
             SmallObjectPool *next;
             uint64_t objectsCount;
-            uint64_t arenaId;
+            uint64_t : 64;
         } meta;
 #pragma pack(0)
 
@@ -69,10 +70,17 @@ namespace memory {
     };
 #pragma pack(0)
 
-    void KernelHeapArena::cutPoolFrom(SmallObjectPool *pool, uint64_t sizeIndex,
-                                      uint64_t headsIndex) {
+    const uint64_t maxSizeForSlubs = 2000;
+    constexpr uint64_t poolsSizesCount = maxSizeForSlubs / 16;
+
+    SmallObjectPool **poolHeadsArray[poolsSizesCount];
+    uint64_t poolsMaxCount[poolsSizesCount];
+    uint64_t poolsLastCheckedIndices[poolsSizesCount];
+
+    void cutPoolFrom(SmallObjectPool *pool, uint64_t sizeIndex,
+                     uint64_t headsIndex) {
         if (pool->meta.prev == nullptr) {
-            m_poolHeadsArray[sizeIndex][headsIndex] = pool->meta.next;
+            poolHeadsArray[sizeIndex][headsIndex] = pool->meta.next;
         } else {
             pool->meta.prev->meta.next = pool->meta.next;
         }
@@ -81,39 +89,36 @@ namespace memory {
         }
     }
 
-    void KernelHeapArena::insertPoolTo(SmallObjectPool *pool,
-                                       uint64_t sizeIndex,
-                                       uint64_t headsIndex) {
-        pool->meta.next = m_poolHeadsArray[sizeIndex][headsIndex];
+    void insertPoolTo(SmallObjectPool *pool, uint64_t sizeIndex,
+                      uint64_t headsIndex) {
+        pool->meta.next = poolHeadsArray[sizeIndex][headsIndex];
         pool->meta.prev = nullptr;
         if (pool->meta.next != nullptr) {
             pool->meta.next->meta.prev = pool;
         }
-        m_poolHeadsArray[sizeIndex][headsIndex] = pool;
+        poolHeadsArray[sizeIndex][headsIndex] = pool;
     }
 
-    bool KernelHeapArena::isSlubEmpty(uint64_t sizeIndex) {
-        return m_poolsLastCheckedIndices[sizeIndex] ==
-               (m_poolsMaxCount[sizeIndex]);
+    INLINE bool isSlubEmpty(uint64_t sizeIndex) {
+        return poolsLastCheckedIndices[sizeIndex] == (poolsMaxCount[sizeIndex]);
     }
 
-    ObjectHeader *KernelHeapArena::allocFromSlubs(uint64_t size) {
+    ObjectHeader *allocFromSlubs(uint64_t size) {
         uint64_t index = size / 16;
-        if (m_poolsLastCheckedIndices[index] == 0) {
+        if (poolsLastCheckedIndices[index] == 0) {
             panic("[KernelHeap] Assertion failed: last checked index is zero");
         }
-        for (; m_poolsLastCheckedIndices[index] < m_poolsMaxCount[index] + 1;
-             ++m_poolsLastCheckedIndices[index]) {
-            uint64_t indexInPoolHeads = m_poolsLastCheckedIndices[index];
-            if (m_poolHeadsArray[index][indexInPoolHeads] != nullptr) {
-                SmallObjectPool *pool =
-                    m_poolHeadsArray[index][indexInPoolHeads];
+        for (; poolsLastCheckedIndices[index] < poolsMaxCount[index] + 1;
+             ++poolsLastCheckedIndices[index]) {
+            uint64_t indexInPoolHeads = poolsLastCheckedIndices[index];
+            if (poolHeadsArray[index][indexInPoolHeads] != nullptr) {
+                SmallObjectPool *pool = poolHeadsArray[index][indexInPoolHeads];
                 cutPoolFrom(pool, index, pool->meta.objectsCount);
                 ObjectHeader *allocResult = pool->alloc();
                 insertPoolTo(pool, index, pool->meta.objectsCount);
-                --m_poolsLastCheckedIndices[index];
-                if (m_poolsLastCheckedIndices[index] == 0) {
-                    m_poolsLastCheckedIndices[index] = 1;
+                --poolsLastCheckedIndices[index];
+                if (poolsLastCheckedIndices[index] == 0) {
+                    poolsLastCheckedIndices[index] = 1;
                 }
                 return allocResult;
             }
@@ -121,93 +126,17 @@ namespace memory {
         return nullptr;
     }
 
-    bool KernelHeapArena::getNewPool(uint64_t size) {
+    bool getNewPool(uint64_t size) {
         VAddr page =
             KernelVirtualAllocator::getMapping(4096, 0, defaultKernelFlags);
         if (page == 0) {
             return false;
         }
         SmallObjectPool *pool = (SmallObjectPool *)page;
-        // pool->meta.arenaId = arenaId;
         pool->init(size);
-        insertPoolTo(pool, size / 16, m_poolsMaxCount[size / 16]);
-        m_poolsLastCheckedIndices[size / 16] = m_poolsMaxCount[size / 16];
+        insertPoolTo(pool, size / 16, poolsMaxCount[size / 16]);
+        poolsLastCheckedIndices[size / 16] = poolsMaxCount[size / 16];
         return true;
-    }
-
-    void *KernelHeapArena::alloc(uint64_t size) {
-        lock.lock();
-        ObjectHeader *result = allocFromSlubs(size);
-        if (result == nullptr) {
-            if (!getNewPool(size)) {
-                lock.unlock();
-                return nullptr;
-            }
-            m_poolsLastCheckedIndices[size / 16] = m_poolsMaxCount[size / 16];
-            result = allocFromSlubs(size);
-        }
-        lock.unlock();
-        return result->getData();
-    }
-
-    void KernelHeapArena::free(void *loc) {
-        lock.lock();
-        ObjectHeader *header = ObjectHeader::getHeader(loc);
-        uint64_t poolAddr = alignDown((uint64_t)header, 4096);
-        SmallObjectPool *pool = (SmallObjectPool *)poolAddr;
-        if (m_poolsLastCheckedIndices[pool->meta.objectSize / 16] <
-            pool->meta.objectsCount) {
-            m_poolsLastCheckedIndices[pool->meta.objectSize] =
-                pool->meta.objectsCount;
-        }
-        cutPoolFrom(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
-        pool->free(header);
-        if (pool->meta.objectsCount == pool->maxCount()) {
-            KernelVirtualAllocator::unmapAt(poolAddr, 4096);
-            lock.unlock();
-            return;
-        }
-        insertPoolTo(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
-        lock.unlock();
-    }
-
-    void KernelHeapArena::init(uint64_t id) {
-        arenaId = id;
-        uint64_t initMemory;
-        uint64_t requiredMem = 0;
-        for (uint64_t i = 0; i < poolsSizesCount; ++i) {
-            m_poolsMaxCount[i] = SmallObjectPool::maxCount(16 * i);
-            m_poolsLastCheckedIndices[i] = m_poolsMaxCount[i];
-            requiredMem += (m_poolsMaxCount[i] + 1) * sizeof(SmallObjectPool *);
-        }
-        uint64_t alignedRequiredMem = alignUp(requiredMem, 4096);
-        initMemory = KernelVirtualAllocator::getMapping(alignedRequiredMem, 0,
-                                                        defaultKernelFlags);
-        for (uint64_t i = 0; i < poolsSizesCount; ++i) {
-            m_poolHeadsArray[i] = (SmallObjectPool **)initMemory;
-            initMemory += (SmallObjectPool::maxCount(16 * i) + 1) *
-                          sizeof(SmallObjectPool *);
-        }
-        lock.m_lockValue = 0;
-    }
-
-    bool KernelHeap::m_initialized;
-    KernelHeapArena *KernelHeap::m_arenas;
-
-    void KernelHeap::init() {
-        uint64_t areanasCount = getCoresCount();
-        if (!KernelVirtualAllocator::isInitialized()) {
-            panic("[Kernel Heap] Dependency \"KernelVirtualAllocator\" is not "
-                  "satisfied\n\r");
-        }
-        memory::VAddr arenasAddr = KernelVirtualAllocator::getMapping(
-            alignUp(sizeof(KernelHeapArena) * areanasCount, 4096), 0,
-            defaultKernelFlags);
-        m_arenas = (KernelHeapArena *)arenasAddr;
-        for (uint64_t i = 0; i < areanasCount; ++i) {
-            m_arenas[i].init(i);
-        }
-        m_initialized = true;
     }
 
     void *KernelHeap::alloc(uint64_t size) {
@@ -222,18 +151,60 @@ namespace memory {
             header->realSize = alignUp(size, 4096);
             return header->getData();
         }
-        return m_arenas[getCoreHeapId()].alloc(size);
+        ObjectHeader *result = allocFromSlubs(size);
+        if (result == nullptr) {
+            if (!getNewPool(size)) {
+                return nullptr;
+            }
+            poolsLastCheckedIndices[size / 16] = poolsMaxCount[size / 16];
+            result = allocFromSlubs(size);
+        }
+        return result->getData();
     }
 
-    void KernelHeap::free(void *ptr) {
-        ObjectHeader *header = ObjectHeader::getHeader(ptr);
+    void KernelHeap::free(void *loc) {
+        ObjectHeader *header = ObjectHeader::getHeader(loc);
         if (header->realSize > maxSizeForSlubs) {
             KernelVirtualAllocator::unmapAt((VAddr)header, header->realSize);
             return;
         }
         uint64_t poolAddr = alignDown((uint64_t)header, 4096);
         SmallObjectPool *pool = (SmallObjectPool *)poolAddr;
-        m_arenas[pool->meta.arenaId].free(ptr);
+        if (poolsLastCheckedIndices[pool->meta.objectSize / 16] <
+            pool->meta.objectsCount) {
+            poolsLastCheckedIndices[pool->meta.objectSize] =
+                pool->meta.objectsCount;
+        }
+        cutPoolFrom(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
+        pool->free(header);
+        if (pool->meta.objectsCount == pool->maxCount()) {
+            KernelVirtualAllocator::unmapAt(poolAddr, 4096);
+            return;
+        }
+        insertPoolTo(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
+    }
+
+    void KernelHeap::init() {
+        if (!KernelVirtualAllocator::isInitialized()) {
+            panic("[KernelHeap] Dependency KernelVirtualAllocator is not "
+                  "satisfied\n\r");
+        }
+        uint64_t initMemory;
+        uint64_t requiredMem = 0;
+        for (uint64_t i = 0; i < poolsSizesCount; ++i) {
+            poolsMaxCount[i] = SmallObjectPool::maxCount(16 * i);
+            poolsLastCheckedIndices[i] = poolsMaxCount[i];
+            requiredMem += (poolsMaxCount[i] + 1) * sizeof(SmallObjectPool *);
+        }
+        uint64_t alignedRequiredMem = alignUp(requiredMem, 4096);
+        initMemory = KernelVirtualAllocator::getMapping(alignedRequiredMem, 0,
+                                                        defaultKernelFlags);
+        for (uint64_t i = 0; i < poolsSizesCount; ++i) {
+            poolHeadsArray[i] = (SmallObjectPool **)initMemory;
+            initMemory += (SmallObjectPool::maxCount(16 * i) + 1) *
+                          sizeof(SmallObjectPool *);
+        }
+        initialized = true;
     }
 
 }; // namespace memory
