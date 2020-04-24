@@ -8,11 +8,11 @@ namespace core {
 
     class Ports {
     public:
-        INLINE static void outb(Uint16 port, Uint8 val) {
+        INLINE static void outb(uint16_t port, uint8_t val) {
             asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
         }
-        INLINE static Uint8 inb(Uint16 port) {
-            Uint8 ret;
+        INLINE static uint8_t inb(uint16_t port) {
+            uint8_t ret;
             asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
             return ret;
         }

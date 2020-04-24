@@ -3,8 +3,8 @@
 #include <mm/kheap.hpp>
 
 namespace drivers {
-    IPIC *IPIC::systemPic;
-    bool IPIC::picInitialized;
+    IPIC *IPIC::m_systemPic;
+    bool IPIC::m_picInitialized;
 
     void IPIC::detectPIC() {
         if (!core::IDT::isInitialized()) {
@@ -15,10 +15,10 @@ namespace drivers {
         }
         PIC8259 *pic = new PIC8259;
         pic->init();
-        systemPic = pic;
-        if (!systemPic->isInstanceInitialized()) {
+        m_systemPic = pic;
+        if (!m_systemPic->isInstanceInitialized()) {
             panic("[PIC] Failed to initialize 8259 controller\n\r");
         }
-        picInitialized = true;
+        m_picInitialized = true;
     }
 } // namespace drivers

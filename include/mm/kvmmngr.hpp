@@ -7,13 +7,13 @@
 
 namespace memory {
     class KernelVirtualAllocator {
-        static bool initialized;
+        static bool m_initialized;
 
     public:
-        static VAddr getMapping(Uint64 size, PAddr physBase, Uint64 flags);
-        static void unmapAt(VAddr virtualAddr, Uint64 size);
+        static VAddr getMapping(uint64_t size, PAddr physBase, uint64_t flags);
+        static void unmapAt(VAddr virtualAddr, uint64_t size);
         static void init();
-        INLINE static bool isInitialized() { return initialized; }
+        INLINE static bool isInitialized() { return m_initialized; }
     };
 }; // namespace memory
 

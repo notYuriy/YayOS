@@ -3,12 +3,10 @@ bits 64
 section .text
 
 extern scheduleUsingFrame
-extern scheduleForIntUsingFrame
 extern timerEOI
-extern setYieldFlag
-extern clearYieldFlag
-global schedulerIntHandler
+extern zeroIntLevel
 global schedulerYield
+global schedulerIntHandler
 
 schedulerIntHandler:
     push rax
@@ -37,7 +35,7 @@ schedulerIntHandler:
     mov rax, fs
     push rax
     mov rdi, rsp
-    call scheduleForIntUsingFrame
+    call scheduleUsingFrame
     call timerEOI
     pop rax
     mov fs, rax
@@ -68,8 +66,8 @@ schedulerIntHandler:
     iretq
 
 schedulerYield:
+    cli
     push rax
-    call setYieldFlag
 ; idt frame begin
     mov rax, ss
     push rax
@@ -109,6 +107,7 @@ schedulerYield:
     push rax
     mov rdi, rsp
     call scheduleUsingFrame
+    call zeroIntLevel
     pop rax
     mov fs, rax
     pop rax
@@ -135,8 +134,8 @@ schedulerYield:
     pop rcx
     pop rbx
     pop rax
+    sti
     iretq
 .recoverPoint:
     pop rax
-    call clearYieldFlag
     ret

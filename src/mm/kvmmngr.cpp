@@ -4,14 +4,14 @@
 
 namespace memory {
 
-    bool KernelVirtualAllocator::initialized = false;
+    bool KernelVirtualAllocator::m_initialized = false;
 
 #pragma pack(1)
     struct MemoryArea {
         MemoryArea *next;
         MemoryArea *prev;
         VAddr offset;
-        Uint64 size;
+        uint64_t size;
     };
 #pragma pack(0)
 
@@ -19,7 +19,7 @@ namespace memory {
 
     struct MemoryAreaPool *poolHeads[128];
 
-    Uint64 lastCheckedIndex;
+    uint64_t lastCheckedIndex;
     MemoryArea *kernelAreas;
     proc::Spinlock kvmmngrLock;
 
@@ -27,13 +27,13 @@ namespace memory {
         MemoryArea *first;
         MemoryAreaPool *next;
         MemoryAreaPool *prev;
-        Uint64 count;
+        uint64_t count;
         MemoryArea areas[127];
 
         void init() {
             count = 127;
             first = &areas[0];
-            for (Uint64 i = 0; i < 126; ++i) {
+            for (uint64_t i = 0; i < 126; ++i) {
                 areas[i].next = &areas[i + 1];
             }
             areas[126].next = nullptr;
@@ -96,7 +96,8 @@ namespace memory {
     }
 
     void freeMemoryArea(MemoryArea *node) {
-        MemoryAreaPool *pool = (MemoryAreaPool *)alignDown((Uint64)node, 4096);
+        MemoryAreaPool *pool =
+            (MemoryAreaPool *)alignDown((uint64_t)node, 4096);
         cutPool(pool);
         pool->freeNode(node);
         insertPool(pool);
@@ -215,7 +216,7 @@ namespace memory {
         return true;
     }
 
-    MemoryArea *findBestFit(Uint64 requestedSize) {
+    MemoryArea *findBestFit(uint64_t requestedSize) {
         MemoryArea *bestFit = nullptr, *current = kernelAreas;
         while (current != nullptr) {
             if (current->size >= requestedSize) {
@@ -230,8 +231,8 @@ namespace memory {
         return bestFit;
     }
 
-    VAddr KernelVirtualAllocator::getMapping(Uint64 size, PAddr physBase,
-                                             Uint64 flags) {
+    VAddr KernelVirtualAllocator::getMapping(uint64_t size, PAddr physBase,
+                                             uint64_t flags) {
         kvmmngrLock.lock();
         MemoryArea *bestFit = findBestFit(size);
         if (bestFit == nullptr) {
@@ -256,7 +257,7 @@ namespace memory {
         return offset;
     }
 
-    void freeRange(VAddr virtualAddr, Uint64 size) {
+    void freeRange(VAddr virtualAddr, uint64_t size) {
         if (size == 0) {
             return;
         }
@@ -285,7 +286,7 @@ namespace memory {
         freePools();
     }
 
-    void KernelVirtualAllocator::unmapAt(VAddr start, Uint64 size) {
+    void KernelVirtualAllocator::unmapAt(VAddr start, uint64_t size) {
         kvmmngrLock.lock();
         memory::VirtualMemoryMapper::freePages(start, start + size);
         freeRange(start, size);
@@ -310,8 +311,8 @@ namespace memory {
                                   ->walkTo(0));
         lastCheckedIndex = 127;
         freeRange(initAreaStart, initAreaEnd - initAreaStart);
-        kvmmngrLock.lockValue = 0;
-        initialized = true;
+        kvmmngrLock.m_lockValue = 0;
+        m_initialized = true;
     }
 
 }; // namespace memory

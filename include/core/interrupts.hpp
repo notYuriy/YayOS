@@ -7,41 +7,41 @@ namespace core {
 
 #pragma pack(1)
     struct IDTEntry {
-        Uint16 addrLow;
-        Uint16 selector;
-        Uint8 ist : 3;
-        Uint8 zeroed1 : 5;
-        Uint8 type : 1;
-        Uint8 ones1 : 3;
-        Uint8 zeroed2 : 1;
-        Uint8 dpl : 2;
-        Uint8 present : 1;
-        Uint16 addrMiddle;
-        Uint32 addrHigh;
-        Uint32 zeroed3;
+        uint16_t addrLow;
+        uint16_t selector;
+        uint8_t ist : 3;
+        uint8_t zeroed1 : 5;
+        uint8_t type : 1;
+        uint8_t ones1 : 3;
+        uint8_t zeroed2 : 1;
+        uint8_t dpl : 2;
+        uint8_t present : 1;
+        uint16_t addrMiddle;
+        uint32_t addrHigh;
+        uint32_t zeroed3;
     };
 
     static_assert(sizeof(IDTEntry) == 16);
 
     struct IDTPointer {
-        Uint16 limit;
-        Uint64 base;
+        uint16_t limit;
+        uint64_t base;
     };
 #pragma pack(0)
 
     static_assert(sizeof(IDTPointer) == 10);
 
-    typedef Uint64 IDTVector;
+    typedef uint64_t IDTVector;
 
     class IDT {
-        static IDTPointer pointer;
-        static IDTEntry table[256];
-        static bool initialized;
+        static IDTPointer m_pointer;
+        static IDTEntry m_table[256];
+        static bool m_initialized;
 
     public:
-        INLINE static bool isInitialized() { return initialized; }
+        INLINE static bool isInitialized() { return m_initialized; }
         static void init();
-        static void install(Uint8 index, IDTVector handler);
+        static void install(uint8_t index, IDTVector handler);
     };
 
 }; // namespace core

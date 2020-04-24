@@ -21,14 +21,14 @@ namespace drivers {
         core::Ports::outb(port + 4, 0x0B);
     }
 
-    void Serial::send(SerialPort port, Uint8 byte) {
+    void Serial::send(SerialPort port, uint8_t byte) {
         while (!Serial::readyToSend(port)) {
             asm("pause");
         }
         core::Ports::outb(port, byte);
     }
 
-    Uint8 Serial::recieve(SerialPort port) {
+    uint8_t Serial::recieve(SerialPort port) {
         while (!Serial::readyToRecieve(port)) {
             asm("pause");
         }

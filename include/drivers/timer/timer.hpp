@@ -7,10 +7,10 @@
 namespace drivers {
     class ITimer {
     protected:
-        bool initialized;
+        bool m_initialized;
 
     public:
-        INLINE bool isInitialized() { return initialized; }
+        INLINE bool isInitialized() { return m_initialized; }
         virtual bool setCallback(core::IDTVector callback) = 0;
         virtual bool enable() = 0;
         virtual bool disable() = 0;

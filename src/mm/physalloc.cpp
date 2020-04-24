@@ -2,65 +2,65 @@
 #include <proc/spinlock.hpp>
 
 namespace memory {
-    bool PhysAllocator::initialized;
-    Uint64 *PhysAllocator::bitmap;
-    PhysicalPageInfo *PhysAllocator::pageInfo;
-    Uint64 PhysAllocator::pagesCount;
-    Uint64 PhysAllocator::bitmapSize;
-    Uint64 PhysAllocator::leastUncheckedIndex;
+    bool PhysAllocator::m_initialized;
+    uint64_t *PhysAllocator::m_bitmap;
+    PhysicalPageInfo *PhysAllocator::m_pageInfo;
+    uint64_t PhysAllocator::m_pagesCount;
+    uint64_t PhysAllocator::m_bitmapSize;
+    uint64_t PhysAllocator::m_leastUncheckedIndex;
     proc::Spinlock physLock;
 
-    INLINE void setBit(Uint64 &num, Uint8 bit) { num |= (1ULL << bit); }
-    INLINE void clearBit(Uint64 &num, Uint8 bit) { num &= ~(1ULL << bit); }
+    INLINE void setBit(uint64_t &num, uint8_t bit) { num |= (1ULL << bit); }
+    INLINE void clearBit(uint64_t &num, uint8_t bit) { num &= ~(1ULL << bit); }
 
-    void PhysAllocator::bitmapClearIndexRange(Uint64 start, Uint64 end) {
-        if (start >= pagesCount) {
+    void PhysAllocator::bitmapClearIndexRange(uint64_t start, uint64_t end) {
+        if (start >= m_pagesCount) {
             return;
         }
-        if (end > pagesCount) {
-            end = pagesCount;
+        if (end > m_pagesCount) {
+            end = m_pagesCount;
         }
-        Uint64 startBitmapIndex = start / 64;
-        Uint64 endBitmapIndex = end / 64;
+        uint64_t startBitmapIndex = start / 64;
+        uint64_t endBitmapIndex = end / 64;
         if (startBitmapIndex == endBitmapIndex) {
-            for (Uint64 bit = start % 64; bit < end % 64; ++bit) {
-                clearBit(bitmap[startBitmapIndex], bit);
+            for (uint64_t bit = start % 64; bit < end % 64; ++bit) {
+                clearBit(m_bitmap[startBitmapIndex], bit);
             }
         } else {
-            for (Uint64 bit = start % 64; bit < 64; ++bit) {
-                clearBit(bitmap[startBitmapIndex], bit);
+            for (uint64_t bit = start % 64; bit < 64; ++bit) {
+                clearBit(m_bitmap[startBitmapIndex], bit);
             }
-            for (Uint64 bit = 0; bit < end % 64; ++bit) {
-                clearBit(bitmap[endBitmapIndex], bit);
+            for (uint64_t bit = 0; bit < end % 64; ++bit) {
+                clearBit(m_bitmap[endBitmapIndex], bit);
             }
-            for (Uint64 i = startBitmapIndex + 1; i < endBitmapIndex; ++i) {
-                bitmap[i] = 0;
+            for (uint64_t i = startBitmapIndex + 1; i < endBitmapIndex; ++i) {
+                m_bitmap[i] = 0;
             }
         }
     } // namespace memory
 
-    void PhysAllocator::bitmapSetIndexRange(Uint64 start, Uint64 end) {
-        if (start >= pagesCount) {
+    void PhysAllocator::bitmapSetIndexRange(uint64_t start, uint64_t end) {
+        if (start >= m_pagesCount) {
             return;
         }
-        if (end > pagesCount) {
-            end = pagesCount;
+        if (end > m_pagesCount) {
+            end = m_pagesCount;
         }
-        Uint64 startBitmapIndex = start / 64;
-        Uint64 endBitmapIndex = end / 64;
+        uint64_t startBitmapIndex = start / 64;
+        uint64_t endBitmapIndex = end / 64;
         if (startBitmapIndex == endBitmapIndex) {
-            for (Uint64 bit = start % 64; bit < end % 64; ++bit) {
-                setBit(bitmap[startBitmapIndex], bit);
+            for (uint64_t bit = start % 64; bit < end % 64; ++bit) {
+                setBit(m_bitmap[startBitmapIndex], bit);
             }
         } else {
-            for (Uint64 bit = start % 64; bit < 64; ++bit) {
-                setBit(bitmap[startBitmapIndex], bit);
+            for (uint64_t bit = start % 64; bit < 64; ++bit) {
+                setBit(m_bitmap[startBitmapIndex], bit);
             }
-            for (Uint64 bit = 0; bit < end % 64; ++bit) {
-                setBit(bitmap[endBitmapIndex], bit);
+            for (uint64_t bit = 0; bit < end % 64; ++bit) {
+                setBit(m_bitmap[endBitmapIndex], bit);
             }
-            for (Uint64 i = startBitmapIndex + 1; i < endBitmapIndex; ++i) {
-                bitmap[i] = UINT64_MAX;
+            for (uint64_t i = startBitmapIndex + 1; i < endBitmapIndex; ++i) {
+                m_bitmap[i] = UINT64_MAX;
             }
         }
     }
@@ -88,82 +88,82 @@ namespace memory {
                   "initialized");
         }
 
-        pagesCount = BootMemoryInfo::upperLimit / 4096;
-        bitmapSize = alignUp(pagesCount, 64) / 64;
-        bitmap = (Uint64 *)TempVirtualAllocator::valloc(bitmapSize * 8);
-        pageInfo = (PhysicalPageInfo *)TempVirtualAllocator::valloc(
-            pagesCount * sizeof(PhysicalPageInfo));
+        m_pagesCount = BootMemoryInfo::upperLimit / 4096;
+        m_bitmapSize = alignUp(m_pagesCount, 64) / 64;
+        m_bitmap = (uint64_t *)TempVirtualAllocator::valloc(m_bitmapSize * 8);
+        m_pageInfo = (PhysicalPageInfo *)TempVirtualAllocator::valloc(
+            m_pagesCount * sizeof(PhysicalPageInfo));
         bitmapSetRange(0, TempPhysAllocator::getFirstUnusedFrame());
         bitmapSetRange(alignDown(memory::BootMemoryInfo::multibootBase, 4096),
                        alignUp(memory::BootMemoryInfo::multibootLimit, 4096));
         bitmapClearRange(TempPhysAllocator::getFirstUnusedFrame(),
-                         pagesCount * 4096);
-        for (Uint64 i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
+                         m_pagesCount * 4096);
+        for (uint64_t i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
             MemoryMapEntry &entry = BootMemoryInfo::mmapEntries[i];
             if (entry.type != multiboot::MemoryMapEntryType::Available) {
                 bitmapSetRange(entry.base, entry.limit);
             }
         }
-        leastUncheckedIndex = 0;
-        physLock.lockValue = 0;
-        initialized = true;
+        m_leastUncheckedIndex = 0;
+        physLock.m_lockValue = 0;
+        m_initialized = true;
     }
 
     PAddr PhysAllocator::newPage(UNUSED VAddr addrHint) {
         physLock.lock();
-        PAddr addr = leastUncheckedIndex * 64 * 4096;
-        for (Uint64 i = leastUncheckedIndex; i < bitmapSize;
+        PAddr addr = m_leastUncheckedIndex * 64 * 4096;
+        for (uint64_t i = m_leastUncheckedIndex; i < m_bitmapSize;
              ++i, addr += 64 * 4096) {
-            if (~bitmap[i] == 0) {
+            if (~m_bitmap[i] == 0) {
                 continue;
             }
-            Uint8 index = bitScanForward(~bitmap[i]);
-            pageInfo[64 * i + index].refCount = 1;
-            pageInfo[64 * i + index].mapCount = 1;
-            setBit(bitmap[i], index);
-            leastUncheckedIndex = i;
+            uint8_t index = bitScanForward(~m_bitmap[i]);
+            m_pageInfo[64 * i + index].refCount = 1;
+            m_pageInfo[64 * i + index].mapCount = 1;
+            setBit(m_bitmap[i], index);
+            m_leastUncheckedIndex = i;
             physLock.unlock();
-            return addr + (Uint64)index * 4096;
+            return addr + (uint64_t)index * 4096;
         }
         physLock.unlock();
         return 0;
     }
 
     PAddr PhysAllocator::copyOnWrite(PAddr addr, VAddr addrHint) {
-        if (pageInfo[addr / 4096].refCount == 1) {
+        if (m_pageInfo[addr / 4096].refCount == 1) {
             return addr;
         } else {
-            pageInfo[addr / 4096].refCount--;
+            m_pageInfo[addr / 4096].refCount--;
             return newPage(addrHint);
         }
     }
 
     void PhysAllocator::freePage(PAddr addr) {
         physLock.lock();
-        if (--pageInfo[addr / 4096].refCount == 0) {
-            clearBit(bitmap[addr / (4096ULL * 64ULL)], (addr / 4096) % 64);
-            leastUncheckedIndex = 0;
+        if (--m_pageInfo[addr / 4096].refCount == 0) {
+            clearBit(m_bitmap[addr / (4096ULL * 64ULL)], (addr / 4096) % 64);
+            m_leastUncheckedIndex = 0;
         }
         physLock.unlock();
     }
 
-    void PhysAllocator::freePages(PAddr addr, Uint64 count) {
+    void PhysAllocator::freePages(PAddr addr, uint64_t count) {
         PAddr p = addr;
-        for (Uint64 i = 0; i < count; ++i, p += 4096) {
+        for (uint64_t i = 0; i < count; ++i, p += 4096) {
             freePage(p);
         }
     }
 
     void PhysAllocator::incrementRefCount(PAddr addr) {
-        ++(pageInfo[addr / 4096].refCount);
+        ++(m_pageInfo[addr / 4096].refCount);
     }
 
     void PhysAllocator::incrementMapCount(PAddr addr) {
-        ++(pageInfo[addr / 4096].mapCount);
+        ++(m_pageInfo[addr / 4096].mapCount);
     }
 
     bool PhysAllocator::decrementMapCount(PAddr addr) {
-        return --(pageInfo[addr / 4096].mapCount) == 0;
+        return --(m_pageInfo[addr / 4096].mapCount) == 0;
     }
 
 } // namespace memory

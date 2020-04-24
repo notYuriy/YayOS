@@ -7,11 +7,11 @@
 
 namespace memory {
     class LowMemPhysAllocator {
-        static bool initialized;
+        static bool m_initialized;
 
     public:
         static void init();
-        INLINE static bool isInitialized() { return initialized; }
+        INLINE static bool isInitialized() { return m_initialized; }
     };
 } // namespace memory
 

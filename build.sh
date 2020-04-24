@@ -37,7 +37,7 @@ cp grub/grub.cfg isotree/boot/grub/grub.cfg
 cp obj/kernel.bin isotree/boot/kernel.bin
 
 echo "[ BL ] grub/grub.cfg"
-grub-mkrescue isotree -o YayOS.iso 2>/dev/null
+grub-mkrescue isotree -o YayOS.iso
 
 echo "[ RM ] obj"
 rm -rf obj

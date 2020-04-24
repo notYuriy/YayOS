@@ -5,8 +5,8 @@
 #include <utils.hpp>
 
 namespace memory {
-    typedef Uint64 VAddr;
-    typedef Uint32 VIndex;
+    typedef uint64_t VAddr;
+    typedef uint32_t VIndex;
     extern "C" void vmbaseLoadP4(memory::PAddr p4addr);
     extern "C" void vmbaseInvalidateCache(memory::VAddr page);
 
@@ -23,13 +23,13 @@ namespace memory {
         return (addr >> 12ULL) & 0777ULL;
     }
 
-    const Uint64 p4TableVirtualAddress = 01777777777777777770000ULL;
-    const Uint64 pageTableEntryFlagsMask = 0b111111111111ULL;
+    const uint64_t p4TableVirtualAddress = 01777777777777777770000ULL;
+    const uint64_t pageTableEntryFlagsMask = 0b111111111111ULL;
 
-    const Uint64 levelSizes[] = {4096ULL, 4096ULL * 512ULL,
-                                 4096ULL * 512ULL * 512ULL,
-                                 4096ULL * 512ULL * 512ULL * 512ULL,
-                                 4096ULL * 512ULL * 512ULL * 512ULL * 512ULL};
+    const uint64_t levelSizes[] = {4096ULL, 4096ULL * 512ULL,
+                                   4096ULL * 512ULL * 512ULL,
+                                   4096ULL * 512ULL * 512ULL * 512ULL,
+                                   4096ULL * 512ULL * 512ULL * 512ULL * 512ULL};
 
 #pragma pack(1)
     union PageTableEntry {
@@ -50,26 +50,26 @@ namespace memory {
                     bool flag2 : 1;
                     bool flag3 : 1;
                 };
-                Uint16 lowFlags : 12;
+                uint16_t lowFlags : 12;
             };
         };
     };
 #pragma pack(0)
 
-    const Uint64 defaultKernelFlags = (1 << 0) | (1 << 1) | (1 << 10);
-    const Uint64 defaultUnmanagedFlags = (1 << 0) | (1 << 1);
-    const Uint64 defaultVolatileDevFlags = (1 << 0) | (1 << 1) | (1 << 5);
+    const uint64_t defaultKernelFlags = (1 << 0) | (1 << 1) | (1 << 10);
+    const uint64_t defaultUnmanagedFlags = (1 << 0) | (1 << 1);
+    const uint64_t defaultVolatileDevFlags = (1 << 0) | (1 << 1) | (1 << 5);
 
     static_assert(sizeof(PageTableEntry) == 8);
 
 #pragma pack(1)
     struct PageTable {
         PageTableEntry entries[512];
-        PageTableEntry &operator[](Uint16 index) { return entries[index]; }
+        PageTableEntry &operator[](uint16_t index) { return entries[index]; }
 
         INLINE PageTable *walkTo(VIndex index) {
-            return (PageTable *)((((Uint64)this) << 9ULL) |
-                                 ((Uint64)(index) << 12ULL));
+            return (PageTable *)((((uint64_t)this) << 9ULL) |
+                                 ((uint64_t)(index) << 12ULL));
         }
 
         PageTable *walkToWithTempAlloc(VIndex index);

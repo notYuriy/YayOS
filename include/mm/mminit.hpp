@@ -11,7 +11,7 @@
 #include <mm/vmmap.hpp>
 
 namespace memory {
-    INLINE void init(Uint64 mbPointer) {
+    INLINE void init(uint64_t mbPointer) {
         memory::BootMemoryInfo::init(mbPointer);
         memory::TempPhysAllocator::init();
         memory::TempVirtualAllocator::init(KERNEL_MAPPING_BASE + 128 MB);

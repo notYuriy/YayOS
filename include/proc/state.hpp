@@ -8,12 +8,12 @@ namespace proc {
 #pragma pack(1)
 
     struct GeneralRegs {
-        Uint64 fs, gs, ds, es;
-        Uint64 cr3;
-        Uint64 r15, r14;
-        Uint64 r13, r12, r11, r10, r9, r8;
-        Uint64 rbp, rsi, rdi, rdx, rcx, rbx, rax;
-        Uint64 rip, cs, rflags, rsp, ss;
+        uint64_t fs, gs, ds, es;
+        uint64_t cr3;
+        uint64_t r15, r14;
+        uint64_t r13, r12, r11, r10, r9, r8;
+        uint64_t rbp, rsi, rdi, rdx, rcx, rbx, rax;
+        uint64_t rip, cs, rflags, rsp, ss;
     };
 
     typedef GeneralRegs SchedulerIntFrame;
@@ -27,7 +27,7 @@ namespace proc {
         INLINE void loadToFPU() { extendedRegsSaveToFpu(buf); }
     };
 
-    struct ProcessState {
+    struct TaskState {
         ExtendedRegs extendedRegs;
         GeneralRegs generalRegs;
 

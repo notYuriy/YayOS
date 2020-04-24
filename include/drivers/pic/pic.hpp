@@ -6,22 +6,22 @@
 
 namespace drivers {
     class IPIC {
-        static IPIC *systemPic;
-        static bool picInitialized;
+        static IPIC *m_systemPic;
+        static bool m_picInitialized;
 
     protected:
-        bool picInstanceInitialized;
+        bool m_picInstanceInitialized;
 
     public:
-        virtual bool registerLegacyIrq(Uint8 irq, core::IDTVector vec) = 0;
-        virtual bool enableLegacyIrq(Uint8 irq) = 0;
-        virtual bool disableLegacyIrq(Uint8 irq) = 0;
-        virtual bool endOfLegacyIrq(Uint8 irq) = 0;
+        virtual bool registerLegacyIrq(uint8_t irq, core::IDTVector vec) = 0;
+        virtual bool enableLegacyIrq(uint8_t irq) = 0;
+        virtual bool disableLegacyIrq(uint8_t irq) = 0;
+        virtual bool endOfLegacyIrq(uint8_t irq) = 0;
 
-        INLINE bool isInstanceInitialized() { return picInstanceInitialized; }
-        INLINE static bool isInitialized() { return picInitialized; }
+        INLINE bool isInstanceInitialized() { return m_picInstanceInitialized; }
+        INLINE static bool isInitialized() { return m_picInitialized; }
 
-        INLINE static IPIC *getSystemPIC() { return systemPic; }
+        INLINE static IPIC *getSystemPIC() { return m_systemPic; }
         static void detectPIC();
     };
 

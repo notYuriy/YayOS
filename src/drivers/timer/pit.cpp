@@ -5,22 +5,22 @@
 
 namespace drivers {
 
-    const Uint16 PITIrq = 0;
+    const uint16_t PITIrq = 0;
 
-    void PIT::init(Uint32 frequency) {
+    void PIT::init(uint32_t frequency) {
         if (!IPIC::isInitialized()) {
             // panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
         }
-        this->frequency = frequency;
-        Uint32 divisor = 1193180 / frequency;
+        this->m_frequency = frequency;
+        uint32_t divisor = 1193180 / frequency;
         if (divisor > 65536) {
             panic("[PIT] Can't handle such a small frequency\n\r");
         }
         core::Ports::outb(0x43, 0x36);
-        Uint16 lowDivisor = (Uint16)divisor;
+        uint16_t lowDivisor = (uint16_t)divisor;
         core::Ports::outb(0x40, lowDivisor & 0xff);
         core::Ports::outb(0x40, lowDivisor >> 8);
-        initialized = true;
+        m_initialized = true;
     }
 
     bool PIT::enable() { return IPIC::getSystemPIC()->enableLegacyIrq(PITIrq); }

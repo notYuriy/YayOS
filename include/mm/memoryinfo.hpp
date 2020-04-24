@@ -8,24 +8,24 @@
 namespace memory {
 
     struct MemoryMapEntry {
-        Uint64 base;
-        Uint64 limit;
+        uint64_t base;
+        uint64_t limit;
         multiboot::MemoryMapEntryType type;
-        Uint32 : 32;
+        uint32_t : 32;
     };
 
     class BootMemoryInfo {
-        static bool initialized;
+        static bool m_initialized;
 
     public:
-        static void init(Uint64 header);
-        INLINE static bool isInitialized() { return initialized; }
-        static Uint64 kernelBase;
-        static Uint64 kernelLimit;
-        static Uint64 multibootBase;
-        static Uint64 multibootLimit;
-        static Uint64 upperLimit;
-        static Uint32 mmapEntriesCount;
+        static void init(uint64_t header);
+        INLINE static bool isInitialized() { return m_initialized; }
+        static uint64_t kernelBase;
+        static uint64_t kernelLimit;
+        static uint64_t multibootBase;
+        static uint64_t multibootLimit;
+        static uint64_t upperLimit;
+        static uint32_t mmapEntriesCount;
         static MemoryMapEntry *mmapEntries;
     };
 

@@ -5,7 +5,7 @@
 
 namespace multiboot {
 
-    enum BootInfoTagType : Uint32 {
+    enum BootInfoTagType : uint32_t {
         BasicMemoryInfo = 4,
         BIOSBootDevice = 5,
         BootCommandLine = 1,
@@ -29,7 +29,7 @@ namespace multiboot {
         ImageLoadBasePhysicalAddress = 21
     };
 
-    enum MemoryMapEntryType : Uint32 {
+    enum MemoryMapEntryType : uint32_t {
         EffectivelyUnusable = 0,
         Available = 1,
         UsedByACPI = 3,
@@ -39,65 +39,65 @@ namespace multiboot {
 
 #pragma pack(1)
     struct MemoryMapEntry {
-        Uint64 baseAddr;
-        Uint64 length;
+        uint64_t baseAddr;
+        uint64_t length;
         MemoryMapEntryType type;
-        Uint32 : 32;
+        uint32_t : 32;
     };
 
     struct MemoryMapTag {
-        Uint32 type;
-        Uint32 size;
-        Uint32 entrySize;
-        Uint32 entryVersion;
+        uint32_t type;
+        uint32_t size;
+        uint32_t entrySize;
+        uint32_t entryVersion;
         MemoryMapEntry map[];
-        INLINE Uint32 getEntriesCount() const {
+        INLINE uint32_t getEntriesCount() const {
             return (size - 16) / sizeof(MemoryMapEntry);
         }
     };
 
     struct ElfSectionHeader {
-        Uint32 name;
-        Uint32 type;
-        Uint64 flags;
-        Uint64 addr;
-        Uint64 offset;
-        Uint64 size;
-        Uint32 link;
-        Uint32 info;
-        Uint64 addrAlign;
-        Uint64 entSize;
+        uint32_t name;
+        uint32_t type;
+        uint64_t flags;
+        uint64_t addr;
+        uint64_t offset;
+        uint64_t size;
+        uint32_t link;
+        uint32_t info;
+        uint64_t addrAlign;
+        uint64_t entSize;
     };
 
     struct ElfSectionsTag {
-        Uint32 type;
-        Uint32 size;
-        Uint16 num;
-        Uint16 endSize;
-        Uint16 shndx;
-        Uint16 reserved;
-        Uint32 : 32;
+        uint32_t type;
+        uint32_t size;
+        uint16_t num;
+        uint16_t endSize;
+        uint16_t shndx;
+        uint16_t reserved;
+        uint32_t : 32;
         ElfSectionHeader headers[];
-        INLINE Uint32 getEntriesCount() const {
+        INLINE uint32_t getEntriesCount() const {
             return (size - 16) / sizeof(ElfSectionHeader);
         }
     };
 
     struct ACPIWithOldRSDPTag {
-        Uint32 type;
-        Uint32 size;
+        uint32_t type;
+        uint32_t size;
         char table[];
     };
 
     struct ACPIWithNewRSDPTag {
-        Uint32 type;
-        Uint32 size;
+        uint32_t type;
+        uint32_t size;
         char table[];
     };
 
     struct BootInfoTag {
         BootInfoTagType type;
-        Uint32 size;
+        uint32_t size;
         INLINE BootInfoTag *next() const {
             return (BootInfoTag *)ALIGN_UP(((char *)this) + size, 8);
         }
@@ -106,8 +106,8 @@ namespace multiboot {
     };
 
     struct BootInfoHeader {
-        Uint32 totalSize;
-        Uint32 reserved;
+        uint32_t totalSize;
+        uint32_t reserved;
         BootInfoTag firstTag[];
     };
 #pragma pack(1)

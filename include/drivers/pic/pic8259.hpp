@@ -7,15 +7,15 @@
 namespace drivers {
 
     class PIC8259 : public IPIC {
-        Uint8 picMasterMask;
-        Uint8 picSlaveMask;
+        uint8_t m_picMasterMask;
+        uint8_t m_picSlaveMask;
 
     public:
         void init();
-        bool registerLegacyIrq(Uint8 irq, core::IDTVector vec);
-        virtual bool enableLegacyIrq(Uint8 irq);
-        virtual bool disableLegacyIrq(Uint8 irq);
-        virtual bool endOfLegacyIrq(Uint8 irq);
+        bool registerLegacyIrq(uint8_t irq, core::IDTVector vec);
+        virtual bool enableLegacyIrq(uint8_t irq);
+        virtual bool disableLegacyIrq(uint8_t irq);
+        virtual bool endOfLegacyIrq(uint8_t irq);
     };
 
 }; // namespace drivers

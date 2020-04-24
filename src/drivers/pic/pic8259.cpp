@@ -3,13 +3,13 @@
 
 namespace drivers {
 
-    const Uint16 picMasterCommandPort = 0x20;
-    const Uint16 picSlaveCommandPort = 0xA0;
-    const Uint16 picMasterDataPort = 0x21;
-    const Uint16 picSlaveDataPort = 0xA0;
+    const uint16_t picMasterCommandPort = 0x20;
+    const uint16_t picSlaveCommandPort = 0xA0;
+    const uint16_t picMasterDataPort = 0x21;
+    const uint16_t picSlaveDataPort = 0xA0;
 
-    const Uint8 picEOI = 0x20;
-    const Uint8 picMode8086 = 0x01;
+    const uint8_t picEOI = 0x20;
+    const uint8_t picMode8086 = 0x01;
 
     void PIC8259::init() {
 
@@ -33,40 +33,40 @@ namespace drivers {
         core::Ports::outb(picMasterDataPort, picMode8086);
         core::Ports::waitForIO();
 
-        picMasterMask = 0xff;
-        picSlaveMask = 0xff;
+        m_picMasterMask = 0xff;
+        m_picSlaveMask = 0xff;
 
-        core::Ports::outb(picMasterDataPort, picMasterMask);
-        core::Ports::outb(picSlaveDataPort, picSlaveMask);
+        core::Ports::outb(picMasterDataPort, m_picMasterMask);
+        core::Ports::outb(picSlaveDataPort, m_picSlaveMask);
 
         asm volatile("sti");
 
-        picInstanceInitialized = true;
+        m_picInstanceInitialized = true;
     }
 
-    bool PIC8259::enableLegacyIrq(Uint8 irq) {
+    bool PIC8259::enableLegacyIrq(uint8_t irq) {
         if (irq < 8) {
-            picMasterMask &= ~(1 << irq);
+            m_picMasterMask &= ~(1 << irq);
         } else {
-            picSlaveMask &= ~(1 << (irq - 8));
+            m_picSlaveMask &= ~(1 << (irq - 8));
         }
-        core::Ports::outb(picMasterDataPort, picMasterMask);
-        core::Ports::outb(picSlaveDataPort, picSlaveMask);
+        core::Ports::outb(picMasterDataPort, m_picMasterMask);
+        core::Ports::outb(picSlaveDataPort, m_picSlaveMask);
         return true;
     }
 
-    bool PIC8259::disableLegacyIrq(Uint8 irq) {
+    bool PIC8259::disableLegacyIrq(uint8_t irq) {
         if (irq < 8) {
-            picMasterMask |= (1 << irq);
+            m_picMasterMask |= (1 << irq);
         } else {
-            picSlaveMask |= (1 << (irq - 8));
+            m_picSlaveMask |= (1 << (irq - 8));
         }
-        core::Ports::outb(picMasterDataPort, picMasterMask);
-        core::Ports::outb(picSlaveDataPort, picSlaveMask);
+        core::Ports::outb(picMasterDataPort, m_picMasterMask);
+        core::Ports::outb(picSlaveDataPort, m_picSlaveMask);
         return true;
     }
 
-    bool PIC8259::endOfLegacyIrq(Uint8 irq) {
+    bool PIC8259::endOfLegacyIrq(uint8_t irq) {
         if (irq >= 8) {
             core::Ports::outb(picSlaveCommandPort, picEOI);
         }
@@ -74,7 +74,7 @@ namespace drivers {
         return true;
     }
 
-    bool PIC8259::registerLegacyIrq(Uint8 irq, core::IDTVector vec) {
+    bool PIC8259::registerLegacyIrq(uint8_t irq, core::IDTVector vec) {
         if (irq >= 16) {
             return false;
         }

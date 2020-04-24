@@ -1,18 +1,18 @@
 #include <mm/tmpvalloc.hpp>
 
 namespace memory {
-    VAddr TempVirtualAllocator::pageEnd;
-    VAddr TempVirtualAllocator::unalignedEnd;
-    bool TempVirtualAllocator::initialized;
+    VAddr TempVirtualAllocator::m_pageEnd;
+    VAddr TempVirtualAllocator::m_unalignedEnd;
+    bool TempVirtualAllocator::m_initialized;
 
     void TempVirtualAllocator::init(VAddr initMappingEnd) {
         if (!TempPhysAllocator::isInitialized()) {
             panic("[TempVirtualAllocator] Dependency TempPhysAllocator is not "
                   "initialized");
         }
-        pageEnd = initMappingEnd;
-        unalignedEnd = initMappingEnd;
-        initialized = true;
+        m_pageEnd = initMappingEnd;
+        m_unalignedEnd = initMappingEnd;
+        m_initialized = true;
     }
     namespace {
         void mapNewPageFromTempAlloc(VAddr addr) {
@@ -35,15 +35,15 @@ namespace memory {
         }
     } // namespace
 
-    void *TempVirtualAllocator::valloc(Uint64 size) {
-        void *result = (void *)unalignedEnd;
-        Uint64 newUnalignedEnd = (Uint64)unalignedEnd + size;
-        Uint64 newPageEnd = alignUp(newUnalignedEnd, 4096);
-        for (VAddr addr = pageEnd; addr < newPageEnd; addr += 4096) {
+    void *TempVirtualAllocator::valloc(uint64_t size) {
+        void *result = (void *)m_unalignedEnd;
+        uint64_t newUnalignedEnd = (uint64_t)m_unalignedEnd + size;
+        uint64_t newPageEnd = alignUp(newUnalignedEnd, 4096);
+        for (VAddr addr = m_pageEnd; addr < newPageEnd; addr += 4096) {
             mapNewPageFromTempAlloc(addr);
         }
-        pageEnd = newPageEnd;
-        unalignedEnd = newUnalignedEnd;
+        m_pageEnd = newPageEnd;
+        m_unalignedEnd = newUnalignedEnd;
         return result;
     }
 

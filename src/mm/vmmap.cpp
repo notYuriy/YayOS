@@ -2,7 +2,7 @@
 
 namespace memory {
     void VirtualMemoryMapper::mapNewPageAt(VAddr addr, PAddr physAddr,
-                                           Uint64 flags) {
+                                           uint64_t flags) {
         PageTable *root = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
@@ -77,20 +77,20 @@ namespace memory {
     }
 
     void VirtualMemoryMapper::mapNewPages(VAddr start, VAddr end) {
-        for (Uint64 addr = start; addr < end; addr += 4096) {
+        for (uint64_t addr = start; addr < end; addr += 4096) {
             mapNewPageAt(addr, 0, defaultKernelFlags);
         }
     }
 
     void VirtualMemoryMapper::mapPages(VAddr start, VAddr end, PAddr physAddr,
-                                       Uint64 flags) {
-        for (Uint64 addr = start; addr < end; addr += 4096) {
+                                       uint64_t flags) {
+        for (uint64_t addr = start; addr < end; addr += 4096) {
             mapNewPageAt(addr, physAddr - start + addr, flags);
         }
     }
 
     void VirtualMemoryMapper::freePages(VAddr start, VAddr end) {
-        for (Uint64 addr = start; addr < end; addr += 4096) {
+        for (uint64_t addr = start; addr < end; addr += 4096) {
             freePageAt(addr);
         }
     }

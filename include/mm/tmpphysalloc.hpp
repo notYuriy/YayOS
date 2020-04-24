@@ -7,10 +7,10 @@
 
 namespace memory {
     class TempPhysAllocator {
-        static memory::MemoryMapEntry *currentEntry;
-        static PAddr currentPhysAddr;
-        static Uint64 areaUsed;
-        static bool initialized;
+        static memory::MemoryMapEntry *m_currentEntry;
+        static PAddr m_currentPhysAddr;
+        static uint64_t m_areaUsed;
+        static bool m_initialized;
 
         static bool afterCurrentMemoryArea();
         static bool beforeCurrentMemoryArea();
@@ -19,7 +19,7 @@ namespace memory {
 
     public:
         static void init();
-        INLINE static bool isInitialized() { return initialized; }
+        INLINE static bool isInitialized() { return m_initialized; }
         static PAddr getFirstUnusedFrame();
         static PAddr newFrame();
     };

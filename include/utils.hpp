@@ -12,11 +12,11 @@
 #define MB *1024 * 1024
 #define GB *1024 * 1024 * 1024
 
-INLINE static Uint64 alignUp(Uint64 value, Uint64 align) {
+INLINE static uint64_t alignUp(uint64_t value, uint64_t align) {
     return ((value + align - 1) / align) * align;
 }
 
-INLINE static Uint64 alignDown(Uint64 value, Uint64 align) {
+INLINE static uint64_t alignDown(uint64_t value, uint64_t align) {
     return (value / align) * align;
 }
 
@@ -30,35 +30,35 @@ INLINE static void panic(const char *msg) {
 
 // Used for fast bitmap scanning. Source is taken from
 // https://www.chessprogramming.org/BitScan#Bsf.2FBsr_x86-64_Timings
-INLINE Uint8 bitScanForward(Uint64 x) {
+INLINE uint8_t bitScanForward(uint64_t x) {
     asm("bsfq %0, %0" : "=r"(x) : "0"(x));
-    return (Uint8)x;
+    return (uint8_t)x;
 }
 
-#define ALIGN_UP(x, align) (alignUp((Uint64)x, (Uint64)align))
-#define ALIGN_DOWN(x, align) (alignUp((Uint64)x, (Uint64)align))
+#define ALIGN_UP(x, align) (alignUp((uint64_t)x, (uint64_t)align))
+#define ALIGN_DOWN(x, align) (alignUp((uint64_t)x, (uint64_t)align))
 
 INLINE static void zeroPage(void *addr) {
-    Uint64 *p = (Uint64 *)addr;
-    for (Uint16 i = 0; i < 512; ++i) {
+    uint64_t *p = (uint64_t *)addr;
+    for (uint16_t i = 0; i < 512; ++i) {
         p[i] = 0;
     }
 }
 
-INLINE static void memcpy(void *dst, const void *src, Uint64 size) {
-    for (Uint64 i = 0; i < size; ++i) {
+INLINE static void memcpy(void *dst, const void *src, uint64_t size) {
+    for (uint64_t i = 0; i < size; ++i) {
         ((char *)dst)[i] = ((char *)src)[i];
     }
 }
 
-INLINE static void memset(void *dst, Uint64 size, Uint8 fill) {
-    for (Uint64 i = 0; i < size; ++i) {
+INLINE static void memset(void *dst, uint64_t size, uint8_t fill) {
+    for (uint64_t i = 0; i < size; ++i) {
         ((char *)dst)[i] = fill;
     }
 }
 
 INLINE static bool streq(const char *str1, const char *str2) {
-    for (Uint64 i = 0;; ++i) {
+    for (uint64_t i = 0;; ++i) {
         if (str1[i] != str2[i]) {
             return false;
         }
@@ -68,8 +68,8 @@ INLINE static bool streq(const char *str1, const char *str2) {
     }
 }
 
-INLINE static bool streqn(const char *str1, const char *str2, Uint64 n) {
-    for (Uint64 i = 0; i < n; ++i) {
+INLINE static bool streqn(const char *str1, const char *str2, uint64_t n) {
+    for (uint64_t i = 0; i < n; ++i) {
         if (str1[i] != str2[i]) {
             return false;
         }
@@ -77,8 +77,8 @@ INLINE static bool streqn(const char *str1, const char *str2, Uint64 n) {
     return true;
 }
 
-INLINE static Uint64 strlen(const char *str) {
-    for (Uint64 i = 0;; ++i) {
+INLINE static uint64_t strlen(const char *str) {
+    for (uint64_t i = 0;; ++i) {
         if (str[i] == 0) {
             return i;
         }
@@ -86,7 +86,7 @@ INLINE static Uint64 strlen(const char *str) {
 }
 
 INLINE static char *strdup(const char *str) {
-    Uint64 len = strlen(str);
+    uint64_t len = strlen(str);
     char *result = new char[len + 1];
     memcpy(result, str, len);
     result[len] = '\0';
@@ -94,34 +94,34 @@ INLINE static char *strdup(const char *str) {
 }
 
 struct CPUIDInfo {
-    Uint32 leaf;
-    Uint32 eax, ebx, ecx, edx;
+    uint32_t leaf;
+    uint32_t eax, ebx, ecx, edx;
 };
 
-INLINE CPUIDInfo cpuid(Uint32 leaf) {
+INLINE CPUIDInfo cpuid(uint32_t leaf) {
     CPUIDInfo result;
     result.leaf = leaf;
     __get_cpuid(leaf, &result.eax, &result.ebx, &result.ecx, &result.edx);
     return result;
 }
 
-INLINE Uint64 strhash(const Uint8 *str) {
-    Uint64 hash = 5381;
-    for (Uint64 i = 0; str[i] != '\0'; ++i) {
-        hash = ((hash << 5) + hash) + str[i];
+INLINE uint64_t strhash(const char *str) {
+    uint64_t hash = 5381;
+    for (uint64_t i = 0; ((const uint8_t *)str)[i] != '\0'; ++i) {
+        hash = ((hash << 5) + hash) + ((const uint8_t *)str)[i];
     }
     return hash;
 }
 
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
-extern "C" Uint64 getPageTable();
-extern "C" Uint64 getFlags();
-extern "C" Uint64 getFS();
-extern "C" Uint64 getGS();
-extern "C" Uint64 getCS();
-extern "C" Uint64 getDS();
-extern "C" Uint64 getES();
-extern "C" Uint64 getSS();
+extern "C" uint64_t getPageTable();
+extern "C" uint64_t getFlags();
+extern "C" uint64_t getFS();
+extern "C" uint64_t getGS();
+extern "C" uint64_t getCS();
+extern "C" uint64_t getDS();
+extern "C" uint64_t getES();
+extern "C" uint64_t getSS();
 
 #endif

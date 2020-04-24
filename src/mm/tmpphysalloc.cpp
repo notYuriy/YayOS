@@ -1,33 +1,33 @@
 #include <mm/tmpphysalloc.hpp>
 
 namespace memory {
-    memory::MemoryMapEntry *TempPhysAllocator::currentEntry;
-    Uint64 TempPhysAllocator::areaUsed;
-    PAddr TempPhysAllocator::currentPhysAddr;
-    bool TempPhysAllocator::initialized;
+    memory::MemoryMapEntry *TempPhysAllocator::m_currentEntry;
+    uint64_t TempPhysAllocator::m_areaUsed;
+    PAddr TempPhysAllocator::m_currentPhysAddr;
+    bool TempPhysAllocator::m_initialized;
 
     bool TempPhysAllocator::afterCurrentMemoryArea() {
-        return currentEntry->limit + 4096 < currentPhysAddr;
+        return m_currentEntry->limit + 4096 < m_currentPhysAddr;
     }
 
     bool TempPhysAllocator::beforeCurrentMemoryArea() {
-        return currentEntry->base > currentPhysAddr;
+        return m_currentEntry->base > m_currentPhysAddr;
     }
 
     void TempPhysAllocator::AdjustMemoryArea() {
         while (true) {
             if (!afterCurrentMemoryArea()) {
                 if (beforeCurrentMemoryArea()) {
-                    currentPhysAddr = alignUp(currentEntry->base, 4096);
+                    m_currentPhysAddr = alignUp(m_currentEntry->base, 4096);
                 }
-                if (currentEntry->type ==
+                if (m_currentEntry->type ==
                     multiboot::MemoryMapEntryType::Available) {
                     break;
                 }
             }
-            currentEntry++;
-            areaUsed++;
-            if (areaUsed >= memory::BootMemoryInfo::mmapEntriesCount) {
+            m_currentEntry++;
+            m_areaUsed++;
+            if (m_areaUsed >= memory::BootMemoryInfo::mmapEntriesCount) {
                 panic(
                     "[TempPhysAllocator] Can't find any available memory area");
             }
@@ -35,9 +35,9 @@ namespace memory {
     }
 
     bool TempPhysAllocator::CheckMultibootOverlap() {
-        if (currentPhysAddr >= memory::BootMemoryInfo::multibootBase &&
-            (currentPhysAddr < memory::BootMemoryInfo::multibootLimit)) {
-            currentPhysAddr = memory::BootMemoryInfo::multibootLimit;
+        if (m_currentPhysAddr >= memory::BootMemoryInfo::multibootBase &&
+            (m_currentPhysAddr < memory::BootMemoryInfo::multibootLimit)) {
+            m_currentPhysAddr = memory::BootMemoryInfo::multibootLimit;
             return true;
         }
         return false;
@@ -47,19 +47,19 @@ namespace memory {
         if (!memory::BootMemoryInfo::isInitialized()) {
             panic("[TempPhysAllocator] BootMemoryInfo is not initialized\n\r");
         }
-        currentPhysAddr = memory::BootMemoryInfo::kernelLimit;
-        currentEntry = memory::BootMemoryInfo::mmapEntries;
+        m_currentPhysAddr = memory::BootMemoryInfo::kernelLimit;
+        m_currentEntry = memory::BootMemoryInfo::mmapEntries;
         if (memory::BootMemoryInfo::mmapEntriesCount < 1) {
             panic("[TempPhysAllocator] No memory areas found\n\r");
         }
-        areaUsed = 0;
+        m_areaUsed = 0;
         AdjustMemoryArea();
         CheckMultibootOverlap();
         AdjustMemoryArea();
-        initialized = true;
+        m_initialized = true;
     }
 
-    PAddr TempPhysAllocator::getFirstUnusedFrame() { return currentPhysAddr; }
+    PAddr TempPhysAllocator::getFirstUnusedFrame() { return m_currentPhysAddr; }
 
     PAddr TempPhysAllocator::newFrame() {
         AdjustMemoryArea();
@@ -67,8 +67,8 @@ namespace memory {
         if (overlapped) {
             AdjustMemoryArea();
         }
-        PAddr result = currentPhysAddr;
-        currentPhysAddr += 4096;
+        PAddr result = m_currentPhysAddr;
+        m_currentPhysAddr += 4096;
         return result;
     }
 

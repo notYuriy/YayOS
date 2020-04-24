@@ -5,13 +5,13 @@
 
 namespace drivers {
     class PIT : public ITimer {
-        bool initialized;
-        Uint32 frequency;
+        bool m_initialized;
+        uint32_t m_frequency;
 
     public:
-        void init(Uint32 frequency);
-        INLINE bool isInitilaized() { return initialized; }
-        INLINE Uint64 getFrequency() { return frequency; }
+        void init(uint32_t frequency);
+        INLINE bool isInitilaized() { return m_initialized; }
+        INLINE uint64_t getFrequency() { return m_frequency; }
         virtual bool setCallback(core::IDTVector callback);
         virtual bool enable();
         virtual bool disable();

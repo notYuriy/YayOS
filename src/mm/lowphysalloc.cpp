@@ -1,5 +1,5 @@
 #include <mm/lowphysalloc.hpp>
 
 namespace memory {
-    bool LowMemPhysAllocator::initialized;
+    bool LowMemPhysAllocator::m_initialized;
 }

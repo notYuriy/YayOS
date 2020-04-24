@@ -8,7 +8,7 @@
 
 namespace drivers {
 
-    enum SerialPort : Uint16 {
+    enum SerialPort : uint16_t {
         COM1 = 0x3f8,
         COM2 = 0x2f8,
         COM3 = 0x3e8,
@@ -21,8 +21,8 @@ namespace drivers {
 
     public:
         static void init(SerialPort port);
-        static void send(SerialPort port, Uint8 byte);
-        static Uint8 recieve(SerialPort port);
+        static void send(SerialPort port, uint8_t byte);
+        static uint8_t recieve(SerialPort port);
     };
 
 } // namespace drivers
