@@ -1,5 +1,5 @@
 #include <mm/physalloc.hpp>
-#include <proc/spinlock.hpp>
+#include <proc/mutex.hpp>
 
 namespace memory {
     bool PhysAllocator::m_initialized;
@@ -8,7 +8,7 @@ namespace memory {
     uint64_t PhysAllocator::m_pagesCount;
     uint64_t PhysAllocator::m_bitmapSize;
     uint64_t PhysAllocator::m_leastUncheckedIndex;
-    proc::Spinlock physLock;
+    proc::Mutex physMutex;
 
     INLINE void setBit(uint64_t &num, uint8_t bit) { num |= (1ULL << bit); }
     INLINE void clearBit(uint64_t &num, uint8_t bit) { num &= ~(1ULL << bit); }
@@ -105,12 +105,12 @@ namespace memory {
             }
         }
         m_leastUncheckedIndex = 0;
-        physLock.m_lockValue = 0;
+        physMutex.init();
         m_initialized = true;
     }
 
     PAddr PhysAllocator::newPage(UNUSED VAddr addrHint) {
-        physLock.lock();
+        physMutex.lock();
         PAddr addr = m_leastUncheckedIndex * 64 * 4096;
         for (uint64_t i = m_leastUncheckedIndex; i < m_bitmapSize;
              ++i, addr += 64 * 4096) {
@@ -122,10 +122,10 @@ namespace memory {
             m_pageInfo[64 * i + index].mapCount = 1;
             setBit(m_bitmap[i], index);
             m_leastUncheckedIndex = i;
-            physLock.unlock();
+            physMutex.unlock();
             return addr + (uint64_t)index * 4096;
         }
-        physLock.unlock();
+        physMutex.unlock();
         return 0;
     }
 
@@ -139,12 +139,12 @@ namespace memory {
     }
 
     void PhysAllocator::freePage(PAddr addr) {
-        physLock.lock();
+        physMutex.lock();
         if (--m_pageInfo[addr / 4096].refCount == 0) {
             clearBit(m_bitmap[addr / (4096ULL * 64ULL)], (addr / 4096) % 64);
             m_leastUncheckedIndex = 0;
         }
-        physLock.unlock();
+        physMutex.unlock();
     }
 
     void PhysAllocator::freePages(PAddr addr, uint64_t count) {

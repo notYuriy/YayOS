@@ -10,19 +10,19 @@ namespace proc {
         m_aquired = false;
     }
 
-    void Semaphore::acquire() {
+    void Semaphore::acquire(uint64_t num) {
         disableInterrupts();
-        if (m_aquired || m_num == 0) {
+        if (m_aquired || m_num < num) {
             m_queue.sleep();
         }
-        m_num--;
+        m_num -= num;
         m_aquired = true;
         enableInterrupts();
     }
 
-    void Semaphore::release() {
+    void Semaphore::release(uint64_t num) {
         disableInterrupts();
-        m_num++;
+        m_num += num;
         if (!m_queue.awake()) {
             m_aquired = false;
         }

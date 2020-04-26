@@ -7,10 +7,9 @@ namespace proc {
     class TaskQueue {
         Task *m_taskhead;
         Task *m_tasktail;
-
     public:
         void init();
-        void sleep();
+        void sleep(bool yield = true);
         bool awake();
         bool empty();
     };

@@ -15,6 +15,7 @@ namespace drivers {
         virtual bool enable() = 0;
         virtual bool disable() = 0;
         virtual void onTerm() = 0;
+        virtual uint64_t getTimeInMilliseconds() = 0;
     };
 }; // namespace drivers
 

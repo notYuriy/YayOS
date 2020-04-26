@@ -10,6 +10,7 @@
 #include <proc/sched.hpp>
 
 proc::Mutex mutex;
+bool finished;
 
 void thread1() {
     for (uint64_t i = 0; i < 1000; ++i) {
@@ -17,17 +18,18 @@ void thread1() {
         core::log("Thread 2: %llu\n\r", i);
         mutex.unlock();
     }
-    while (1)
-        ;
+    finished = true;
+    while(1) {}
 }
 
 extern "C" void kmain(uint64_t mbPointer) {
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
+    finished = false;
     core::IDT::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
-    timer.init(2000);
+    timer.init(200);
     proc::Scheduler::init(&timer);
     timer.enable();
     proc::Task *newTask = new proc::Task;
@@ -37,18 +39,25 @@ extern "C" void kmain(uint64_t mbPointer) {
     newTask->state.generalRegs.es = getES();
     newTask->state.generalRegs.fs = getFS();
     newTask->state.generalRegs.gs = getGS();
+    newTask->state.generalRegs.ss = getSS();
     newTask->state.generalRegs.rflags = getFlags();
     newTask->state.generalRegs.rip = (uint64_t)thread1;
     newTask->state.generalRegs.rsp = memory::KernelVirtualAllocator::getMapping(
-                                         4096, 0, memory::defaultKernelFlags) +
+                                         8192, 0, memory::defaultKernelFlags) +
                                      4096;
     mutex.init();
+    uint64_t time1 = timer.getTimeInMilliseconds();
     proc::Scheduler::addToRunList(newTask);
     for (uint64_t i = 0; i < 1000; ++i) {
         mutex.lock();
         core::log("Thread 1: %llu\n\r", i);
         mutex.unlock();
     }
-    while (1) {
+    while (!finished) {
+        core::log("Finished\n\r");
     }
+    uint64_t time2 = timer.getTimeInMilliseconds();
+    core::log("Time: %llu", time2 - time1);
+    while (true) {}
+
 }

@@ -1,5 +1,6 @@
 #include <mm/kheap.hpp>
 #include <mm/kvmmngr.hpp>
+#include <proc/mutex.hpp>
 
 namespace memory {
     bool KernelHeap::initialized;
@@ -76,6 +77,7 @@ namespace memory {
     SmallObjectPool **poolHeadsArray[poolsSizesCount];
     uint64_t poolsMaxCount[poolsSizesCount];
     uint64_t poolsLastCheckedIndices[poolsSizesCount];
+    proc::Mutex heapMutex;
 
     void cutPoolFrom(SmallObjectPool *pool, uint64_t sizeIndex,
                      uint64_t headsIndex) {
@@ -151,14 +153,17 @@ namespace memory {
             header->realSize = alignUp(size, 4096);
             return header->getData();
         }
+        heapMutex.lock();
         ObjectHeader *result = allocFromSlubs(size);
         if (result == nullptr) {
             if (!getNewPool(size)) {
+                heapMutex.unlock();
                 return nullptr;
             }
             poolsLastCheckedIndices[size / 16] = poolsMaxCount[size / 16];
             result = allocFromSlubs(size);
         }
+        heapMutex.unlock();
         return result->getData();
     }
 
@@ -168,6 +173,7 @@ namespace memory {
             KernelVirtualAllocator::unmapAt((VAddr)header, header->realSize);
             return;
         }
+        heapMutex.lock();
         uint64_t poolAddr = alignDown((uint64_t)header, 4096);
         SmallObjectPool *pool = (SmallObjectPool *)poolAddr;
         if (poolsLastCheckedIndices[pool->meta.objectSize / 16] <
@@ -179,9 +185,11 @@ namespace memory {
         pool->free(header);
         if (pool->meta.objectsCount == pool->maxCount()) {
             KernelVirtualAllocator::unmapAt(poolAddr, 4096);
+            heapMutex.unlock();
             return;
         }
         insertPoolTo(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
+        heapMutex.unlock();
     }
 
     void KernelHeap::init() {
@@ -204,6 +212,7 @@ namespace memory {
             initMemory += (SmallObjectPool::maxCount(16 * i) + 1) *
                           sizeof(SmallObjectPool *);
         }
+        heapMutex.init();
         initialized = true;
     }
 

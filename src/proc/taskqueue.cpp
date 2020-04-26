@@ -8,7 +8,7 @@ namespace proc {
         m_tasktail = nullptr;
     }
 
-    void TaskQueue::sleep() {
+    void TaskQueue::sleep(bool yield) {
         disableInterrupts();
         Task *current = Scheduler::getRunningTask();
         Scheduler::suspendFromRunList(current);
@@ -20,7 +20,11 @@ namespace proc {
             m_tasktail->prev = current;
             m_tasktail = current;
         }
-        Scheduler::yield();
+        if (yield) {
+            Scheduler::yield();
+        } else {
+            enableInterrupts();
+        }
     }
 
     bool TaskQueue::awake() {

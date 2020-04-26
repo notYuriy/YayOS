@@ -19,7 +19,11 @@ namespace memory {
 
     PageTable *PageTable::walkToWithAlloc(VIndex index, PAddr currentAddr) {
         if (!entries[index].present) {
-            entries[index].addr = PhysAllocator::newPage();
+            PAddr newAddr = PhysAllocator::newPage();
+            if (newAddr == 0) {
+                return nullptr;
+            }
+            entries[index].addr = newAddr;
             if (currentAddr != (PAddr) nullptr) {
                 PhysAllocator::incrementMapCount(currentAddr);
             }

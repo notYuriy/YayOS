@@ -7,6 +7,7 @@ namespace drivers {
     class PIT : public ITimer {
         bool m_initialized;
         uint32_t m_frequency;
+        uint64_t m_ticks;
 
     public:
         void init(uint32_t frequency);
@@ -16,6 +17,7 @@ namespace drivers {
         virtual bool enable();
         virtual bool disable();
         virtual void onTerm();
+        virtual uint64_t getTimeInMilliseconds();
     };
 } // namespace drivers
 

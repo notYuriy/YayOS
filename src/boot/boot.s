@@ -9,7 +9,7 @@ KERNEL_MAPPING_BASE equ 0xffff800000000000
 section .inittext
 bits 32
 start:
-
+    cli
     mov esi, ebx
     mov esp, stack_top - KERNEL_MAPPING_BASE  ; set up stack
     mov edi, ebx

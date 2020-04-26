@@ -20,6 +20,7 @@ namespace drivers {
         uint16_t lowDivisor = (uint16_t)divisor;
         core::Ports::outb(0x40, lowDivisor & 0xff);
         core::Ports::outb(0x40, lowDivisor >> 8);
+        m_ticks = 0;
         m_initialized = true;
     }
 
@@ -35,6 +36,13 @@ namespace drivers {
         return result;
     }
 
-    void PIT::onTerm() { IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq); }
+    void PIT::onTerm() { 
+        IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
+        m_ticks++;
+    }
+
+    uint64_t PIT::getTimeInMilliseconds() {
+        return m_ticks * 1000 / m_frequency;
+    }
 
 }; // namespace drivers

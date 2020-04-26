@@ -1,24 +1,60 @@
 #include <mm/vmmap.hpp>
 
 namespace memory {
-    void VirtualMemoryMapper::mapNewPageAt(VAddr addr, PAddr physAddr,
+    bool VirtualMemoryMapper::mapNewPageAt(VAddr addr, PAddr physAddr,
                                            uint64_t flags) {
-        PageTable *root = (PageTable *)p4TableVirtualAddress;
+        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         PAddr p3addr, p2addr, p1addr;
-        p3addr = root->entries[p4Index].addr && (~pageTableEntryFlagsMask);
-        PageTable *next = root->walkToWithAlloc(p4Index, (PAddr) nullptr);
-        p2addr = next->entries[p3Index].addr && (~pageTableEntryFlagsMask);
-        next = next->walkToWithAlloc(p3Index, p3addr);
-        p1addr = next->entries[p2Index].addr && (~pageTableEntryFlagsMask);
-        next = next->walkToWithAlloc(p2Index, p2addr);
-        PageTableEntry &entry = next->entries[p1Index];
+        p3addr = p4Table->entries[p4Index].addr && (~pageTableEntryFlagsMask);
+        PageTable *p3Table = p4Table->walkToWithAlloc(p4Index, (PAddr) nullptr);
+        if (p3Table == nullptr) {
+            return false;
+        }
+        p2addr = p3Table->entries[p3Index].addr && (~pageTableEntryFlagsMask);
+        PageTable* p2Table = p3Table->walkToWithAlloc(p3Index, p3addr);
+        if (p2Table == nullptr) {
+            if (PhysAllocator::decrementMapCount(p3addr)) {
+                p4Table->entries[p4Index].addr = 0;
+                PhysAllocator::freePage(p3addr);
+            }
+            return false;
+        }
+        p1addr = p2Table->entries[p2Index].addr && (~pageTableEntryFlagsMask);
+        PageTable* p1Table = p2Table->walkToWithAlloc(p2Index, p2addr);
+        if (p1Table == nullptr) {
+            if (PhysAllocator::decrementMapCount(p2addr)) {
+                p3Table->entries[p3Index].addr = 0;
+                PhysAllocator::freePage(p2addr);
+            }
+            if (PhysAllocator::decrementMapCount(p3addr)) {
+                p4Table->entries[p4Index].addr = 0;
+                PhysAllocator::freePage(p3addr);
+            }
+            return false;
+        }
+        PageTableEntry &entry = p1Table->entries[p1Index];
         if (!entry.present) {
             entry.addr = flags;
             entry.present = true;
             if (physAddr == 0) {
                 entry.addr |= PhysAllocator::newPage();
+                if (entry.addr && (~pageTableEntryFlagsMask) == 0) {
+                    if (PhysAllocator::decrementMapCount(p1addr)) {
+                        p2Table->entries[p2Index].addr = 0;
+                        PhysAllocator::freePage(p1addr);
+                    }
+                    if (PhysAllocator::decrementMapCount(p2addr)) {
+                        p3Table->entries[p3Index].addr = 0;
+                        PhysAllocator::freePage(p2addr);
+                    }
+                    if (PhysAllocator::decrementMapCount(p3addr)) {
+                        p4Table->entries[p4Index].addr = 0;
+                        PhysAllocator::freePage(p3addr);
+                    }
+                    return false;
+                }
             } else {
                 entry.addr |= physAddr;
                 if (entry.managed) {
@@ -28,9 +64,10 @@ namespace memory {
             PhysAllocator::incrementMapCount(p1addr);
         }
         vmbaseInvalidateCache(addr);
+        return true;
     }
 
-    void VirtualMemoryMapper::freePageAt(VAddr addr) {
+    bool VirtualMemoryMapper::freePageAt(VAddr addr) {
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
@@ -49,49 +86,63 @@ namespace memory {
         p2addr = p3Table->entries[p3Index].addr & (~pageTableEntryFlagsMask);
         p3addr = p4Table->entries[p4Index].addr & (~pageTableEntryFlagsMask);
         if (!p2Table->entries[p2Index].managed) {
-            return;
+            return true;
         }
         if (PhysAllocator::decrementMapCount(p1addr)) {
             PhysAllocator::freePage(p1addr);
             p2Table->entries[p2Index].addr = 0;
         } else {
-            return;
+            return true;
         }
         if (!p3Table->entries[p3Index].managed) {
-            return;
+            return true;
         }
         if (PhysAllocator::decrementMapCount(p2addr)) {
             PhysAllocator::freePage(p2addr);
             p3Table->entries[p3Index].addr = 0;
         } else {
-            return;
+            return true;
         }
         if (!p4Table->entries[p4Index].managed) {
-            return;
+            return true;
         }
         if (PhysAllocator::decrementMapCount(p3addr)) {
             PhysAllocator::freePage(p3addr);
             p4Table->entries[p4Index].addr = 0;
         }
         vmbaseInvalidateCache(addr);
+        return true;
     }
 
-    void VirtualMemoryMapper::mapNewPages(VAddr start, VAddr end) {
+    bool VirtualMemoryMapper::mapNewPages(VAddr start, VAddr end) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            mapNewPageAt(addr, 0, defaultKernelFlags);
+            if(!mapNewPageAt(addr, 0, defaultKernelFlags)) {
+                for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
+                    freePageAt(addr2);
+                }
+                return false;
+            }
         }
+        return true;
     }
 
-    void VirtualMemoryMapper::mapPages(VAddr start, VAddr end, PAddr physAddr,
+    bool VirtualMemoryMapper::mapPages(VAddr start, VAddr end, PAddr physAddr,
                                        uint64_t flags) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            mapNewPageAt(addr, physAddr - start + addr, flags);
+            if(!mapNewPageAt(addr, physAddr - start + end, flags)) {
+                for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
+                    freePageAt(addr2);
+                }
+                return false;
+            }
         }
+        return true;
     }
 
-    void VirtualMemoryMapper::freePages(VAddr start, VAddr end) {
+    bool VirtualMemoryMapper::freePages(VAddr start, VAddr end) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
             freePageAt(addr);
         }
+        return true;
     }
 }; // namespace memory
