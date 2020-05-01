@@ -14,6 +14,7 @@ namespace proc {
         void init(uint64_t max);
         void acquire(uint64_t num = 1);
         void release(uint64_t num = 1);
+        bool someoneWaiting();
     };
 }; // namespace proc
 

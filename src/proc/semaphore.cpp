@@ -29,4 +29,6 @@ namespace proc {
         enableInterrupts();
     }
 
+    bool Semaphore::someoneWaiting() { return !m_queue.empty(); }
+
 }; // namespace proc

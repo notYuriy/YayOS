@@ -23,8 +23,10 @@ namespace proc {
 
     struct ExtendedRegs {
         char buf[512];
-        INLINE void loadFromFPU() { /*extendedRegsLoadFromFpu(buf);*/ }
-        INLINE void loadToFPU() { /*extendedRegsSaveToFpu(buf);*/ }
+        INLINE void loadFromFPU() { /*extendedRegsLoadFromFpu(buf);*/
+        }
+        INLINE void loadToFPU() { /*extendedRegsSaveToFpu(buf);*/
+        }
     };
 
     struct TaskState {

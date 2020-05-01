@@ -11,6 +11,7 @@ namespace proc {
         void init();
         void lock();
         void unlock();
+        bool someoneWaiting();
     };
 }; // namespace proc
 

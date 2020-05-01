@@ -9,7 +9,7 @@ namespace drivers {
 
     void PIT::init(uint32_t frequency) {
         if (!IPIC::isInitialized()) {
-            // panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
+            panic("[PIT] Dependency \"PIC\" is not satisfied\n\r");
         }
         this->m_frequency = frequency;
         uint32_t divisor = 1193180 / frequency;

@@ -31,8 +31,16 @@ INLINE static void panic(const char *msg) {
 // Used for fast bitmap scanning. Source is taken from
 // https://www.chessprogramming.org/BitScan#Bsf.2FBsr_x86-64_Timings
 INLINE uint8_t bitScanForward(uint64_t x) {
-    asm("bsfq %0, %0" : "=r"(x) : "0"(x));
+    asm __volatile__("bsfq %0, %0" : "=r"(x) : "0"(x));
     return (uint8_t)x;
+}
+
+INLINE void atomicIncrement(uint64_t *p) {
+    asm __volatile__("lock incq %0" : "=m"(p) : "m"(p));
+}
+
+INLINE void atomicDecrement(uint64_t *p) {
+    asm __volatile__("lock decq %0" : "=m"(p) : "m"(p));
 }
 
 #define ALIGN_UP(x, align) (alignUp((uint64_t)x, (uint64_t)align))
