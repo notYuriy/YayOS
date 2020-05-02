@@ -29,12 +29,15 @@ do
 done
 
 echo "[ LD ] obj/kernel.bin"
-$LD -n -T ld/linker.ld obj/* -o obj/kernel.bin -ffreestanding -O2 -lgcc -nostdlib
+$LD -n -T ld/linker.ld obj/* -o obj/kernel.bin -ffreestanding -O2 -lgcc -nostdlib || exit
 
 mkdir isotree/boot
 mkdir isotree/boot/grub
 cp grub/grub.cfg isotree/boot/grub/grub.cfg
 cp obj/kernel.bin isotree/boot/kernel.bin
+
+echo "[ RD ] initrd"
+tar -cf isotree/initrd.img initrd/ 
 
 echo "[ BL ] grub/grub.cfg"
 grub-mkrescue isotree -o YayOS.iso

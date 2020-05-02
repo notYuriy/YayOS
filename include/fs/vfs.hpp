@@ -1,32 +1,35 @@
 #ifndef __VFS_HPP_INCLUDED__
 #define __VFS_HPP_INCLUDED__
 
+#include <fs/pathiter.hpp>
 #include <proc/mutex.hpp>
 #include <utils.hpp>
 
 namespace fs {
 
+    constexpr uint64_t nameMax = 255;
+
     struct Dirent {
         uint64_t inodeNumber;
         uint16_t nameLength;
-        char name[];
+        char name[nameMax + 1];
     };
 
     struct IFile {
         struct DEntry *entry;
-        virtual int64_t read(UNUSED int64_t size, UNUSED char *buf) {
-            return -1;
-        }
-        virtual int64_t readdir(UNUSED int64_t count, UNUSED Dirent *buf) {
-            return -1;
-        }
+        virtual int64_t read(int64_t size, char *buf) = 0;
+        virtual int64_t write(int64_t size, char *buf) = 0;
+        virtual int64_t readdir(int64_t count, Dirent *buf) = 0;
+        virtual void finalize() = 0;
+        virtual void flush() = 0;
+        virtual ~IFile(){};
     };
 
     struct INode {
         struct ISuperblock *sb;
         uint64_t num;
-        virtual uint64_t lookup(UNUSED const char *name) { return 0; }
-        virtual IFile *open(UNUSED int perm) { return nullptr; }
+        virtual uint64_t lookup(const char *name) = 0;
+        virtual IFile *open(int perm) = 0;
     };
 
     struct ISuperblock {
@@ -38,13 +41,15 @@ namespace fs {
     };
 
     struct DEntry {
-        DEntry *par, *next, *prev, *chld;
+        DEntry *par, *next, *prev, *chld, *mnt;
         proc::Mutex mutex;
+        bool isFilesystemRoot, isMountpoint;
         // usedCount =
-        // number of threads traversing fs in this DEntry +
-        // number of opened file descriptors here
+        // number of threads traversing vfs in this DEntry +
+        // number of opened file descriptors here +
         // number of children nodes
-        uint64_t usedCount, nameHash;
+        uint64_t usedCount;
+        uint64_t nameHash;
         ISuperblock *sb;
         INode *node;
         char *name;
@@ -55,6 +60,8 @@ namespace fs {
         DEntry *hardLookup(const char *name);
         DEntry *goToParent();
         DEntry *goToChild(const char *name);
+        // the last node remain in observed state (so it is not deleted)
+        DEntry *walk(PathIterator *iter, bool resolveLast = true);
         void incrementUsedCount();
         void decrementUsedCount();
         void dispose();
@@ -62,6 +69,18 @@ namespace fs {
         bool drop();
         void dropRec();
     };
+
+    class VFS {
+        // support for one fs for now
+        static ISuperblock *m_rootFs;
+        static DEntry *m_fsTree;
+
+    public:
+        static void init(ISuperblock *sb);
+        static IFile *open(const char *path, int perm);
+        static void close(IFile *file);
+    };
+
 }; // namespace fs
 
 #endif
