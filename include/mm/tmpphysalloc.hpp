@@ -8,7 +8,7 @@
 namespace memory {
     class TempPhysAllocator {
         static memory::MemoryMapEntry *m_currentEntry;
-        static PAddr m_currentPhysAddr;
+        static paddr_t m_currentPhysAddr;
         static uint64_t m_areaUsed;
         static bool m_initialized;
 
@@ -16,12 +16,13 @@ namespace memory {
         static bool beforeCurrentMemoryArea();
         static void AdjustMemoryArea();
         static bool CheckMultibootOverlap();
+        static bool CheckInitrdOverlap();
 
     public:
         static void init();
         INLINE static bool isInitialized() { return m_initialized; }
-        static PAddr getFirstUnusedFrame();
-        static PAddr newFrame();
+        static paddr_t getFirstUnusedFrame();
+        static paddr_t newFrame();
     };
 } // namespace memory
 

@@ -8,6 +8,9 @@ namespace fs {
 
     DEntry *DEntry::createNode(const char *name) {
         DEntry *newDEntry = new DEntry;
+        if (newDEntry == nullptr) {
+            return nullptr;
+        }
         newDEntry->mutex.init();
         newDEntry->name = strdup(name);
         newDEntry->nameHash = strhash(name);
@@ -22,6 +25,9 @@ namespace fs {
 
     DEntry *DEntry::createChildNode(const char *name) {
         DEntry *newDEntry = createNode(name);
+        if (newDEntry == nullptr) {
+            return nullptr;
+        }
         if (chld != nullptr) {
             newDEntry->next = chld;
             newDEntry->prev = chld->prev;
@@ -40,6 +46,9 @@ namespace fs {
     DEntry *DEntry::softLookup(const char *name) {
         uint64_t hash = strhash(name);
         DEntry *current = chld;
+        if (current == nullptr) {
+            return nullptr;
+        }
         do {
             if (current->nameHash == hash) {
                 if (streq(current->name, name)) {
@@ -60,13 +69,17 @@ namespace fs {
             return nullptr;
         }
         DEntry *newChld = createChildNode(name);
+        if (newChld == nullptr) {
+            return nullptr;
+        }
         newChld->node = sb->getNode(num);
+        incrementUsedCount();
         return newChld;
     }
 
-    void DEntry::incrementUsedCount() { atomicIncrement(&usedCount); }
+    void DEntry::incrementUsedCount() { usedCount++; }
 
-    void DEntry::decrementUsedCount() { atomicDecrement(&usedCount); }
+    void DEntry::decrementUsedCount() { usedCount--; }
 
     void DEntry::dispose() {
         delete name;
@@ -83,6 +96,9 @@ namespace fs {
 
     bool DEntry::drop() {
         if (mutex.someoneWaiting()) {
+            return false;
+        }
+        if (usedCount > 0) {
             return false;
         }
         par->mutex.lock();
@@ -131,13 +147,12 @@ namespace fs {
             // add it to cache
             result = hardLookup(name);
             if (result == nullptr) {
-                decrementUsedCount();
                 mutex.unlock();
                 return nullptr;
             }
         }
         result->incrementUsedCount();
-        usedCount--;
+        decrementUsedCount();
         mutex.unlock();
         return result;
     }
@@ -146,11 +161,8 @@ namespace fs {
         DEntry *current = this;
         while (current != nullptr) {
             current->mutex.lock();
-            if (current->usedCount > 0) {
-                current->mutex.unlock();
-                return;
-            }
             if (!current->drop()) {
+                current->mutex.unlock();
                 return;
             }
             current->mutex.unlock();
@@ -170,18 +182,22 @@ namespace fs {
         current->incrementUsedCount();
         while (!iter->atEnd(resolveLast)) {
             if (*(iter->get()) == '\0' || streq(iter->get(), ".")) {
+                iter->next();
                 continue;
             }
             if (streq(iter->get(), "..")) {
                 current = current->goToParent();
+                iter->next();
                 continue;
             }
-            current = current->goToChild(iter->get());
-            if (current == nullptr) {
-                decrementUsedCount();
-                dropRec();
+            DEntry *next = current->goToChild(iter->get());
+            if (next == nullptr) {
+                current->decrementUsedCount();
+                current->dropRec();
                 return nullptr;
             }
+            current = next;
+            iter->next();
         }
         return current;
     }
@@ -190,6 +206,9 @@ namespace fs {
         m_rootFs = sb;
         m_rootFs->mount();
         m_fsTree = DEntry::createNode("/");
+        if (m_fsTree == nullptr) {
+            panic("[VFS] Can't allocate vfs root node\n\r");
+        }
         m_fsTree->next = m_fsTree;
         m_fsTree->prev = m_fsTree;
         m_fsTree->par = m_fsTree;
@@ -203,6 +222,9 @@ namespace fs {
     IFile *VFS::open(const char *path, int perm) {
         PathIterator iter(path);
         DEntry *entry = m_fsTree->walk(&iter);
+        if (entry == nullptr) {
+            return nullptr;
+        }
         entry->incrementUsedCount();
         return entry->node->open(perm);
     }
@@ -213,5 +235,9 @@ namespace fs {
         file->entry->dropRec();
         delete file;
     }
+
+    IFile::~IFile() {}
+    INode::~INode() {}
+    ISuperblock::~ISuperblock() {}
 
 }; // namespace fs

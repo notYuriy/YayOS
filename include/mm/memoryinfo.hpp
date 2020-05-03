@@ -27,6 +27,9 @@ namespace memory {
         static uint64_t upperLimit;
         static uint32_t mmapEntriesCount;
         static MemoryMapEntry *mmapEntries;
+        static uint64_t initrdBase;
+        static uint64_t initrdLimit;
+        static uint64_t initrdStart;
     };
 
 } // namespace memory

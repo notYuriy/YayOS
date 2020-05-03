@@ -37,7 +37,7 @@ cp grub/grub.cfg isotree/boot/grub/grub.cfg
 cp obj/kernel.bin isotree/boot/kernel.bin
 
 echo "[ RD ] initrd"
-tar -cf isotree/initrd.img initrd/ 
+tar -cf isotree/initrd.img initrd/ --format=v7
 
 echo "[ BL ] grub/grub.cfg"
 grub-mkrescue isotree -o YayOS.iso
@@ -45,4 +45,4 @@ grub-mkrescue isotree -o YayOS.iso
 echo "[ RM ] obj"
 rm -rf obj
 echo "[ RM ] isotree"
-rm -rf isotree
+#rm -rf isotree

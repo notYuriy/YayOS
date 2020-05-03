@@ -3,15 +3,15 @@
 
 #include <mm/physbase.hpp>
 #include <mm/vmbase.hpp>
-#include <utils.hpp>
 #include <proc/mutex.hpp>
+#include <utils.hpp>
 
 namespace memory {
 #pragma pack(1)
     struct MemoryArea {
         MemoryArea *next;
         MemoryArea *prev;
-        VAddr offset;
+        vaddr_t offset;
         uint64_t size;
     };
     struct MemoryAreaPool {
@@ -55,19 +55,20 @@ namespace memory {
         static void cutPool(MemoryAreaPool *pool);
         static void insertPool(MemoryAreaPool *pool);
         static MemoryArea *allocMemoryArea();
-        static void freeMemoryArea(MemoryArea* node);
+        static void freeMemoryArea(MemoryArea *node);
         static void insertBefore(MemoryArea *area, MemoryArea *point);
         static void cutNode(MemoryArea *area);
         static void mergeAdjacent(MemoryArea *area);
         static void freeMapping(MemoryArea *area);
         static void freePools();
         static bool allocNewPool();
-        static MemoryArea* findBestFit(uint64_t requestedSize);
-        static void freeRange(VAddr virtualAddr, uint64_t size);
+        static MemoryArea *findBestFit(uint64_t requestedSize);
+        static void freeRange(vaddr_t virtualAddr, uint64_t size);
 
     public:
-        static VAddr getMapping(uint64_t size, PAddr physBase, uint64_t flags);
-        static void unmapAt(VAddr virtualAddr, uint64_t size);
+        static vaddr_t getMapping(uint64_t size, paddr_t physBase,
+                                  uint64_t flags);
+        static void unmapAt(vaddr_t virtualAddr, uint64_t size);
         static void init();
         INLINE static bool isInitialized() { return m_initialized; }
     };

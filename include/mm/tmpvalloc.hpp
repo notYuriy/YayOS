@@ -6,15 +6,15 @@
 
 namespace memory {
     class TempVirtualAllocator {
-        static VAddr m_pageEnd;
-        static VAddr m_unalignedEnd;
+        static vaddr_t m_pageEnd;
+        static vaddr_t m_unalignedEnd;
         static bool m_initialized;
 
     public:
-        static void init(VAddr initMappingEnd);
+        static void init(vaddr_t initMappingEnd);
         INLINE static bool isInitialized() { return m_initialized; }
         static void *valloc(uint64_t size);
-        INLINE static VAddr getBrk() { return m_pageEnd; }
+        INLINE static vaddr_t getBrk() { return m_pageEnd; }
     };
 }; // namespace memory
 

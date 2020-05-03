@@ -129,7 +129,7 @@ namespace memory {
     }
 
     bool getNewPool(uint64_t size) {
-        VAddr page =
+        vaddr_t page =
             KernelVirtualAllocator::getMapping(4096, 0, defaultKernelFlags);
         if (page == 0) {
             return false;
@@ -170,7 +170,7 @@ namespace memory {
     void KernelHeap::free(void *loc) {
         ObjectHeader *header = ObjectHeader::getHeader(loc);
         if (header->realSize > maxSizeForSlubs) {
-            KernelVirtualAllocator::unmapAt((VAddr)header, header->realSize);
+            KernelVirtualAllocator::unmapAt((vaddr_t)header, header->realSize);
             return;
         }
         heapMutex.lock();

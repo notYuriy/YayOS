@@ -17,12 +17,12 @@ namespace fs {
 
     struct IFile {
         struct DEntry *entry;
-        virtual int64_t read(int64_t size, char *buf) = 0;
-        virtual int64_t write(int64_t size, char *buf) = 0;
+        virtual int64_t read(int64_t size, uint8_t *buf) = 0;
+        virtual int64_t write(int64_t size, const uint8_t *buf) = 0;
         virtual int64_t readdir(int64_t count, Dirent *buf) = 0;
         virtual void finalize() = 0;
         virtual void flush() = 0;
-        virtual ~IFile(){};
+        virtual ~IFile();
     };
 
     struct INode {
@@ -30,6 +30,7 @@ namespace fs {
         uint64_t num;
         virtual uint64_t lookup(const char *name) = 0;
         virtual IFile *open(int perm) = 0;
+        virtual ~INode();
     };
 
     struct ISuperblock {
@@ -38,6 +39,7 @@ namespace fs {
         virtual void dropNode(uint64_t num) = 0;
         virtual void mount() = 0;
         virtual void unmount() = 0;
+        virtual ~ISuperblock();
     };
 
     struct DEntry {

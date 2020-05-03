@@ -1,4 +1,4 @@
-section .multiboot
+section .header
 header:
 
 multibootMagic equ 0xE85250D6

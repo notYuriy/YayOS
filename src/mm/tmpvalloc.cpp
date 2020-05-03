@@ -1,11 +1,11 @@
 #include <mm/tmpvalloc.hpp>
 
 namespace memory {
-    VAddr TempVirtualAllocator::m_pageEnd;
-    VAddr TempVirtualAllocator::m_unalignedEnd;
+    vaddr_t TempVirtualAllocator::m_pageEnd;
+    vaddr_t TempVirtualAllocator::m_unalignedEnd;
     bool TempVirtualAllocator::m_initialized;
 
-    void TempVirtualAllocator::init(VAddr initMappingEnd) {
+    void TempVirtualAllocator::init(vaddr_t initMappingEnd) {
         if (!TempPhysAllocator::isInitialized()) {
             panic("[TempVirtualAllocator] Dependency TempPhysAllocator is not "
                   "initialized");
@@ -15,7 +15,7 @@ namespace memory {
         m_initialized = true;
     }
     namespace {
-        void mapNewPageFromTempAlloc(VAddr addr) {
+        void mapNewPageFromTempAlloc(vaddr_t addr) {
             VIndex p4Index, p3Index, p2Index, p1Index;
             p4Index = getP4Index(addr);
             p3Index = getP3Index(addr);
@@ -26,12 +26,12 @@ namespace memory {
             root = root->walkToWithTempAlloc(p3Index);
             root = root->walkToWithTempAlloc(p2Index);
             PageTableEntry *entry = root->entries + p1Index;
-            PAddr physAddr = TempPhysAllocator::newFrame();
+            paddr_t physAddr = TempPhysAllocator::newFrame();
             entry->addr = physAddr;
             entry->writable = true;
             entry->present = true;
             entry->managed = false;
-            vmbaseInvalidateCache((VAddr)addr);
+            vmbaseInvalidateCache((vaddr_t)addr);
         }
     } // namespace
 
@@ -39,7 +39,7 @@ namespace memory {
         void *result = (void *)m_unalignedEnd;
         uint64_t newUnalignedEnd = (uint64_t)m_unalignedEnd + size;
         uint64_t newPageEnd = alignUp(newUnalignedEnd, 4096);
-        for (VAddr addr = m_pageEnd; addr < newPageEnd; addr += 4096) {
+        for (vaddr_t addr = m_pageEnd; addr < newPageEnd; addr += 4096) {
             mapNewPageFromTempAlloc(addr);
         }
         m_pageEnd = newPageEnd;

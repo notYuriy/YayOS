@@ -5,21 +5,21 @@
 #include <utils.hpp>
 
 namespace memory {
-    typedef uint64_t VAddr;
+    typedef uint64_t vaddr_t;
     typedef uint32_t VIndex;
-    extern "C" void vmbaseLoadP4(memory::PAddr p4addr);
-    extern "C" void vmbaseInvalidateCache(memory::VAddr page);
+    extern "C" void vmbaseLoadP4(memory::paddr_t p4addr);
+    extern "C" void vmbaseInvalidateCache(memory::vaddr_t page);
 
-    INLINE static VIndex getP4Index(VAddr addr) {
+    INLINE static VIndex getP4Index(vaddr_t addr) {
         return (addr >> 39ULL) & 0777ULL;
     }
-    INLINE static VIndex getP3Index(VAddr addr) {
+    INLINE static VIndex getP3Index(vaddr_t addr) {
         return (addr >> 30ULL) & 0777ULL;
     }
-    INLINE static VIndex getP2Index(VAddr addr) {
+    INLINE static VIndex getP2Index(vaddr_t addr) {
         return (addr >> 21ULL) & 0777ULL;
     }
-    INLINE static VIndex getP1Index(VAddr addr) {
+    INLINE static VIndex getP1Index(vaddr_t addr) {
         return (addr >> 12ULL) & 0777ULL;
     }
 
@@ -33,7 +33,7 @@ namespace memory {
 
 #pragma pack(1)
     union PageTableEntry {
-        PAddr addr;
+        paddr_t addr;
         struct {
             union {
                 struct {
@@ -74,7 +74,7 @@ namespace memory {
 
         PageTable *walkToWithTempAlloc(VIndex index);
 
-        PageTable *walkToWithAlloc(VIndex index, PAddr currentAddr);
+        PageTable *walkToWithAlloc(VIndex index, paddr_t currentAddr);
     };
 #pragma pack(0)
 

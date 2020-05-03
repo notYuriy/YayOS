@@ -24,19 +24,19 @@ namespace memory {
 
         static void bitmapClearIndexRange(uint64_t start, uint64_t end);
         static void bitmapSetIndexRange(uint64_t start, uint64_t end);
-        static void bitmapClearRange(PAddr base, PAddr limit);
-        static void bitmapSetRange(PAddr base, PAddr limit);
+        static void bitmapClearRange(paddr_t base, paddr_t limit);
+        static void bitmapSetRange(paddr_t base, paddr_t limit);
 
     public:
         static void init();
         INLINE static bool isInitialized() { return m_initialized; }
-        static PAddr newPage(VAddr vaddrHint = 0);
-        static void incrementRefCount(PAddr addr);
-        static PAddr copyOnWrite(PAddr orig, VAddr addrHint = 0);
-        static void freePage(PAddr addr);
-        static void freePages(PAddr addr, uint64_t count);
-        static void incrementMapCount(PAddr addr);
-        static bool decrementMapCount(PAddr addr);
+        static paddr_t newPage(vaddr_t vaddrHint = 0);
+        static void incrementRefCount(paddr_t addr);
+        static paddr_t copyOnWrite(paddr_t orig, vaddr_t addrHint = 0);
+        static void freePage(paddr_t addr);
+        static void freePages(paddr_t addr, uint64_t count);
+        static void incrementMapCount(paddr_t addr);
+        static bool decrementMapCount(paddr_t addr);
     };
 } // namespace memory
 

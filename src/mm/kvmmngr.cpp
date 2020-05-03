@@ -6,7 +6,7 @@ namespace memory {
     bool KernelVirtualAllocator::m_initialized = false;
 
     static_assert(sizeof(MemoryArea) == 32);
-    
+
     uint64_t KernelVirtualAllocator::m_lastCheckedIndex;
     MemoryAreaPool *KernelVirtualAllocator::m_poolHeads[128];
     MemoryArea *KernelVirtualAllocator::m_kernelAreas;
@@ -66,7 +66,8 @@ namespace memory {
         return;
     }
 
-    void KernelVirtualAllocator::insertBefore(MemoryArea *area, MemoryArea *point) {
+    void KernelVirtualAllocator::insertBefore(MemoryArea *area,
+                                              MemoryArea *point) {
         MemoryArea *prev = point->prev;
         if (prev != nullptr) {
             prev->next = area;
@@ -139,14 +140,15 @@ namespace memory {
             if (m_poolHeads[127] == nullptr) {
                 return;
             }
-            if (m_lastCheckedIndex == 127 && m_poolHeads[127]->next == nullptr) {
+            if (m_lastCheckedIndex == 127 &&
+                m_poolHeads[127]->next == nullptr) {
                 return;
             }
             MemoryArea *area = allocMemoryArea();
             MemoryAreaPool *pool = m_poolHeads[127];
             m_poolHeads[127] = pool->next;
             m_poolHeads[127]->prev = nullptr;
-            VAddr addr = (VAddr)pool;
+            vaddr_t addr = (vaddr_t)pool;
             area->offset = addr;
             area->size = 4096;
             VirtualMemoryMapper::freePages(area->offset, 4096);
@@ -158,7 +160,7 @@ namespace memory {
         if (m_kernelAreas == nullptr) {
             return false;
         }
-        VAddr newPoolAddr = m_kernelAreas->offset;
+        vaddr_t newPoolAddr = m_kernelAreas->offset;
         if (!VirtualMemoryMapper::mapNewPages(newPoolAddr, 4096)) {
             return false;
         }
@@ -192,15 +194,15 @@ namespace memory {
         return bestFit;
     }
 
-    VAddr KernelVirtualAllocator::getMapping(uint64_t size, PAddr physBase,
-                                             uint64_t flags) {
+    vaddr_t KernelVirtualAllocator::getMapping(uint64_t size, paddr_t physBase,
+                                               uint64_t flags) {
         m_kvmmngrMutex.lock();
         MemoryArea *bestFit = findBestFit(size);
         if (bestFit == nullptr) {
             m_kvmmngrMutex.unlock();
             return 0;
         }
-        VAddr offset = bestFit->offset;
+        vaddr_t offset = bestFit->offset;
         bestFit->offset += size;
         bestFit->size -= size;
         if (bestFit->size == 0) {
@@ -208,12 +210,13 @@ namespace memory {
             freeMemoryArea(bestFit);
         }
         if (physBase == 0) {
-            if(!VirtualMemoryMapper::mapNewPages(offset, offset + size)){
+            if (!VirtualMemoryMapper::mapNewPages(offset, offset + size)) {
                 m_kvmmngrMutex.unlock();
                 return 0;
             }
         } else {
-            if(!VirtualMemoryMapper::mapPages(offset, offset + size, physBase, flags)){
+            if (!VirtualMemoryMapper::mapPages(offset, offset + size, physBase,
+                                               flags)) {
                 m_kvmmngrMutex.unlock();
                 return 0;
             }
@@ -223,14 +226,14 @@ namespace memory {
         return offset;
     }
 
-    void KernelVirtualAllocator::freeRange(VAddr virtualAddr, uint64_t size) {
+    void KernelVirtualAllocator::freeRange(vaddr_t virtualAddr, uint64_t size) {
         if (size == 0) {
             return;
         }
         MemoryArea *area = allocMemoryArea();
         if (area == nullptr) {
             if (!allocNewPool()) {
-                VAddr offset = virtualAddr;
+                vaddr_t offset = virtualAddr;
                 virtualAddr += 4096;
                 size -= 4096;
                 VirtualMemoryMapper::mapNewPages(offset, offset + 4096);
@@ -252,7 +255,7 @@ namespace memory {
         freePools();
     }
 
-    void KernelVirtualAllocator::unmapAt(VAddr start, uint64_t size) {
+    void KernelVirtualAllocator::unmapAt(vaddr_t start, uint64_t size) {
         m_kvmmngrMutex.lock();
         memory::VirtualMemoryMapper::freePages(start, start + size);
         freeRange(start, size);
@@ -268,13 +271,13 @@ namespace memory {
             panic("[KernelVirtualAllocator] Dependency PhysAllocator is not "
                   "satisfied");
         }
-        VAddr initAreaStart, initAreaEnd;
+        vaddr_t initAreaStart, initAreaEnd;
         initAreaStart = TempVirtualAllocator::getBrk();
-        initAreaEnd = (VAddr)(((PageTable *)p4TableVirtualAddress)
-                                  ->walkTo(511)
-                                  ->walkTo(0)
-                                  ->walkTo(0)
-                                  ->walkTo(0));
+        initAreaEnd = (vaddr_t)(((PageTable *)p4TableVirtualAddress)
+                                    ->walkTo(511)
+                                    ->walkTo(0)
+                                    ->walkTo(0)
+                                    ->walkTo(0));
         m_lastCheckedIndex = 127;
         freeRange(initAreaStart, initAreaEnd - initAreaStart);
         m_kvmmngrMutex.init();

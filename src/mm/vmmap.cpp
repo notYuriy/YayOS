@@ -1,19 +1,20 @@
 #include <mm/vmmap.hpp>
 
 namespace memory {
-    bool VirtualMemoryMapper::mapNewPageAt(VAddr addr, PAddr physAddr,
+    bool VirtualMemoryMapper::mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                            uint64_t flags) {
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
-        PAddr p3addr, p2addr, p1addr;
+        paddr_t p3addr, p2addr, p1addr;
         p3addr = p4Table->entries[p4Index].addr && (~pageTableEntryFlagsMask);
-        PageTable *p3Table = p4Table->walkToWithAlloc(p4Index, (PAddr) nullptr);
+        PageTable *p3Table =
+            p4Table->walkToWithAlloc(p4Index, (paddr_t) nullptr);
         if (p3Table == nullptr) {
             return false;
         }
         p2addr = p3Table->entries[p3Index].addr && (~pageTableEntryFlagsMask);
-        PageTable* p2Table = p3Table->walkToWithAlloc(p3Index, p3addr);
+        PageTable *p2Table = p3Table->walkToWithAlloc(p3Index, p3addr);
         if (p2Table == nullptr) {
             if (PhysAllocator::decrementMapCount(p3addr)) {
                 p4Table->entries[p4Index].addr = 0;
@@ -22,7 +23,7 @@ namespace memory {
             return false;
         }
         p1addr = p2Table->entries[p2Index].addr && (~pageTableEntryFlagsMask);
-        PageTable* p1Table = p2Table->walkToWithAlloc(p2Index, p2addr);
+        PageTable *p1Table = p2Table->walkToWithAlloc(p2Index, p2addr);
         if (p1Table == nullptr) {
             if (PhysAllocator::decrementMapCount(p2addr)) {
                 p3Table->entries[p3Index].addr = 0;
@@ -67,16 +68,16 @@ namespace memory {
         return true;
     }
 
-    bool VirtualMemoryMapper::freePageAt(VAddr addr) {
+    bool VirtualMemoryMapper::freePageAt(vaddr_t addr) {
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         VIndex p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         PageTable *p3Table, *p2Table, *p1Table;
-        PAddr p3addr, p2addr, p1addr;
+        paddr_t p3addr, p2addr, p1addr;
         p3Table = p4Table->walkTo(p4Index);
         p2Table = p3Table->walkTo(p3Index);
         p1Table = p2Table->walkTo(p2Index);
-        PAddr pageAddr =
+        paddr_t pageAddr =
             p1Table->entries[p1Index].addr & (~pageTableEntryFlagsMask);
         if (p1Table->entries[p1Index].managed) {
             PhysAllocator::freePage(pageAddr);
@@ -114,9 +115,9 @@ namespace memory {
         return true;
     }
 
-    bool VirtualMemoryMapper::mapNewPages(VAddr start, VAddr end) {
+    bool VirtualMemoryMapper::mapNewPages(vaddr_t start, vaddr_t end) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            if(!mapNewPageAt(addr, 0, defaultKernelFlags)) {
+            if (!mapNewPageAt(addr, 0, defaultKernelFlags)) {
                 for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
                     freePageAt(addr2);
                 }
@@ -126,10 +127,10 @@ namespace memory {
         return true;
     }
 
-    bool VirtualMemoryMapper::mapPages(VAddr start, VAddr end, PAddr physAddr,
-                                       uint64_t flags) {
+    bool VirtualMemoryMapper::mapPages(vaddr_t start, vaddr_t end,
+                                       paddr_t physAddr, uint64_t flags) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            if(!mapNewPageAt(addr, physAddr - start + end, flags)) {
+            if (!mapNewPageAt(addr, addr - start + physAddr, flags)) {
                 for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
                     freePageAt(addr2);
                 }
@@ -139,7 +140,7 @@ namespace memory {
         return true;
     }
 
-    bool VirtualMemoryMapper::freePages(VAddr start, VAddr end) {
+    bool VirtualMemoryMapper::freePages(vaddr_t start, vaddr_t end) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
             freePageAt(addr);
         }

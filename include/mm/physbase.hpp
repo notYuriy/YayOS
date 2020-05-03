@@ -4,8 +4,8 @@
 #include <inttypes.hpp>
 
 namespace memory {
-    typedef uint64_t PAddr;
-    typedef uint32_t PAddr32;
+    typedef uint64_t paddr_t;
+    typedef uint32_t paddr32_t;
 } // namespace memory
 
 #endif

@@ -65,11 +65,11 @@ namespace memory {
         }
     }
 
-    INLINE void PhysAllocator::bitmapSetRange(PAddr base, PAddr limit) {
+    INLINE void PhysAllocator::bitmapSetRange(paddr_t base, paddr_t limit) {
         PhysAllocator::bitmapSetIndexRange(base / 4096, limit / 4096);
     }
 
-    INLINE void PhysAllocator::bitmapClearRange(PAddr base, PAddr limit) {
+    INLINE void PhysAllocator::bitmapClearRange(paddr_t base, paddr_t limit) {
         PhysAllocator::bitmapClearIndexRange(base / 4096, limit / 4096);
     }
 
@@ -96,6 +96,8 @@ namespace memory {
         bitmapSetRange(0, TempPhysAllocator::getFirstUnusedFrame());
         bitmapSetRange(alignDown(memory::BootMemoryInfo::multibootBase, 4096),
                        alignUp(memory::BootMemoryInfo::multibootLimit, 4096));
+        bitmapSetRange(alignDown(memory::BootMemoryInfo::initrdBase, 4096),
+                       alignUp(memory::BootMemoryInfo::initrdLimit, 4096));
         bitmapClearRange(TempPhysAllocator::getFirstUnusedFrame(),
                          m_pagesCount * 4096);
         for (uint64_t i = 0; i < BootMemoryInfo::mmapEntriesCount; ++i) {
@@ -109,9 +111,9 @@ namespace memory {
         m_initialized = true;
     }
 
-    PAddr PhysAllocator::newPage(UNUSED VAddr addrHint) {
+    paddr_t PhysAllocator::newPage(UNUSED vaddr_t addrHint) {
         physMutex.lock();
-        PAddr addr = m_leastUncheckedIndex * 64 * 4096;
+        paddr_t addr = m_leastUncheckedIndex * 64 * 4096;
         for (uint64_t i = m_leastUncheckedIndex; i < m_bitmapSize;
              ++i, addr += 64 * 4096) {
             if (~m_bitmap[i] == 0) {
@@ -129,7 +131,7 @@ namespace memory {
         return 0;
     }
 
-    PAddr PhysAllocator::copyOnWrite(PAddr addr, VAddr addrHint) {
+    paddr_t PhysAllocator::copyOnWrite(paddr_t addr, vaddr_t addrHint) {
         if (m_pageInfo[addr / 4096].refCount == 1) {
             return addr;
         } else {
@@ -138,7 +140,7 @@ namespace memory {
         }
     }
 
-    void PhysAllocator::freePage(PAddr addr) {
+    void PhysAllocator::freePage(paddr_t addr) {
         physMutex.lock();
         if (--m_pageInfo[addr / 4096].refCount == 0) {
             clearBit(m_bitmap[addr / (4096ULL * 64ULL)], (addr / 4096) % 64);
@@ -147,22 +149,22 @@ namespace memory {
         physMutex.unlock();
     }
 
-    void PhysAllocator::freePages(PAddr addr, uint64_t count) {
-        PAddr p = addr;
+    void PhysAllocator::freePages(paddr_t addr, uint64_t count) {
+        paddr_t p = addr;
         for (uint64_t i = 0; i < count; ++i, p += 4096) {
             freePage(p);
         }
     }
 
-    void PhysAllocator::incrementRefCount(PAddr addr) {
+    void PhysAllocator::incrementRefCount(paddr_t addr) {
         ++(m_pageInfo[addr / 4096].refCount);
     }
 
-    void PhysAllocator::incrementMapCount(PAddr addr) {
+    void PhysAllocator::incrementMapCount(paddr_t addr) {
         ++(m_pageInfo[addr / 4096].mapCount);
     }
 
-    bool PhysAllocator::decrementMapCount(PAddr addr) {
+    bool PhysAllocator::decrementMapCount(paddr_t addr) {
         return --(m_pageInfo[addr / 4096].mapCount) == 0;
     }
 

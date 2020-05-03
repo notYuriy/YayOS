@@ -9,7 +9,7 @@ namespace multiboot {
         BasicMemoryInfo = 4,
         BIOSBootDevice = 5,
         BootCommandLine = 1,
-        Modules = 3,
+        Module = 3,
         ElfSections = 9,
         MemoryMap = 6,
         BootLoaderName = 2,
@@ -81,6 +81,14 @@ namespace multiboot {
         INLINE uint32_t getEntriesCount() const {
             return (size - 16) / sizeof(ElfSectionHeader);
         }
+    };
+
+    struct ModuleTag {
+        uint32_t type;
+        uint32_t size;
+        uint32_t moduleStart;
+        uint32_t moduleEnd;
+        uint8_t string[];
     };
 
     struct ACPIWithOldRSDPTag {

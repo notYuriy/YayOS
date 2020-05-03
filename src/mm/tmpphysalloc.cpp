@@ -3,7 +3,7 @@
 namespace memory {
     memory::MemoryMapEntry *TempPhysAllocator::m_currentEntry;
     uint64_t TempPhysAllocator::m_areaUsed;
-    PAddr TempPhysAllocator::m_currentPhysAddr;
+    paddr_t TempPhysAllocator::m_currentPhysAddr;
     bool TempPhysAllocator::m_initialized;
 
     bool TempPhysAllocator::afterCurrentMemoryArea() {
@@ -43,6 +43,15 @@ namespace memory {
         return false;
     }
 
+    bool TempPhysAllocator::CheckInitrdOverlap() {
+        if (m_currentPhysAddr >= memory::BootMemoryInfo::initrdBase &&
+            (m_currentPhysAddr < memory::BootMemoryInfo::initrdLimit)) {
+            m_currentPhysAddr = memory::BootMemoryInfo::initrdLimit;
+            return true;
+        }
+        return false;
+    }
+
     void TempPhysAllocator::init() {
         if (!memory::BootMemoryInfo::isInitialized()) {
             panic("[TempPhysAllocator] BootMemoryInfo is not initialized\n\r");
@@ -55,19 +64,31 @@ namespace memory {
         m_areaUsed = 0;
         AdjustMemoryArea();
         CheckMultibootOverlap();
+        CheckInitrdOverlap();
         AdjustMemoryArea();
+        CheckMultibootOverlap();
+        CheckInitrdOverlap();
+        AdjustMemoryArea();
+        CheckMultibootOverlap();
+        CheckInitrdOverlap();
         m_initialized = true;
     }
 
-    PAddr TempPhysAllocator::getFirstUnusedFrame() { return m_currentPhysAddr; }
+    paddr_t TempPhysAllocator::getFirstUnusedFrame() {
+        return m_currentPhysAddr;
+    }
 
-    PAddr TempPhysAllocator::newFrame() {
+    paddr_t TempPhysAllocator::newFrame() {
         AdjustMemoryArea();
-        bool overlapped = CheckMultibootOverlap();
-        if (overlapped) {
-            AdjustMemoryArea();
-        }
-        PAddr result = m_currentPhysAddr;
+        CheckMultibootOverlap();
+        CheckInitrdOverlap();
+        AdjustMemoryArea();
+        CheckMultibootOverlap();
+        CheckInitrdOverlap();
+        AdjustMemoryArea();
+        CheckMultibootOverlap();
+        CheckInitrdOverlap();
+        paddr_t result = m_currentPhysAddr;
         m_currentPhysAddr += 4096;
         return result;
     }

@@ -12,19 +12,19 @@ namespace memory {
             entries[index].present = true;
             entries[index].managed = false;
             zeroPage(walkTo(index));
-            vmbaseInvalidateCache((memory::VAddr)this);
+            vmbaseInvalidateCache((memory::vaddr_t)this);
         }
         return walkTo(index);
     }
 
-    PageTable *PageTable::walkToWithAlloc(VIndex index, PAddr currentAddr) {
+    PageTable *PageTable::walkToWithAlloc(VIndex index, paddr_t currentAddr) {
         if (!entries[index].present) {
-            PAddr newAddr = PhysAllocator::newPage();
+            paddr_t newAddr = PhysAllocator::newPage();
             if (newAddr == 0) {
                 return nullptr;
             }
             entries[index].addr = newAddr;
-            if (currentAddr != (PAddr) nullptr) {
+            if (currentAddr != (paddr_t) nullptr) {
                 PhysAllocator::incrementMapCount(currentAddr);
             }
             entries[index].lowFlags = 0;
@@ -32,7 +32,7 @@ namespace memory {
             entries[index].present = true;
             entries[index].managed = true;
             zeroPage(walkTo(index));
-            vmbaseInvalidateCache((memory::VAddr)this);
+            vmbaseInvalidateCache((memory::vaddr_t)this);
         }
         return walkTo(index);
     }

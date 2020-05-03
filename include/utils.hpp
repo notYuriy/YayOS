@@ -121,6 +121,25 @@ INLINE uint64_t strhash(const char *str) {
     return hash;
 }
 
+INLINE void hexdump(void *loc, uint64_t size) {
+    uint8_t *p = (uint8_t *)loc;
+    for (uint64_t i = 0; i < size; ++i) {
+        if (i % 50 == 0) {
+            core::log("\n");
+        }
+        static char digits[] = "0123456789ABCDEF";
+        uint8_t atloc = p[i];
+        uint8_t div, mod;
+        div = atloc / 16;
+        mod = atloc % 16;
+        char arr[3];
+        arr[0] = digits[div];
+        arr[1] = digits[mod];
+        arr[2] = '\0';
+        core::log("%s", arr);
+    }
+}
+
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
 extern "C" uint64_t getPageTable();

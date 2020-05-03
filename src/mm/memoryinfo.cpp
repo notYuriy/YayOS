@@ -8,6 +8,9 @@ namespace memory {
     uint64_t BootMemoryInfo::multibootLimit;
     uint64_t BootMemoryInfo::upperLimit;
     uint32_t BootMemoryInfo::mmapEntriesCount;
+    uint64_t BootMemoryInfo::initrdBase;
+    uint64_t BootMemoryInfo::initrdLimit;
+    uint64_t BootMemoryInfo::initrdStart;
     MemoryMapEntry *BootMemoryInfo::mmapEntries;
 
     void BootMemoryInfo::init(uint64_t physHeader) {
@@ -20,12 +23,16 @@ namespace memory {
         multiboot::BootInfoTag *tag = header->firstTag;
         multiboot::MemoryMapTag *memoryMapTag = nullptr;
         multiboot::ElfSectionsTag *elfSectionsTag = nullptr;
+        multiboot::ModuleTag *initrd = nullptr;
         while (!tag->isTerminator()) {
             if (tag->type == multiboot::BootInfoTagType::MemoryMap) {
                 memoryMapTag = tag->as<multiboot::MemoryMapTag>();
             }
             if (tag->type == multiboot::BootInfoTagType::ElfSections) {
                 elfSectionsTag = tag->as<multiboot::ElfSectionsTag>();
+            }
+            if (tag->type == multiboot::BootInfoTagType::Module) {
+                initrd = tag->as<multiboot::ModuleTag>();
             }
             tag = tag->next();
         }
@@ -70,6 +77,15 @@ namespace memory {
                     physKernelLimit = physLimit;
                 }
             }
+        }
+
+        if (initrd != nullptr) {
+            initrdBase = alignDown(initrd->moduleStart, 4096);
+            initrdLimit = alignUp(initrd->moduleEnd, 4096);
+            initrdStart = initrd->moduleStart;
+        } else {
+            initrdBase = 0;
+            initrdLimit = 0;
         }
 
         BootMemoryInfo::kernelBase = alignDown(physKernelBase, 4096);
