@@ -22,10 +22,14 @@ extern "C" void kmain(uint64_t mbPointer) {
     timer.enable();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
-    fs::IFile *file = fs::VFS::open("/A", 0);
-    fs::Dirent dirent;
-    int64_t result = file->readdir(1, &dirent);
-    core::log("%s\n\r", dirent.name);
-    result = file->readdir(1, &dirent);
-    core::log("%s\n\r", dirent.name);
+    fs::IFile *file = fs::VFS::open("/A/C/test.txt", 0);
+    file->lseek(3, fs::SEEK_SET);
+    core::log("file pos: %llu\n\r", file->ltellg());
+    uint8_t buf[100];
+    memset(buf, 100, '\0');
+    file->read(99, buf);
+    core::log("buf: %s\n\r", buf);
+    fs::VFS::close(file);
+    while (1) {
+    }
 }

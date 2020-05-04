@@ -226,10 +226,15 @@ namespace fs {
             return nullptr;
         }
         entry->incrementUsedCount();
-        return entry->node->open(perm);
+        IFile *result = entry->node->open(perm);
+        if (result == nullptr) {
+            return nullptr;
+        }
+        result->entry = entry;
+        return result;
     }
 
-    void close(IFile *file) {
+    void VFS::close(IFile *file) {
         file->finalize();
         file->entry->decrementUsedCount();
         file->entry->dropRec();

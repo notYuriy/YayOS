@@ -123,7 +123,7 @@ namespace fs {
             buf[i].inodeNumber = node->entries[currentEntryIndex + i].inode;
             buf[i].nameLength =
                 strlen(node->entries[currentEntryIndex + i].name);
-            memset(buf[i].name, nameMax, '\0');
+            memset(buf[i].name, NAME_MAX, '\0');
             memcpy(buf[i].name, node->entries[currentEntryIndex + i].name,
                    buf[i].nameLength);
         }
@@ -155,5 +155,30 @@ namespace fs {
                                    UNUSED const uint8_t *buf) {
         return -1;
     }
+
+    int64_t RamdiskFileView::lseek(int64_t offset, int64_t whence) {
+        int64_t newpos;
+        if (whence == SEEK_SET) {
+            newpos = offset;
+        } else if (whence == SEEK_CUR) {
+            newpos = offset + fileOffset;
+        } else {
+            newpos = offset + node->fileSize;
+        }
+        if (newpos < 0) {
+            return -1;
+        } else if (newpos > (int64_t)(node->fileSize)) {
+            return -1;
+        }
+        fileOffset = newpos;
+        return newpos;
+    }
+
+    int64_t RamdiskFileView::ltellg() { return fileOffset; }
+    int64_t RamdiskDirView::lseek(UNUSED int64_t offset,
+                                  UNUSED int64_t whence) {
+        return -1;
+    }
+    int64_t RamdiskDirView::ltellg() { return -1; }
 
 }; // namespace fs
