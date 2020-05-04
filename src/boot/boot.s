@@ -161,10 +161,11 @@ enable_paging:
     or eax, 1 << 5
     mov cr4, eax
 
-    ; set the long mode bit in the EFER MSR (model specific register)
     mov ecx, 0xC0000080
     rdmsr
-    or eax, 1 << 8
+    or eax, 1 << 8 ; enable long mode
+    or eax, 1 << 11 ; enable no execute
+    or eax, 1 << 0 ; enable syscall/sysret instructions
     wrmsr
 
     ; enable paging in the cr0 register

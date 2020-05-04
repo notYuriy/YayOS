@@ -16,7 +16,7 @@ namespace memory {
     }
     namespace {
         void mapNewPageFromTempAlloc(vaddr_t addr) {
-            VIndex p4Index, p3Index, p2Index, p1Index;
+            vind_t p4Index, p3Index, p2Index, p1Index;
             p4Index = getP4Index(addr);
             p3Index = getP3Index(addr);
             p2Index = getP2Index(addr);

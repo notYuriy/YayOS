@@ -17,7 +17,12 @@ namespace fs {
     }
 
     bool V7TarHeader::isDirectory() { return typeflag == '5'; }
-    INode *RamdiskFsSuperblock::getNode(uint64_t num) { return nodes[num - 1]; }
+    INode *RamdiskFsSuperblock::getNode(uint64_t num) {
+        if (num > nodes.size() || num == 0) {
+            return nullptr;
+        }
+        return nodes[num - 1];
+    }
     void RamdiskFsSuperblock::dropNode(UNUSED uint64_t num) {}
     uint64_t RamdiskFsSuperblock::getRootNum() { return nodes.size(); }
     uint64_t RamdiskFileNode::lookup(UNUSED const char *name) { return 0; }
@@ -55,7 +60,7 @@ namespace fs {
                       memory::BootMemoryInfo::initrdBase;
         mappingBase = memory::KernelVirtualAllocator::getMapping(
             mappingSize, memory::BootMemoryInfo::initrdBase,
-            memory::defaultUnmanagedFlags);
+            memory::DEFAULT_UNMANAGED_FLAGS);
         uint64_t startOffset = memory::BootMemoryInfo::initrdStart -
                                memory::BootMemoryInfo::initrdBase;
         memory::vaddr_t rdStart = mappingBase + startOffset;

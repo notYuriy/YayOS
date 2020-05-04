@@ -130,7 +130,7 @@ namespace memory {
 
     bool getNewPool(uint64_t size) {
         vaddr_t page =
-            KernelVirtualAllocator::getMapping(4096, 0, defaultKernelFlags);
+            KernelVirtualAllocator::getMapping(4096, 0, DEFAULT_KERNEL_FLAGS);
         if (page == 0) {
             return false;
         }
@@ -149,7 +149,7 @@ namespace memory {
         if (size >= maxSizeForSlubs) {
             ObjectHeader *header =
                 (ObjectHeader *)KernelVirtualAllocator::getMapping(
-                    alignUp(size, 4096), 0, defaultKernelFlags);
+                    alignUp(size, 4096), 0, DEFAULT_KERNEL_FLAGS);
             header->realSize = alignUp(size, 4096);
             return header->getData();
         }
@@ -206,7 +206,7 @@ namespace memory {
         }
         uint64_t alignedRequiredMem = alignUp(requiredMem, 4096);
         initMemory = KernelVirtualAllocator::getMapping(alignedRequiredMem, 0,
-                                                        defaultKernelFlags);
+                                                        DEFAULT_KERNEL_FLAGS);
         for (uint64_t i = 0; i < poolsSizesCount; ++i) {
             poolHeadsArray[i] = (SmallObjectPool **)initMemory;
             initMemory += (SmallObjectPool::maxCount(16 * i) + 1) *

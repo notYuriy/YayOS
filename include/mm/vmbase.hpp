@@ -6,20 +6,20 @@
 
 namespace memory {
     typedef uint64_t vaddr_t;
-    typedef uint32_t VIndex;
+    typedef uint32_t vind_t;
     extern "C" void vmbaseLoadP4(memory::paddr_t p4addr);
     extern "C" void vmbaseInvalidateCache(memory::vaddr_t page);
 
-    INLINE static VIndex getP4Index(vaddr_t addr) {
+    INLINE static vind_t getP4Index(vaddr_t addr) {
         return (addr >> 39ULL) & 0777ULL;
     }
-    INLINE static VIndex getP3Index(vaddr_t addr) {
+    INLINE static vind_t getP3Index(vaddr_t addr) {
         return (addr >> 30ULL) & 0777ULL;
     }
-    INLINE static VIndex getP2Index(vaddr_t addr) {
+    INLINE static vind_t getP2Index(vaddr_t addr) {
         return (addr >> 21ULL) & 0777ULL;
     }
-    INLINE static VIndex getP1Index(vaddr_t addr) {
+    INLINE static vind_t getP1Index(vaddr_t addr) {
         return (addr >> 12ULL) & 0777ULL;
     }
 
@@ -56,9 +56,10 @@ namespace memory {
     };
 #pragma pack(0)
 
-    const uint64_t defaultKernelFlags = (1 << 0) | (1 << 1) | (1 << 10);
-    const uint64_t defaultUnmanagedFlags = (1 << 0) | (1 << 1);
-    const uint64_t defaultVolatileDevFlags = (1 << 0) | (1 << 1) | (1 << 5);
+    constexpr uint64_t DEFAULT_KERNEL_FLAGS = (1 << 0) | (1 << 1) | (1 << 10);
+    constexpr uint64_t DEFAULT_UNMANAGED_FLAGS = (1 << 0) | (1 << 1);
+    constexpr uint64_t DEFAULT_VOLATILE_DEV_FLAGS =
+        (1 << 0) | (1 << 1) | (1 << 5);
 
     static_assert(sizeof(PageTableEntry) == 8);
 
@@ -67,14 +68,14 @@ namespace memory {
         PageTableEntry entries[512];
         PageTableEntry &operator[](uint16_t index) { return entries[index]; }
 
-        INLINE PageTable *walkTo(VIndex index) {
+        INLINE PageTable *walkTo(vind_t index) {
             return (PageTable *)((((uint64_t)this) << 9ULL) |
                                  ((uint64_t)(index) << 12ULL));
         }
 
-        PageTable *walkToWithTempAlloc(VIndex index);
+        PageTable *walkToWithTempAlloc(vind_t index);
 
-        PageTable *walkToWithAlloc(VIndex index, paddr_t currentAddr);
+        PageTable *walkToWithAlloc(vind_t index, paddr_t currentAddr);
     };
 #pragma pack(0)
 
