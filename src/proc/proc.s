@@ -46,8 +46,10 @@ schedulerIntHandler:
     pop rax
     mov es, rax
     pop rax
+    сmp cr3, rax
+    je .next
     mov cr3, rax
-    invlpg [01777777777777777770000]
+.next:
     pop r15
     pop r14
     pop r13
@@ -116,9 +118,10 @@ schedulerYield:
     mov ds, rax
     pop rax
     mov es, rax
-    pop rax
+    сmp cr3, rax
+    je .next
     mov cr3, rax
-    invlpg [01777777777777777770000]
+.next:
     pop r15
     pop r14
     pop r13
