@@ -45,4 +45,4 @@ grub-mkrescue isotree -o YayOS.iso
 echo "[ RM ] obj"
 rm -rf obj
 echo "[ RM ] isotree"
-#rm -rf isotree
+rm -rf isotree
