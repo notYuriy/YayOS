@@ -4,7 +4,7 @@
 #include <utils.hpp>
 
 namespace proc {
-    void Semaphore::init(uint64_t max) {
+    Semaphore::Semaphore(uint64_t max) {
         m_num = max;
         m_queue.init();
         m_aquired = false;

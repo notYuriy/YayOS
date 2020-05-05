@@ -1,7 +1,7 @@
 #ifndef __ELF_HPP_INCLUDED__
 #define __ELF_HPP_INCLUDED__
 
-#include <core/vec.hpp>
+#include <core/uniqueptr.hpp>
 #include <fs/vfs.hpp>
 #include <mm/physbase.hpp>
 #include <mm/vmbase.hpp>
@@ -76,10 +76,11 @@ namespace proc {
     struct Elf {
         ElfHeader head;
         uint16_t areasCount;
-        ElfMemoryArea *areas;
+        core::UniquePtr<ElfMemoryArea> areas;
+        Elf(core::UniquePtr<ElfMemoryArea> &areas);
     };
 
-    Elf *parseElf(fs::IFile *file);
+    core::UniquePtr<Elf> parseElf(fs::IFile *file);
 
 }; // namespace proc
 

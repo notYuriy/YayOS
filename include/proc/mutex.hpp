@@ -8,7 +8,7 @@ namespace proc {
         Semaphore m_lock;
 
     public:
-        void init();
+        Mutex();
         void lock();
         void unlock();
         bool someoneWaiting();

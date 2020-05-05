@@ -26,7 +26,16 @@ SECTIONS {
     . = ALIGN(4096); 
 
     .rodata : AT(ADDR(.rodata) - KERNEL_MAPPING_BASE) {
+        ctorsStart = .;
+        *(SORT(.ctors*))
+        ctorsEnd = .;
+
+        dtorsStart = .;
+        *(SORT(.dtors*))
+        dtorsEnd = .;
+
         *(.rodata)
+        *(.gnu.linkonce.r*)
     }
 
     . = ALIGN(4096); 

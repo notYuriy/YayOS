@@ -55,7 +55,6 @@ namespace fs {
         virtual int64_t readdir(int64_t count, Dirent *buf);
         virtual int64_t lseek(int64_t offset, int64_t whence);
         virtual int64_t ltellg();
-        virtual void finalize();
         virtual void flush();
     };
 
@@ -67,7 +66,6 @@ namespace fs {
         virtual int64_t readdir(int64_t count, Dirent *buf);
         virtual int64_t lseek(int64_t offset, int64_t whence);
         virtual int64_t ltellg();
-        virtual void finalize();
         virtual void flush();
     };
 

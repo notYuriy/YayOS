@@ -2,6 +2,10 @@
 
 global start
 extern kmain
+extern ctorsStart
+extern ctorsEnd
+extern dtorsStart
+extern dtorsEnd
 global p2_table
 
 KERNEL_MAPPING_BASE equ 0xffff800000000000
@@ -222,7 +226,12 @@ start64_2:
     mov qword [rax], 0
     invlpg [rax]
     mov edi, esi
+
+    mov rsi, ctorsStart
+    mov rdx, ctorsEnd
+    
     call kmain
+
     cli
 .halt:
     hlt

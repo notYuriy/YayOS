@@ -46,7 +46,8 @@ schedulerIntHandler:
     pop rax
     mov es, rax
     pop rax
-    сmp cr3, rax
+    mov rbx, cr3
+    cmp rbx, rax
     je .next
     mov cr3, rax
 .next:
@@ -118,7 +119,9 @@ schedulerYield:
     mov ds, rax
     pop rax
     mov es, rax
-    сmp cr3, rax
+    pop rax
+    mov rbx, cr3
+    cmp rbx, rax
     je .next
     mov cr3, rax
 .next:

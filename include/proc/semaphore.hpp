@@ -11,7 +11,7 @@ namespace proc {
         bool m_aquired;
 
     public:
-        void init(uint64_t max);
+        Semaphore(uint64_t max);
         void acquire(uint64_t num = 1);
         void release(uint64_t num = 1);
         bool someoneWaiting();

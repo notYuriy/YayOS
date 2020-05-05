@@ -3,7 +3,7 @@
 
 namespace proc {
 
-    void Mutex::init() { m_lock.init(1); }
+    Mutex::Mutex() : m_lock(1) {}
     void Mutex::lock() {
         if (Scheduler::isInitilaized()) {
             m_lock.acquire();

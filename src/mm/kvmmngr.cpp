@@ -280,7 +280,6 @@ namespace memory {
                                     ->walkTo(0));
         m_lastCheckedIndex = 127;
         freeRange(initAreaStart, initAreaEnd - initAreaStart);
-        m_kvmmngrMutex.init();
         m_initialized = true;
     }
 

@@ -3,7 +3,7 @@
 #include <proc/mutex.hpp>
 
 namespace memory {
-    bool KernelHeap::initialized;
+    bool KernelHeap::m_initialized;
 
 #pragma pack(1)
     struct ObjectHeader {
@@ -71,16 +71,13 @@ namespace memory {
     };
 #pragma pack(0)
 
-    const uint64_t maxSizeForSlubs = 2000;
-    constexpr uint64_t poolsSizesCount = maxSizeForSlubs / 16;
+    SmallObjectPool **KernelHeap::poolHeadsArray[poolsSizesCount];
+    uint64_t KernelHeap::poolsMaxCount[poolsSizesCount];
+    uint64_t KernelHeap::poolsLastCheckedIndices[poolsSizesCount];
+    proc::Mutex KernelHeap::m_mutex;
 
-    SmallObjectPool **poolHeadsArray[poolsSizesCount];
-    uint64_t poolsMaxCount[poolsSizesCount];
-    uint64_t poolsLastCheckedIndices[poolsSizesCount];
-    proc::Mutex heapMutex;
-
-    void cutPoolFrom(SmallObjectPool *pool, uint64_t sizeIndex,
-                     uint64_t headsIndex) {
+    void KernelHeap::cutPoolFrom(SmallObjectPool *pool, uint64_t sizeIndex,
+                                 uint64_t headsIndex) {
         if (pool->meta.prev == nullptr) {
             poolHeadsArray[sizeIndex][headsIndex] = pool->meta.next;
         } else {
@@ -91,8 +88,8 @@ namespace memory {
         }
     }
 
-    void insertPoolTo(SmallObjectPool *pool, uint64_t sizeIndex,
-                      uint64_t headsIndex) {
+    void KernelHeap::insertPoolTo(SmallObjectPool *pool, uint64_t sizeIndex,
+                                  uint64_t headsIndex) {
         pool->meta.next = poolHeadsArray[sizeIndex][headsIndex];
         pool->meta.prev = nullptr;
         if (pool->meta.next != nullptr) {
@@ -101,11 +98,11 @@ namespace memory {
         poolHeadsArray[sizeIndex][headsIndex] = pool;
     }
 
-    INLINE bool isSlubEmpty(uint64_t sizeIndex) {
+    bool KernelHeap::isSlubEmpty(uint64_t sizeIndex) {
         return poolsLastCheckedIndices[sizeIndex] == (poolsMaxCount[sizeIndex]);
     }
 
-    ObjectHeader *allocFromSlubs(uint64_t size) {
+    ObjectHeader *KernelHeap::allocFromSlubs(uint64_t size) {
         uint64_t index = size / 16;
         if (poolsLastCheckedIndices[index] == 0) {
             panic("[KernelHeap] Assertion failed: last checked index is zero");
@@ -128,7 +125,7 @@ namespace memory {
         return nullptr;
     }
 
-    bool getNewPool(uint64_t size) {
+    bool KernelHeap::getNewPool(uint64_t size) {
         vaddr_t page =
             KernelVirtualAllocator::getMapping(4096, 0, DEFAULT_KERNEL_FLAGS);
         if (page == 0) {
@@ -153,17 +150,17 @@ namespace memory {
             header->realSize = alignUp(size, 4096);
             return header->getData();
         }
-        heapMutex.lock();
+        m_mutex.lock();
         ObjectHeader *result = allocFromSlubs(size);
         if (result == nullptr) {
             if (!getNewPool(size)) {
-                heapMutex.unlock();
+                m_mutex.unlock();
                 return nullptr;
             }
             poolsLastCheckedIndices[size / 16] = poolsMaxCount[size / 16];
             result = allocFromSlubs(size);
         }
-        heapMutex.unlock();
+        m_mutex.unlock();
         return result->getData();
     }
 
@@ -173,7 +170,7 @@ namespace memory {
             KernelVirtualAllocator::unmapAt((vaddr_t)header, header->realSize);
             return;
         }
-        heapMutex.lock();
+        m_mutex.lock();
         uint64_t poolAddr = alignDown((uint64_t)header, 4096);
         SmallObjectPool *pool = (SmallObjectPool *)poolAddr;
         if (poolsLastCheckedIndices[pool->meta.objectSize / 16] <
@@ -185,11 +182,11 @@ namespace memory {
         pool->free(header);
         if (pool->meta.objectsCount == pool->maxCount()) {
             KernelVirtualAllocator::unmapAt(poolAddr, 4096);
-            heapMutex.unlock();
+            m_mutex.unlock();
             return;
         }
         insertPoolTo(pool, pool->meta.objectSize / 16, pool->meta.objectsCount);
-        heapMutex.unlock();
+        m_mutex.unlock();
     }
 
     void KernelHeap::init() {
@@ -212,8 +209,7 @@ namespace memory {
             initMemory += (SmallObjectPool::maxCount(16 * i) + 1) *
                           sizeof(SmallObjectPool *);
         }
-        heapMutex.init();
-        initialized = true;
+        m_initialized = true;
     }
 
 }; // namespace memory

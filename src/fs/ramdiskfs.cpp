@@ -136,7 +136,6 @@ namespace fs {
         return realCount;
     }
 
-    void RamdiskDirView::finalize() {}
     void RamdiskDirView::flush() {}
 
     int64_t RamdiskFileView::read(int64_t size, uint8_t *buf) {
@@ -154,7 +153,6 @@ namespace fs {
     int64_t RamdiskFileView::readdir(UNUSED int64_t count, UNUSED Dirent *buf) {
         return -1;
     }
-    void RamdiskFileView::finalize() {}
     void RamdiskFileView::flush() {}
     int64_t RamdiskFileView::write(UNUSED int64_t size,
                                    UNUSED const uint8_t *buf) {

@@ -107,7 +107,6 @@ namespace memory {
             }
         }
         m_leastUncheckedIndex = 0;
-        physMutex.init();
         m_initialized = true;
     }
 

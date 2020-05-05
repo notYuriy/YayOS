@@ -1,5 +1,6 @@
 #include <core/interrupts.hpp>
 #include <core/log.hpp>
+#include <core/uniqueptr.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
 #include <drivers/serial.hpp>
@@ -12,7 +13,10 @@
 #include <proc/mutex.hpp>
 #include <proc/sched.hpp>
 
-extern "C" void kmain(uint64_t mbPointer) {
+extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
+                      void (**ctorsEnd)()) {
+
+    executeCtors(ctorsStart, ctorsEnd);
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
     core::IDT::init();
@@ -23,10 +27,10 @@ extern "C" void kmain(uint64_t mbPointer) {
     timer.enable();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
-    fs::IFile *file = fs::VFS::open("/bin/binaryExample", 0);
-    proc::Elf *elf = proc::parseElf(file);
-    for (uint16_t i = 0; i < elf->areasCount; ++i) {
-        proc::ElfMemoryArea *area = elf->areas + i;
+    core::UniquePtr<fs::IFile> file(fs::VFS::open("/bin/binaryExample", 0));
+    core::UniquePtr<proc::Elf> elf = proc::parseElf(file);
+    for (uint16_t i = 0; i < elf.get()->areasCount; ++i) {
+        proc::ElfMemoryArea *area = (elf.get()->areas.get()) + i;
         core::log("area[%d].fileOff: %llu\n\r", (int)i, area->fileOffset);
         core::log("area[%d].fileSize: %llu\n\r", (int)i, area->fileSize);
         core::log("area[%d].mappingFlags: %llu\n\r", (int)i,

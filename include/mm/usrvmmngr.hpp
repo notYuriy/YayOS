@@ -15,9 +15,9 @@ namespace memory {
     class UserVirtualAllocator {
         UserVirtualMemoryArea *m_head;
         UserVirtualAllocator();
-        UserVirtualAllocator(UserVirtualAllocator *dup);
-        memory::vaddr_t AllocRegion(uint64_t size);
-        int64_t DeallocRegion(memory::vaddr_t addr, uint64_t size);
+        memory::vaddr_t alloc(uint64_t size);
+        bool reserve(memory::vaddr_t addr, uint64_t size);
+        bool free(memory::vaddr_t addr, uint64_t size);
     };
 }; // namespace memory
 

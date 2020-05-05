@@ -11,7 +11,6 @@ namespace fs {
         if (newDEntry == nullptr) {
             return nullptr;
         }
-        newDEntry->mutex.init();
         newDEntry->name = strdup(name);
         newDEntry->nameHash = strhash(name);
         newDEntry->chld = nullptr;
@@ -213,7 +212,6 @@ namespace fs {
         m_fsTree->prev = m_fsTree;
         m_fsTree->par = m_fsTree;
         m_fsTree->isFilesystemRoot = true;
-        m_fsTree->mutex.init();
         m_fsTree->sb = sb;
         m_fsTree->node = sb->getNode(sb->getRootNum());
         m_fsTree->incrementUsedCount();
@@ -234,14 +232,11 @@ namespace fs {
         return result;
     }
 
-    void VFS::close(IFile *file) {
-        file->finalize();
-        file->entry->decrementUsedCount();
-        file->entry->dropRec();
-        delete file;
+    IFile::~IFile() {
+        entry->decrementUsedCount();
+        entry->dropRec();
     }
 
-    IFile::~IFile() {}
     INode::~INode() {}
     ISuperblock::~ISuperblock() {}
 

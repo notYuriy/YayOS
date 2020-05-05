@@ -25,7 +25,6 @@ namespace fs {
         virtual int64_t readdir(int64_t count, Dirent *buf) = 0;
         virtual int64_t lseek(int64_t offset, int64_t whence) = 0;
         virtual int64_t ltellg() = 0;
-        virtual void finalize() = 0;
         virtual void flush() = 0;
         virtual ~IFile();
     };
@@ -85,7 +84,6 @@ namespace fs {
     public:
         static void init(ISuperblock *sb);
         static IFile *open(const char *path, int perm);
-        static void close(IFile *file);
     };
 
 }; // namespace fs
