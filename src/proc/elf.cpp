@@ -39,7 +39,7 @@ namespace proc {
             return core::UniquePtr<Elf>(nullptr);
         }
         int64_t toRead = entriesCount * sizeof(ElfMemoryArea);
-        if (file->read(toRead, (uint8_t *)(entries)) != toRead) {
+        if (file->read(toRead, (uint8_t *)(entries.get())) != toRead) {
             return core::UniquePtr<Elf>(nullptr);
         }
         memory::vaddr_t prevEnd = 4096;
@@ -62,11 +62,11 @@ namespace proc {
             areas.get()[i].fileOffset = entries.get()[i].offset;
             areas.get()[i].fileSize = entries.get()[i].fileSize;
         }
-        core::UniquePtr<Elf> result(new Elf(areas));
+        core::UniquePtr<Elf> result(new Elf(areas.move()));
         result.get()->head = head;
         result.get()->areasCount = entriesCount;
         return result;
     }
 
-    Elf::Elf(core::UniquePtr<ElfMemoryArea> &areas) : areas(areas) {}
+    Elf::Elf(ElfMemoryArea *areas) : areas(areas) {}
 }; // namespace proc

@@ -9,6 +9,7 @@ namespace core {
 
     public:
         INLINE T *get() { return ptr; }
+        INLINE UniquePtr(decltype(nullptr) p) { ptr = p; }
         INLINE UniquePtr(T *p) { ptr = p; }
         INLINE ~UniquePtr() {
             if (ptr != nullptr) {
@@ -16,11 +17,11 @@ namespace core {
             }
             ptr = nullptr;
         }
-        INLINE UniquePtr(UniquePtr &other) {
-            ptr = other.ptr;
-            other.ptr = nullptr;
+        INLINE T *move() {
+            T *result = ptr;
+            ptr = nullptr;
+            return result;
         }
-        template <class R> INLINE operator R *() { return (R *)ptr; }
     };
 }; // namespace core
 

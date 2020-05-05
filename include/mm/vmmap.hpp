@@ -1,4 +1,4 @@
-#ifndef __VMMAP_HPP_INLCUDED__
+#ifndef __VMMAP_HPP_INCLUDED__
 #define __VMMAP_HPP_INCLUDED__
 
 #include <mm/physalloc.hpp>

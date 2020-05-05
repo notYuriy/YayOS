@@ -77,7 +77,7 @@ namespace proc {
         ElfHeader head;
         uint16_t areasCount;
         core::UniquePtr<ElfMemoryArea> areas;
-        Elf(core::UniquePtr<ElfMemoryArea> &areas);
+        Elf(ElfMemoryArea *areas);
     };
 
     core::UniquePtr<Elf> parseElf(fs::IFile *file);
