@@ -4,18 +4,20 @@ namespace memory {
     // remaps page with different flags if a page exists
     bool VirtualMemoryMapper::mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                            uint64_t flags) {
+        bool userAccessible = flags & (1LLU << 2);
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         paddr_t p3addr, p2addr, p1addr;
         p3addr = p4Table->entries[p4Index].addr && (~pageTableEntryFlagsMask);
-        PageTable *p3Table =
-            p4Table->walkToWithAlloc(p4Index, (paddr_t) nullptr);
+        PageTable *p3Table = p4Table->walkToWithAlloc(
+            p4Index, (paddr_t) nullptr, userAccessible);
         if (p3Table == nullptr) {
             return false;
         }
         p2addr = p3Table->entries[p3Index].addr && (~pageTableEntryFlagsMask);
-        PageTable *p2Table = p3Table->walkToWithAlloc(p3Index, p3addr);
+        PageTable *p2Table =
+            p3Table->walkToWithAlloc(p3Index, p3addr, userAccessible);
         if (p2Table == nullptr) {
             if (PhysAllocator::decrementMapCount(p3addr)) {
                 p4Table->entries[p4Index].addr = 0;
@@ -24,7 +26,8 @@ namespace memory {
             return false;
         }
         p1addr = p2Table->entries[p2Index].addr && (~pageTableEntryFlagsMask);
-        PageTable *p1Table = p2Table->walkToWithAlloc(p2Index, p2addr);
+        PageTable *p1Table =
+            p2Table->walkToWithAlloc(p2Index, p2addr, userAccessible);
         if (p1Table == nullptr) {
             if (PhysAllocator::decrementMapCount(p2addr)) {
                 p3Table->entries[p3Index].addr = 0;
@@ -65,9 +68,11 @@ namespace memory {
             }
             PhysAllocator::incrementMapCount(p1addr);
         } else {
+            bool managed = entry.managed;
             entry.addr &= ~(1ULL << 63);
             entry.lowFlags = 0;
             entry.addr |= flags;
+            entry.managed = managed;
         }
         vmbaseInvalidateCache(addr);
         return true;

@@ -77,7 +77,8 @@ namespace memory {
 
         PageTable *walkToWithTempAlloc(vind_t index);
 
-        PageTable *walkToWithAlloc(vind_t index, paddr_t currentAddr);
+        PageTable *walkToWithAlloc(vind_t index, paddr_t currentAddr,
+                                   bool userAccessible);
     };
 #pragma pack(0)
 

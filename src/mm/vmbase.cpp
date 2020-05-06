@@ -17,7 +17,8 @@ namespace memory {
         return walkTo(index);
     }
 
-    PageTable *PageTable::walkToWithAlloc(vind_t index, paddr_t currentAddr) {
+    PageTable *PageTable::walkToWithAlloc(vind_t index, paddr_t currentAddr,
+                                          bool userAccessible) {
         if (!entries[index].present) {
             paddr_t newAddr = PhysAllocator::newPage();
             if (newAddr == 0) {
@@ -31,8 +32,13 @@ namespace memory {
             entries[index].writable = true;
             entries[index].present = true;
             entries[index].managed = true;
+            entries[index].userAccessible = userAccessible;
             zeroPage(walkTo(index));
             vmbaseInvalidateCache((memory::vaddr_t)this);
+        } else {
+            if (userAccessible) {
+                entries[index].userAccessible = true;
+            }
         }
         return walkTo(index);
     }

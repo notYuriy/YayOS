@@ -1,5 +1,7 @@
+#include <core/gdt.hpp>
 #include <core/interrupts.hpp>
 #include <core/log.hpp>
+#include <core/tss.hpp>
 #include <core/uniqueptr.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
@@ -13,6 +15,7 @@
 #include <proc/elf.hpp>
 #include <proc/mutex.hpp>
 #include <proc/sched.hpp>
+#include <proc/usermode.hpp>
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
@@ -20,6 +23,8 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     executeCtors(ctorsStart, ctorsEnd);
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
+    core::GDT::init();
+    core::TSS::init();
     core::IDT::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
@@ -37,5 +42,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     }
     elf.get()->load(file.get(), allocator.get());
     core::log("Elf file successfully loaded\n\r");
-    ((void (*)())(elf.get()->head.entryPoint))();
+    proc::jumpToUserMode(elf.get()->head.entryPoint, 0);
+    while (1) {
+    }
 }

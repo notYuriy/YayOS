@@ -6,7 +6,7 @@ extern ctorsStart
 extern ctorsEnd
 extern dtorsStart
 extern dtorsEnd
-global p2_table
+global updateRSP0
 
 KERNEL_MAPPING_BASE equ 0xffff800000000000
 
@@ -250,7 +250,6 @@ p1_tables:
 stack_bottom: ; code segment
     resb 3 * 4096
 stack_top:
-bootinfo: resb 4
 
 section .rodata
 align 8
@@ -271,3 +270,4 @@ gdt64:
 .pointer_low:
     dw gdt64.end - gdt64 - 1
     dq gdt64 - KERNEL_MAPPING_BASE
+

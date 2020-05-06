@@ -58,7 +58,7 @@ namespace proc {
             }
             prevEnd = alignUp(
                 entries.get()[i].vaddr + entries.get()[i].memorySize, 4096);
-            areas.get()[i].mappingFlags = (1LLU << 0) || (1LLU << 2);
+            areas.get()[i].mappingFlags = (1LLU << 0) | (1LLU << 2);
             if ((entries.get()[i].flags & 2) == 2) {
                 areas.get()[i].mappingFlags |= (1LLU << 1);
             }

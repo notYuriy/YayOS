@@ -1,5 +1,5 @@
-#ifndef __TIMER_H_INCLUDED__
-#define __TIMER_H_INCLUDED__
+#ifndef __TIMER_HPP_INCLUDED__
+#define __TIMER_HPP_INCLUDED__
 
 #include <core/interrupts.hpp>
 #include <utils.hpp>
