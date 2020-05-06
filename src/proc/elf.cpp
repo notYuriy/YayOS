@@ -1,5 +1,6 @@
 #include <core/uniqueptr.hpp>
 #include <mm/kheap.hpp>
+#include <mm/vmmap.hpp>
 #include <proc/elf.hpp>
 
 namespace proc {
@@ -44,6 +45,14 @@ namespace proc {
         }
         memory::vaddr_t prevEnd = 4096;
         for (uint16_t i = 0; i < entriesCount; ++i) {
+            if (entries.get()[i].type == ELF_NULL) {
+                areas.get()[i].isRequired = false;
+                continue;
+            }
+            if (entries.get()[i].type != ELF_LOAD) {
+                return core::UniquePtr<Elf>(nullptr);
+            }
+            areas.get()[i].isRequired = true;
             if (alignDown(entries.get()[i].vaddr, 4096) < prevEnd) {
                 return core::UniquePtr<Elf>(nullptr);
             }
@@ -59,6 +68,15 @@ namespace proc {
             areas.get()[i].memoryOffset = (uint8_t *)entries.get()[i].vaddr;
             areas.get()[i].memoryBase = alignDown(entries.get()[i].vaddr, 4096);
             areas.get()[i].memoryLimit = prevEnd;
+            if (entries.get()[i].offset < 0) {
+                core::log("entries.get()[i].offset: %llu\n\r",
+                          entries.get()[i].offset);
+                core::log("head.headerSize: %llu\n\r", head.headerSize);
+                return core::UniquePtr<Elf>(nullptr);
+            }
+            if (entries.get()[i].fileSize < 0) {
+                return core::UniquePtr<Elf>(nullptr);
+            }
             areas.get()[i].fileOffset = entries.get()[i].offset;
             areas.get()[i].fileSize = entries.get()[i].fileSize;
         }
@@ -68,5 +86,50 @@ namespace proc {
         return result;
     }
 
+    bool ElfMemoryArea::map(fs::IFile *file) {
+        if (!isRequired) {
+            return true;
+        }
+        bool result = memory::VirtualMemoryMapper::mapPages(
+            memoryBase, memoryLimit, 0, memory::DEFAULT_KERNEL_FLAGS);
+        if (!result) {
+            return false;
+        }
+        int64_t iresult = file->lseek(fileOffset, fs::SEEK_SET);
+        if (iresult == -1) {
+            memory::VirtualMemoryMapper::freePages(memoryBase, memoryLimit);
+            return false;
+        }
+        iresult = file->read(fileSize, memoryOffset);
+        if (iresult != fileSize) {
+            memory::VirtualMemoryMapper::freePages(memoryBase, memoryLimit);
+            return false;
+        }
+        return memory::VirtualMemoryMapper::mapPages(memoryBase, memoryLimit, 0,
+                                                     mappingFlags);
+    }
+
+    bool ElfMemoryArea::unmap() {
+        if (isRequired) {
+            return memory::VirtualMemoryMapper::freePages(memoryBase,
+                                                          memoryLimit);
+        }
+        return true;
+    }
+
     Elf::Elf(ElfMemoryArea *areas) : areas(areas) {}
+    bool Elf::load(fs::IFile *file, memory::UserVirtualAllocator *usralloc) {
+        for (uint64_t i = 0; i < areasCount; ++i) {
+            if (!usralloc->reserve(areas.get()[i].memoryBase,
+                                   areas.get()[i].memoryLimit -
+                                       areas.get()[i].memoryBase) ||
+                !areas.get()[i].map(file)) {
+                for (uint64_t j = 0; j < i; ++j) {
+                    areas.get()[i].unmap();
+                }
+                return false;
+            }
+        }
+        return true;
+    }
 }; // namespace proc

@@ -4,6 +4,7 @@
 #include <core/uniqueptr.hpp>
 #include <fs/vfs.hpp>
 #include <mm/physbase.hpp>
+#include <mm/usrvmmngr.hpp>
 #include <mm/vmbase.hpp>
 #include <utils.hpp>
 
@@ -18,6 +19,8 @@ namespace proc {
     constexpr uint8_t ELF_CUR_VERSION = 1;
     constexpr uint8_t ELF_ARCH_X86_64 = 0x3e;
     constexpr uint16_t ELF_HEADER_SIZE = 64;
+    constexpr uint32_t ELF_NULL = 0;
+    constexpr uint32_t ELF_LOAD = 1;
 
 #pragma pack(1)
     struct ElfHeader {
@@ -55,7 +58,7 @@ namespace proc {
         int64_t offset;
         memory::vaddr_t vaddr;
         memory::paddr_t paddr;
-        uint64_t fileSize;
+        int64_t fileSize;
         uint64_t memorySize;
         uint64_t align;
     };
@@ -69,8 +72,11 @@ namespace proc {
         memory::vaddr_t memoryBase;
         uint8_t *memoryOffset;
         memory::vaddr_t memoryLimit;
-        uint64_t fileOffset;
-        uint64_t fileSize;
+        int64_t fileOffset;
+        int64_t fileSize;
+        bool isRequired;
+        bool map(fs::IFile *file);
+        bool unmap();
     };
 
     struct Elf {
@@ -78,6 +84,7 @@ namespace proc {
         uint16_t areasCount;
         core::UniquePtr<ElfMemoryArea> areas;
         Elf(ElfMemoryArea *areas);
+        bool load(fs::IFile *file, memory::UserVirtualAllocator *usralloc);
     };
 
     core::UniquePtr<Elf> parseElf(fs::IFile *file);

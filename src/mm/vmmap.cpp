@@ -1,6 +1,7 @@
 #include <mm/vmmap.hpp>
 
 namespace memory {
+    // remaps page with different flags if a page exists
     bool VirtualMemoryMapper::mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                            uint64_t flags) {
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
@@ -63,6 +64,10 @@ namespace memory {
                 }
             }
             PhysAllocator::incrementMapCount(p1addr);
+        } else {
+            entry.addr &= ~(1ULL << 63);
+            entry.lowFlags = 0;
+            entry.addr |= flags;
         }
         vmbaseInvalidateCache(addr);
         return true;

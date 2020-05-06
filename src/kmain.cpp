@@ -30,4 +30,12 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     fs::VFS::init(&initRd);
     core::UniquePtr<fs::IFile> file(fs::VFS::open("/bin/binaryExample", 0));
     core::UniquePtr<proc::Elf> elf = proc::parseElf(file.get());
+    core::UniquePtr<memory::UserVirtualAllocator> allocator(
+        memory::newUserVirtualAllocator());
+    if (elf.get() == nullptr) {
+        core::log("Elf is nullptr\n\r");
+    }
+    elf.get()->load(file.get(), allocator.get());
+    core::log("Elf file successfully loaded\n\r");
+    ((void (*)())(elf.get()->head.entryPoint))();
 }
