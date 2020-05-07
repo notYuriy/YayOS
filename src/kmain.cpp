@@ -24,7 +24,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
     core::GDT::init();
-    // core::TSS::init();
+    core::TSS::init();
     core::IDT::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
