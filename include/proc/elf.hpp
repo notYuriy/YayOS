@@ -76,7 +76,7 @@ namespace proc {
         int64_t fileSize;
         bool isRequired;
         bool map(fs::IFile *file);
-        bool unmap();
+        void unmap();
     };
 
     struct Elf {

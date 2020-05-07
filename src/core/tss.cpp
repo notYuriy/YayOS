@@ -6,6 +6,7 @@ namespace core {
     extern "C" void loadTSS();
     void TSS::init() {
         memset(&tss, sizeof(tss), 0);
+        tss.iopb = sizeof(tss);
         loadTSS();
     }
     void TSS::setKernelStack(uint64_t rsp) { tss.rsp[0] = rsp; }

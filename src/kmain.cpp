@@ -14,7 +14,7 @@
 #include <mm/usrvmmngr.hpp>
 #include <proc/elf.hpp>
 #include <proc/mutex.hpp>
-#include <proc/sched.hpp>
+#include <proc/proc.hpp>
 #include <proc/usermode.hpp>
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
@@ -24,13 +24,13 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
     core::GDT::init();
-    core::TSS::init();
+    // core::TSS::init();
     core::IDT::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
     timer.init(200);
-    proc::Scheduler::init(&timer);
-    // timer.enable();
+    proc::ProcessManager::init(&timer);
+    timer.enable();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
     core::UniquePtr<fs::IFile> file(fs::VFS::open("/bin/binaryExample", 0));
@@ -43,6 +43,4 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     elf.get()->load(file.get(), allocator.get());
     core::log("Elf file successfully loaded\n\r");
     proc::jumpToUserMode(elf.get()->head.entryPoint, 0);
-    while (1) {
-    }
 }

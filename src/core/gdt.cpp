@@ -2,7 +2,7 @@
 #include <core/tss.hpp>
 
 namespace core {
-    uint64_t GDT::m_descriptors[GDT_MAX_ENTRIES];
+    uint64_t GDT::m_descriptors[GDT_ENTRIES];
     GDTPointer GDT::m_pointer;
     extern "C" void loadGDT(GDTPointer *gdt);
     void GDT::init() {
@@ -21,8 +21,8 @@ namespace core {
         m_descriptors[4] = (1LLU << 44) | (1LLU << 47) | (1LLU << 41LLU) |
                            (1LLU << 46) | (1LLU << 45);
         // tss low
-        m_descriptors[5] = (104) | (sizeof(TSSLayout) & 0xffff) |
-                           ((TSS::getBase() & 0xfff) << 16) |
+        m_descriptors[5] = ((sizeof(TSSLayout) - 1) & 0xffff) |
+                           ((TSS::getBase() & 0xffffff) << 16) |
                            (0b1001LLU << 40) | (1LLU << 47) |
                            (((TSS::getBase() >> 24) & 0xff) << 56);
         // tss high

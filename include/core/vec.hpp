@@ -1,6 +1,7 @@
 #ifndef __VEC_HPP_INCLUDED__
 #define __VEC_HPP_INCLUDED__
 
+#include <mm/kheap.hpp>
 #include <utils.hpp>
 
 namespace core {
@@ -24,14 +25,15 @@ namespace core {
             m_data = newarr;
             m_capacity = newCapacity;
         }
-
-    public:
-        INLINE Vec() {
+        INLINE void init() {
             m_data = new T[16];
             m_size = 0;
             m_capacity = 16;
             m_disposed = false;
         }
+
+    public:
+        INLINE Vec() { init(); }
         INLINE void pushBack(T elem) {
             m_data[m_size++] = elem;
             if (m_size == m_capacity) {
@@ -57,6 +59,10 @@ namespace core {
             if (!m_disposed) {
                 delete m_data;
             }
+        }
+        INLINE void clear() {
+            delete m_data;
+            init();
         }
         INLINE ~Vec() { dispose(); }
     };

@@ -9,7 +9,7 @@ namespace core {
         uint32_t : 32;
         uint64_t rsp[3];
         uint64_t : 64;
-        uint64_t isp[7];
+        uint64_t ist[7];
         uint64_t : 64;
         uint16_t : 16;
         uint16_t iopb;

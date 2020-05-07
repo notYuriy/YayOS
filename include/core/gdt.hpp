@@ -4,7 +4,7 @@
 #include <utils.hpp>
 
 namespace core {
-    constexpr uint64_t GDT_MAX_ENTRIES = 7;
+    constexpr uint64_t GDT_ENTRIES = 7;
 #pragma pack(1)
     struct GDTPointer {
         uint16_t size;
@@ -12,7 +12,7 @@ namespace core {
     };
 #pragma pack(0)
     class GDT {
-        static uint64_t m_descriptors[GDT_MAX_ENTRIES];
+        static uint64_t m_descriptors[GDT_ENTRIES];
         static GDTPointer m_pointer;
 
     public:

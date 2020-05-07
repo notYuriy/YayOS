@@ -4,7 +4,6 @@
 #include <mm/kheap.hpp>
 #include <mm/vmbase.hpp>
 #include <mm/vmmap.hpp>
-#include <proc/mutex.hpp>
 #include <utils.hpp>
 
 namespace memory {
@@ -17,7 +16,6 @@ namespace memory {
     };
     class UserVirtualAllocator {
         UserVirtualMemoryArea *m_head;
-        proc::Mutex mutex;
 
         UserVirtualMemoryArea *findBestFit(uint64_t size);
         void cut(UserVirtualMemoryArea *area);
@@ -30,7 +28,9 @@ namespace memory {
         memory::vaddr_t alloc(uint64_t size);
         bool reserve(memory::vaddr_t addr, uint64_t size);
         bool free(memory::vaddr_t addr, uint64_t size);
+        void unmapUnused();
         friend UserVirtualAllocator *newUserVirtualAllocator();
+        ~UserVirtualAllocator();
     };
     UserVirtualAllocator *newUserVirtualAllocator();
 

@@ -10,7 +10,7 @@ jumpToUserMode:
     mov rax, 0x23 ; user data + RPL
     push rax
     push rsi
-    ; probaby need
+    ; probably need
     ; to change this in the future
     ; because it is a clear
     ; vulnerability to leak

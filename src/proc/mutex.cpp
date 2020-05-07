@@ -1,16 +1,16 @@
 #include <proc/mutex.hpp>
-#include <proc/sched.hpp>
+#include <proc/proc.hpp>
 
 namespace proc {
 
     Mutex::Mutex() : m_lock(1) {}
     void Mutex::lock() {
-        if (Scheduler::isInitilaized()) {
+        if (ProcessManager::isInitilaized()) {
             m_lock.acquire();
         }
     }
     void Mutex::unlock() {
-        if (Scheduler::isInitilaized()) {
+        if (ProcessManager::isInitilaized()) {
             m_lock.release();
         }
     }

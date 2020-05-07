@@ -109,12 +109,10 @@ namespace proc {
                                                      mappingFlags);
     }
 
-    bool ElfMemoryArea::unmap() {
+    void ElfMemoryArea::unmap() {
         if (isRequired) {
-            return memory::VirtualMemoryMapper::freePages(memoryBase,
-                                                          memoryLimit);
+            memory::VirtualMemoryMapper::freePages(memoryBase, memoryLimit);
         }
-        return true;
     }
 
     Elf::Elf(ElfMemoryArea *areas) : areas(areas) {}

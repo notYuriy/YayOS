@@ -3,15 +3,14 @@
 
 namespace proc {
 
-    void TaskQueue::init() {
+    void ProcessQueue::init() {
         m_taskhead = nullptr;
         m_tasktail = nullptr;
     }
 
-    void TaskQueue::sleep(bool yield) {
+    void ProcessQueue::sleep() {
         disableInterrupts();
-        Task *current = Scheduler::getRunningTask();
-        Scheduler::suspendFromRunList(current);
+        Process *current = ProcessManager::getRunningProcess();
         current->prev = nullptr;
         if (m_taskhead == nullptr) {
             m_taskhead = current;
@@ -20,19 +19,15 @@ namespace proc {
             m_tasktail->prev = current;
             m_tasktail = current;
         }
-        if (yield) {
-            Scheduler::yield();
-        } else {
-            enableInterrupts();
-        }
+        ProcessManager::suspendFromRunList(current->pid);
     }
 
-    bool TaskQueue::awake() {
+    bool ProcessQueue::awake() {
         disableInterrupts();
-        Task *toAwake = m_taskhead;
+        Process *toAwake = m_taskhead;
         if (toAwake != nullptr) {
             m_taskhead = toAwake->prev;
-            Scheduler::addToRunList(toAwake);
+            ProcessManager::addToRunList(toAwake->pid);
             enableInterrupts();
             return true;
         } else {
@@ -41,6 +36,6 @@ namespace proc {
         }
     }
 
-    bool TaskQueue::empty() { return m_taskhead == nullptr; }
+    bool ProcessQueue::empty() { return m_taskhead == nullptr; }
 
 }; // namespace proc

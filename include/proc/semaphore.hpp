@@ -7,7 +7,7 @@
 namespace proc {
     class Semaphore {
         uint64_t m_num;
-        TaskQueue m_queue;
+        ProcessQueue m_queue;
         bool m_aquired;
 
     public:

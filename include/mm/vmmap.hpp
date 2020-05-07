@@ -8,14 +8,14 @@ namespace memory {
     class VirtualMemoryMapper {
         static bool mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                  uint64_t flags);
-        static bool freePageAt(vaddr_t addr);
+        static void freePageAt(vaddr_t addr);
 
     public:
         static bool mapNewPages(vaddr_t start, vaddr_t end);
         static bool mapPages(vaddr_t start, vaddr_t end, paddr_t physStart,
                              uint64_t flags);
         // precondition: every single VAddr from start to end is mapped
-        static bool freePages(vaddr_t start, vaddr_t end);
+        static void freePages(vaddr_t start, vaddr_t end);
     };
 }; // namespace memory
 
