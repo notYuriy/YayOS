@@ -57,7 +57,7 @@ namespace memory {
 #pragma pack(0)
 
     constexpr uint64_t DEFAULT_KERNEL_FLAGS =
-        (1 << 0) | (1 << 1) | (1 << 10) | (1LLU << 63);
+        (1 << 0) | (1 << 1) | (1 << 9) | (1LLU << 63);
     constexpr uint64_t DEFAULT_UNMANAGED_FLAGS =
         (1 << 0) | (1 << 1) | (1LLU << 63);
     constexpr uint64_t DEFAULT_VOLATILE_DEV_FLAGS =

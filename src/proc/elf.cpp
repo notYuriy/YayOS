@@ -1,6 +1,4 @@
-#include <core/uniqueptr.hpp>
 #include <mm/kheap.hpp>
-#include <mm/vmmap.hpp>
 #include <proc/elf.hpp>
 
 namespace proc {
@@ -17,72 +15,77 @@ namespace proc {
                  programEntrySize != sizeof(ElfProgramHeaderEntry));
     }
 
-    core::UniquePtr<Elf> parseElf(fs::IFile *file) {
-        ElfHeader head;
-        int64_t read = file->read(sizeof(ElfHeader), (uint8_t *)&(head));
+    Elf *parseElf(fs::IFile *file) {
+        Elf *result = new Elf;
+        if (result == nullptr) {
+            return nullptr;
+        }
+        int64_t read =
+            file->read(sizeof(ElfHeader), (uint8_t *)&(result->head));
         if (read != sizeof(ElfHeader)) {
-            return core::UniquePtr<Elf>(nullptr);
+            delete result;
+            return nullptr;
         }
-        if (!head.verify()) {
-            return core::UniquePtr<Elf>(nullptr);
+        if (!result->head.verify()) {
+            delete result;
+            return nullptr;
         }
-        uint16_t entriesCount = head.programEntryCount;
-        if (file->lseek(head.programHeaderOffset, fs::SEEK_SET) < 0) {
-            return core::UniquePtr<Elf>(nullptr);
+        core::log("Verify ok\n\r");
+        uint16_t entriesCount = result->head.programEntryCount;
+        if (file->lseek(result->head.programHeaderOffset, fs::SEEK_SET) < 0) {
+            delete result;
+            return nullptr;
         }
-        core::UniquePtr<ElfProgramHeaderEntry> entries(
-            new ElfProgramHeaderEntry[entriesCount]);
-        if (entries.get() == nullptr) {
-            return core::UniquePtr<Elf>(nullptr);
+        ElfProgramHeaderEntry *entries =
+            new ElfProgramHeaderEntry[entriesCount];
+        if (entries == nullptr) {
+            delete result;
+            return nullptr;
         }
-        core::UniquePtr<ElfMemoryArea> areas(new ElfMemoryArea[entriesCount]);
-        if (entries.get() == nullptr) {
-            return core::UniquePtr<Elf>(nullptr);
+        ElfMemoryArea *areas = new ElfMemoryArea[entriesCount];
+        if (entries == nullptr) {
+            delete result;
+            delete entries;
+            return nullptr;
         }
         int64_t toRead = entriesCount * sizeof(ElfMemoryArea);
-        if (file->read(toRead, (uint8_t *)(entries.get())) != toRead) {
-            return core::UniquePtr<Elf>(nullptr);
+        if (file->read(toRead, (uint8_t *)(entries)) != toRead) {
+            delete entries;
+            delete result;
+            delete areas;
+            return nullptr;
         }
         memory::vaddr_t prevEnd = 4096;
         for (uint16_t i = 0; i < entriesCount; ++i) {
-            if (entries.get()[i].type == ELF_NULL) {
-                areas.get()[i].isRequired = false;
+            if (entries[i].type == ELF_NULL) {
+                areas[i].isRequired = false;
                 continue;
             }
-            if (entries.get()[i].type != ELF_LOAD) {
-                return core::UniquePtr<Elf>(nullptr);
+            areas[i].isRequired = true;
+            if (entries[i].type != ELF_LOAD ||
+                alignDown(entries[i].vaddr, 4096) < prevEnd ||
+                entries[i].fileSize < 0) {
+                delete entries;
+                delete result;
+                delete areas;
+                return nullptr;
             }
-            areas.get()[i].isRequired = true;
-            if (alignDown(entries.get()[i].vaddr, 4096) < prevEnd) {
-                return core::UniquePtr<Elf>(nullptr);
+            prevEnd = alignUp(entries[i].vaddr + entries[i].memorySize, 4096);
+            areas[i].mappingFlags = (1LLU << 0) | (1LLU << 2);
+            if ((entries[i].flags & 2) == 2) {
+                areas[i].mappingFlags |= (1LLU << 1);
             }
-            prevEnd = alignUp(
-                entries.get()[i].vaddr + entries.get()[i].memorySize, 4096);
-            areas.get()[i].mappingFlags = (1LLU << 0) | (1LLU << 2);
-            if ((entries.get()[i].flags & 2) == 2) {
-                areas.get()[i].mappingFlags |= (1LLU << 1);
+            if ((entries[i].flags & 1) != 1) {
+                areas[i].mappingFlags |= (1LLU << 63);
             }
-            if ((entries.get()[i].flags & 1) != 1) {
-                areas.get()[i].mappingFlags |= (1LLU << 63);
-            }
-            areas.get()[i].memoryOffset = (uint8_t *)entries.get()[i].vaddr;
-            areas.get()[i].memoryBase = alignDown(entries.get()[i].vaddr, 4096);
-            areas.get()[i].memoryLimit = prevEnd;
-            if (entries.get()[i].offset < 0) {
-                core::log("entries.get()[i].offset: %llu\n\r",
-                          entries.get()[i].offset);
-                core::log("head.headerSize: %llu\n\r", head.headerSize);
-                return core::UniquePtr<Elf>(nullptr);
-            }
-            if (entries.get()[i].fileSize < 0) {
-                return core::UniquePtr<Elf>(nullptr);
-            }
-            areas.get()[i].fileOffset = entries.get()[i].offset;
-            areas.get()[i].fileSize = entries.get()[i].fileSize;
+            areas[i].memoryOffset = (uint8_t *)entries[i].vaddr;
+            areas[i].memoryBase = alignDown(entries[i].vaddr, 4096);
+            areas[i].memoryLimit = prevEnd;
+            areas[i].fileOffset = entries[i].offset;
+            areas[i].fileSize = entries[i].fileSize;
         }
-        core::UniquePtr<Elf> result(new Elf(areas.move()));
-        result.get()->head = head;
-        result.get()->areasCount = entriesCount;
+        result->areas = areas;
+        result->areasCount = entriesCount;
         return result;
     }
 
@@ -110,24 +113,22 @@ namespace proc {
     }
 
     void ElfMemoryArea::unmap() {
-        if (isRequired) {
-            memory::VirtualMemoryMapper::freePages(memoryBase, memoryLimit);
-        }
+        memory::VirtualMemoryMapper::freePages(memoryBase, memoryLimit);
     }
 
-    Elf::Elf(ElfMemoryArea *areas) : areas(areas) {}
     bool Elf::load(fs::IFile *file, memory::UserVirtualAllocator *usralloc) {
         for (uint64_t i = 0; i < areasCount; ++i) {
-            if (!usralloc->reserve(areas.get()[i].memoryBase,
-                                   areas.get()[i].memoryLimit -
-                                       areas.get()[i].memoryBase) ||
-                !areas.get()[i].map(file)) {
+            if (!usralloc->reserve(areas[i].memoryBase,
+                                   areas[i].memoryLimit -
+                                       areas[i].memoryBase) ||
+                !areas[i].map(file)) {
                 for (uint64_t j = 0; j < i; ++j) {
-                    areas.get()[i].unmap();
+                    areas[i].unmap();
                 }
                 return false;
             }
         }
         return true;
     }
+
 }; // namespace proc

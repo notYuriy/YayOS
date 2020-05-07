@@ -4,7 +4,10 @@ namespace memory {
     // remaps page with different flags if a page exists
     bool VirtualMemoryMapper::mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                            uint64_t flags) {
-        bool userAccessible = flags & (1LLU << 2);
+        bool userAccessible = (flags & (1LLU << 2)) != 0;
+        if (userAccessible) {
+            core::log("ok\n\r");
+        }
         PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
         vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);

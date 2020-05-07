@@ -1,7 +1,7 @@
 #ifndef __ELF_HPP_INCLUDED__
 #define __ELF_HPP_INCLUDED__
 
-#include <core/uniqueptr.hpp>
+#include <core/vec.hpp>
 #include <fs/vfs.hpp>
 #include <mm/physbase.hpp>
 #include <mm/usrvmmngr.hpp>
@@ -72,7 +72,7 @@ namespace proc {
         memory::vaddr_t memoryBase;
         uint8_t *memoryOffset;
         memory::vaddr_t memoryLimit;
-        int64_t fileOffset;
+        uint64_t fileOffset;
         int64_t fileSize;
         bool isRequired;
         bool map(fs::IFile *file);
@@ -82,12 +82,11 @@ namespace proc {
     struct Elf {
         ElfHeader head;
         uint16_t areasCount;
-        core::UniquePtr<ElfMemoryArea> areas;
-        Elf(ElfMemoryArea *areas);
-        bool load(fs::IFile *file, memory::UserVirtualAllocator *usralloc);
+        ElfMemoryArea *areas;
+        bool load(fs::IFile *file, memory::UserVirtualAllocator *allocator);
     };
 
-    core::UniquePtr<Elf> parseElf(fs::IFile *file);
+    Elf *parseElf(fs::IFile *file);
 
 }; // namespace proc
 

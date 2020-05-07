@@ -2,7 +2,6 @@
 #include <core/interrupts.hpp>
 #include <core/log.hpp>
 #include <core/tss.hpp>
-#include <core/uniqueptr.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
 #include <drivers/serial.hpp>
@@ -33,14 +32,15 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     timer.enable();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
-    core::UniquePtr<fs::IFile> file(fs::VFS::open("/bin/binaryExample", 0));
-    core::UniquePtr<proc::Elf> elf = proc::parseElf(file.get());
-    core::UniquePtr<memory::UserVirtualAllocator> allocator(
-        memory::newUserVirtualAllocator());
-    if (elf.get() == nullptr) {
+    fs::IFile *file = fs::VFS::open("/bin/binaryExample", 0);
+    proc::Elf *elf = proc::parseElf(file);
+    memory::UserVirtualAllocator *allocator = memory::newUserVirtualAllocator();
+    if (elf == nullptr) {
         core::log("Elf is nullptr\n\r");
     }
-    elf.get()->load(file.get(), allocator.get());
+    elf->load(file, allocator);
     core::log("Elf file successfully loaded\n\r");
-    proc::jumpToUserMode(elf.get()->head.entryPoint, 0);
+    proc::jumpToUserMode(elf->head.entryPoint, 0);
+    while (1)
+        ;
 }

@@ -34,6 +34,12 @@ namespace core {
 
     public:
         INLINE Vec() { init(); }
+        INLINE Vec(Vec &&other) {
+            m_data = other.m_data;
+            m_capacity = other.m_capacity;
+            m_disposed = other.m_disposed;
+            m_size = other.m_size;
+        }
         INLINE void pushBack(T elem) {
             m_data[m_size++] = elem;
             if (m_size == m_capacity) {

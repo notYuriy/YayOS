@@ -38,6 +38,7 @@ namespace memory {
         } else {
             if (userAccessible) {
                 entries[index].userAccessible = true;
+                vmbaseInvalidateCache((memory::vaddr_t)this);
             }
         }
         return walkTo(index);
