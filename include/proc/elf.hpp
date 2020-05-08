@@ -3,9 +3,9 @@
 
 #include <core/vec.hpp>
 #include <fs/vfs.hpp>
-#include <mm/physbase.hpp>
-#include <mm/usrvmmngr.hpp>
-#include <mm/vmbase.hpp>
+#include <memory/physbase.hpp>
+#include <memory/usrvmmngr.hpp>
+#include <memory/vmbase.hpp>
 #include <utils.hpp>
 
 namespace proc {

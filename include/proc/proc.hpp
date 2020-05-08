@@ -2,7 +2,7 @@
 #define __PROC_HPP_INCLUDED__
 
 #include <drivers/timer/timer.hpp>
-#include <mm/usrvmmngr.hpp>
+#include <memory/usrvmmngr.hpp>
 #include <proc/state.hpp>
 
 namespace proc {

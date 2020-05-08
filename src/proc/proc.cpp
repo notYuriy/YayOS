@@ -1,8 +1,8 @@
 #include <core/cpprt.hpp>
-#include <core/tss.hpp>
-#include <mm/kvmmngr.hpp>
+#include <memory/kvmmngr.hpp>
 #include <proc/intlock.hpp>
 #include <proc/mutex.hpp>
+#include <x86_64/tss.hpp>
 
 namespace proc {
     Process *ProcessManager::m_schedListHead;
@@ -40,7 +40,7 @@ namespace proc {
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
         m_schedListHead->state.loadToFrame(frame);
-        core::TSS::setKernelStack(m_schedListHead->kernelStackTop);
+        x86_64::TSS::setKernelStack(m_schedListHead->kernelStackTop);
     }
 
     void ProcessManager::freePid(pid_t pid) {
@@ -70,7 +70,7 @@ namespace proc {
         m_processData[initPid].kernelStackTop =
             m_processData[initPid].kernelStackBase + 0x10000;
         m_schedListHead = &m_processData[initPid];
-        schedTimer->setCallback((core::IDTVector)schedulerIntHandler);
+        schedTimer->setCallback((x86_64::IDTVector)schedulerIntHandler);
     }
 
     void ProcessManager::addToRunList(pid_t proc) {

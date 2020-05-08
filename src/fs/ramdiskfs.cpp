@@ -1,6 +1,6 @@
 #include <core/cpprt.hpp>
 #include <fs/ramdiskfs.hpp>
-#include <mm/kvmmngr.hpp>
+#include <memory/kvmmngr.hpp>
 
 namespace fs {
     uint64_t V7TarHeader::getSize() {

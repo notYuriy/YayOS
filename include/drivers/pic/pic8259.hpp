@@ -12,7 +12,7 @@ namespace drivers {
 
     public:
         void init();
-        bool registerLegacyIrq(uint8_t irq, core::IDTVector vec);
+        bool registerLegacyIrq(uint8_t irq, x86_64::IDTVector vec);
         virtual bool enableLegacyIrq(uint8_t irq);
         virtual bool disableLegacyIrq(uint8_t irq);
         virtual bool endOfLegacyIrq(uint8_t irq);

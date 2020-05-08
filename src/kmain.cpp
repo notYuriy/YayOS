@@ -1,20 +1,20 @@
-#include <core/gdt.hpp>
-#include <core/interrupts.hpp>
 #include <core/log.hpp>
-#include <core/tss.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
 #include <drivers/serial.hpp>
 #include <drivers/timer/pit.hpp>
 #include <fs/ramdiskfs.hpp>
 #include <fs/vfs.hpp>
-#include <mm/kvmmngr.hpp>
-#include <mm/mminit.hpp>
-#include <mm/usrvmmngr.hpp>
+#include <memory/kvmmngr.hpp>
+#include <memory/mminit.hpp>
+#include <memory/usrvmmngr.hpp>
 #include <proc/elf.hpp>
 #include <proc/mutex.hpp>
 #include <proc/proc.hpp>
 #include <proc/usermode.hpp>
+#include <x86_64/gdt.hpp>
+#include <x86_64/interrupts.hpp>
+#include <x86_64/tss.hpp>
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
@@ -22,9 +22,9 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     executeCtors(ctorsStart, ctorsEnd);
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
-    core::GDT::init();
-    core::TSS::init();
-    core::IDT::init();
+    x86_64::GDT::init();
+    x86_64::TSS::init();
+    x86_64::IDT::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
     timer.init(200);

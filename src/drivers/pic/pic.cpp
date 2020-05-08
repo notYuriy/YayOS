@@ -1,13 +1,13 @@
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
-#include <mm/kheap.hpp>
+#include <memory/kheap.hpp>
 
 namespace drivers {
     IPIC *IPIC::m_systemPic;
     bool IPIC::m_picInitialized;
 
     void IPIC::detectPIC() {
-        if (!core::IDT::isInitialized()) {
+        if (!x86_64::IDT::isInitialized()) {
             panic("[PIC] Dependency \"IDT\" is not satisfied");
         }
         if (!memory::KernelHeap::isInitialized()) {

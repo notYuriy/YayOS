@@ -1,8 +1,8 @@
 #ifndef __PIC_HPP_INCLUDED__
 #define __PIC_HPP_INCLUDED__
 
-#include <core/interrupts.hpp>
 #include <utils.hpp>
+#include <x86_64/interrupts.hpp>
 
 namespace drivers {
     class IPIC {
@@ -13,7 +13,7 @@ namespace drivers {
         bool m_picInstanceInitialized;
 
     public:
-        virtual bool registerLegacyIrq(uint8_t irq, core::IDTVector vec) = 0;
+        virtual bool registerLegacyIrq(uint8_t irq, x86_64::IDTVector vec) = 0;
         virtual bool enableLegacyIrq(uint8_t irq) = 0;
         virtual bool disableLegacyIrq(uint8_t irq) = 0;
         virtual bool endOfLegacyIrq(uint8_t irq) = 0;

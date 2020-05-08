@@ -1,8 +1,8 @@
 #ifndef __TIMER_HPP_INCLUDED__
 #define __TIMER_HPP_INCLUDED__
 
-#include <core/interrupts.hpp>
 #include <utils.hpp>
+#include <x86_64/interrupts.hpp>
 
 namespace drivers {
     class ITimer {
@@ -11,7 +11,7 @@ namespace drivers {
 
     public:
         INLINE bool isInitialized() { return m_initialized; }
-        virtual bool setCallback(core::IDTVector callback) = 0;
+        virtual bool setCallback(x86_64::IDTVector callback) = 0;
         virtual bool enable() = 0;
         virtual bool disable() = 0;
         virtual void onTerm() = 0;

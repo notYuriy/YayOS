@@ -30,7 +30,6 @@ namespace proc {
             delete result;
             return nullptr;
         }
-        core::log("Verify ok\n\r");
         uint16_t entriesCount = result->head.programEntryCount;
         if (file->lseek(result->head.programHeaderOffset, fs::SEEK_SET) < 0) {
             delete result;

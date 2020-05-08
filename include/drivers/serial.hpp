@@ -1,10 +1,10 @@
 #ifndef __SERIAL_HPP_INCLUDED__
 #define __SERIAL_HPP_INCLUDED__
 
-#include <core/portio.hpp>
 #include <drivers/serial.hpp>
 #include <inttypes.hpp>
 #include <stdarg.h>
+#include <x86_64/portio.hpp>
 
 namespace drivers {
 

@@ -3,8 +3,8 @@
 
 #include <core/vec.hpp>
 #include <fs/vfs.hpp>
-#include <mm/kvmmngr.hpp>
-#include <mm/memoryinfo.hpp>
+#include <memory/kvmmngr.hpp>
+#include <memory/memoryinfo.hpp>
 
 namespace fs {
 

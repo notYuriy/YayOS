@@ -1,7 +1,7 @@
-#include <core/interrupts.hpp>
-#include <core/portio.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/timer/pit.hpp>
+#include <x86_64/interrupts.hpp>
+#include <x86_64/portio.hpp>
 
 namespace drivers {
 
@@ -16,10 +16,10 @@ namespace drivers {
         if (divisor > 65536) {
             panic("[PIT] Can't handle such a small frequency\n\r");
         }
-        core::Ports::outb(0x43, 0x36);
+        x86_64::Ports::outb(0x43, 0x36);
         uint16_t lowDivisor = (uint16_t)divisor;
-        core::Ports::outb(0x40, lowDivisor & 0xff);
-        core::Ports::outb(0x40, lowDivisor >> 8);
+        x86_64::Ports::outb(0x40, lowDivisor & 0xff);
+        x86_64::Ports::outb(0x40, lowDivisor >> 8);
         m_ticks = 0;
         m_initialized = true;
     }
@@ -30,13 +30,13 @@ namespace drivers {
         return IPIC::getSystemPIC()->disableLegacyIrq(PITIrq);
     }
 
-    bool PIT::setCallback(core::IDTVector vec) {
+    bool PIT::setCallback(x86_64::IDTVector vec) {
         drivers::IPIC *pic = IPIC::getSystemPIC();
         bool result = pic->registerLegacyIrq(PITIrq, vec);
         return result;
     }
 
-    void PIT::onTerm() { 
+    void PIT::onTerm() {
         IPIC::getSystemPIC()->endOfLegacyIrq(PITIrq);
         m_ticks++;
     }

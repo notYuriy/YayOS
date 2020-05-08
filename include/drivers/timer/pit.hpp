@@ -13,7 +13,7 @@ namespace drivers {
         void init(uint32_t frequency);
         INLINE bool isInitilaized() { return m_initialized; }
         INLINE uint64_t getFrequency() { return m_frequency; }
-        virtual bool setCallback(core::IDTVector callback);
+        virtual bool setCallback(x86_64::IDTVector callback);
         virtual bool enable();
         virtual bool disable();
         virtual void onTerm();

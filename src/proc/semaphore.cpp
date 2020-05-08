@@ -12,7 +12,6 @@ namespace proc {
 
     void Semaphore::acquire(uint64_t num) {
         disableInterrupts();
-        core::log("aquire\n\r");
         if (m_aquired || m_num < num) {
             m_queue.sleep();
         }
@@ -23,7 +22,6 @@ namespace proc {
 
     void Semaphore::release(uint64_t num) {
         disableInterrupts();
-        core::log("release\n\r");
         m_num += num;
         if (!m_queue.awake()) {
             m_aquired = false;

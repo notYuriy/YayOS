@@ -1,5 +1,5 @@
 #include <fs/vfs.hpp>
-#include <mm/kheap.hpp>
+#include <memory/kheap.hpp>
 
 namespace fs {
 
