@@ -35,22 +35,4 @@ namespace memory {
 
 }; // namespace memory
 
-// compiler requires size_t here, so we can't use uint64_t
-
-INLINE void *operator new(size_t size) noexcept {
-    return memory::KernelHeap::alloc(size);
-}
-
-INLINE void *operator new[](size_t size) noexcept {
-    return memory::KernelHeap::alloc(size);
-}
-
-INLINE void operator delete(void *loc) { memory::KernelHeap::free(loc); }
-INLINE void operator delete(void *loc, UNUSED unsigned long int size) {
-    memory::KernelHeap::free(loc);
-}
-INLINE void operator delete[](void *loc) { memory::KernelHeap::free(loc); }
-INLINE void operator delete[](void *loc, UNUSED unsigned long int size) {
-    memory::KernelHeap::free(loc);
-}
 #endif

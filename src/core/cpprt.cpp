@@ -1,3 +1,4 @@
+#include <mm/kheap.hpp>
 #include <utils.hpp>
 
 extern "C" void __cxa_pure_virtual() {
@@ -10,4 +11,21 @@ void executeCtors(void (**ctorsStart)(), void (**ctorsEnd)()) {
             (*ctorsStart)();
         }
     } while (ctorsStart++ != ctorsEnd);
+}
+
+void *operator new(size_t size) noexcept {
+    return memory::KernelHeap::alloc(size);
+}
+
+void *operator new[](size_t size) noexcept {
+    return memory::KernelHeap::alloc(size);
+}
+
+void operator delete(void *loc) { memory::KernelHeap::free(loc); }
+void operator delete(void *loc, UNUSED unsigned long int size) {
+    memory::KernelHeap::free(loc);
+}
+void operator delete[](void *loc) { memory::KernelHeap::free(loc); }
+void operator delete[](void *loc, UNUSED unsigned long int size) {
+    memory::KernelHeap::free(loc);
 }

@@ -1,7 +1,7 @@
 #ifndef __VEC_HPP_INCLUDED__
 #define __VEC_HPP_INCLUDED__
 
-#include <mm/kheap.hpp>
+#include <core/cpprt.hpp>
 #include <utils.hpp>
 
 namespace core {

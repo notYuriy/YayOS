@@ -1,5 +1,5 @@
+#include <core/cpprt.hpp>
 #include <core/tss.hpp>
-#include <mm/kheap.hpp>
 #include <mm/kvmmngr.hpp>
 #include <proc/intlock.hpp>
 #include <proc/mutex.hpp>
@@ -96,10 +96,7 @@ namespace proc {
         enableInterrupts();
     }
 
-    void Process::cleanup() {
-        delete instance;
-        instance = nullptr;
-    }
+    void Process::cleanup() { delete usralloc; }
 
     void ProcessManager::kill(pid_t pid) {
         Process *proc = getProcessData(pid);

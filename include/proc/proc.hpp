@@ -2,8 +2,8 @@
 #define __PROC_HPP_INCLUDED__
 
 #include <drivers/timer/timer.hpp>
+#include <mm/usrvmmngr.hpp>
 #include <proc/state.hpp>
-#include <proc/subsystem.hpp>
 
 namespace proc {
     typedef uint64_t pid_t;
@@ -14,7 +14,7 @@ namespace proc {
         Process *next, *prev;
         pid_t pid;
         uint64_t kernelStackTop, kernelStackSize, kernelStackBase;
-        SubsystemInstance *instance;
+        memory::UserVirtualAllocator *usralloc;
         void cleanup();
     };
 

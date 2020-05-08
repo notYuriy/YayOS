@@ -1,7 +1,7 @@
 #ifndef __USRVMMNGR_HPP_INCLUDED__
 #define __USRVMMNGR_HPP_INCLUDED__
 
-#include <mm/kheap.hpp>
+#include <core/cpprt.hpp>
 #include <mm/vmbase.hpp>
 #include <mm/vmmap.hpp>
 #include <utils.hpp>
@@ -28,7 +28,6 @@ namespace memory {
         memory::vaddr_t alloc(uint64_t size);
         bool reserve(memory::vaddr_t addr, uint64_t size);
         bool free(memory::vaddr_t addr, uint64_t size);
-        void unmapUnused();
         friend UserVirtualAllocator *newUserVirtualAllocator();
         ~UserVirtualAllocator();
     };
