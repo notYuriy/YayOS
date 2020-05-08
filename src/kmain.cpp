@@ -14,6 +14,7 @@
 #include <proc/usermode.hpp>
 #include <x86_64/gdt.hpp>
 #include <x86_64/interrupts.hpp>
+#include <x86_64/syscall.hpp>
 #include <x86_64/tss.hpp>
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
@@ -25,6 +26,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     x86_64::GDT::init();
     x86_64::TSS::init();
     x86_64::IDT::init();
+    x86_64::SyscallTable::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
     timer.init(200);
