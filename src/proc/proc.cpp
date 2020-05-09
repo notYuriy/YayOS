@@ -37,10 +37,12 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
+        m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
         m_schedListHead->state.loadToFrame(frame);
-        x86_64::TSS::setKernelStack(m_schedListHead->kernelStackTop);
+        x86_64::TSS::setKernelStack(m_schedListHead->interruptsStackTop);
+        m_schedListHead->moveGsToMSR();
     }
 
     void ProcessManager::freePid(pid_t pid) {
@@ -49,6 +51,34 @@ namespace proc {
             m_lastCheckedIndex = index;
         }
         m_pidBitmap[index] &= ~(1ULL << (pid % 64));
+    }
+
+    bool Process::setup() {
+        interruptsStackBase = memory::KernelVirtualAllocator::getMapping(
+            0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
+        if (interruptsStackBase == 0) {
+            return false;
+        }
+        syscallStackBase = memory::KernelVirtualAllocator::getMapping(
+            0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
+        if (syscallStackBase == 0) {
+            memory::KernelVirtualAllocator::unmapAt(interruptsStackBase,
+                                                    0x10000);
+            return false;
+        }
+        usralloc = memory::newUserVirtualAllocator();
+        if (usralloc == nullptr) {
+            memory::KernelVirtualAllocator::unmapAt(interruptsStackBase,
+                                                    0x10000);
+            memory::KernelVirtualAllocator::unmapAt(syscallStackBase, 0x10000);
+            return false;
+        }
+        interruptsStackSize = syscallStackSize = 0x10000;
+        interruptsStackTop = interruptsStackBase + 0x10000;
+        syscallStackTop = syscallStackBase + 0x10000;
+        savedUserRSP = 0;
+        msrGS = (uint64_t)(this);
+        return true;
     }
 
     void ProcessManager::init(drivers::ITimer *schedTimer) {
@@ -60,16 +90,15 @@ namespace proc {
         m_pidBitmapSize = alignUp(pidCount, 64) / 64;
         memset(m_pidBitmap, alignUp(pidCount, 64) / 64, 0);
         pid_t initPid = newProcess();
-        m_processData[initPid].next = &m_processData[initPid];
-        m_processData[initPid].prev = &m_processData[initPid];
-        m_processData[initPid].pid = initPid;
-        m_processData[initPid].kernelStackBase =
-            memory::KernelVirtualAllocator::getMapping(
-                0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
-        m_processData[initPid].kernelStackSize = 0x10000;
-        m_processData[initPid].kernelStackTop =
-            m_processData[initPid].kernelStackBase + 0x10000;
+        Process *initProcess = &(m_processData[initPid]);
+        initProcess->next = &m_processData[initPid];
+        initProcess->prev = &m_processData[initPid];
+        initProcess->pid = initPid;
+        if (!initProcess->setup()) {
+            panic("[ProcessManager] Failed to setup init process");
+        }
         m_schedListHead = &m_processData[initPid];
+        initProcess->moveGsToMSR();
         schedTimer->setCallback((x86_64::IDTVector)schedulerIntHandler);
     }
 
@@ -96,7 +125,11 @@ namespace proc {
         enableInterrupts();
     }
 
-    void Process::cleanup() { delete usralloc; }
+    void Process::cleanup() {
+        delete usralloc;
+        memory::KernelVirtualAllocator::unmapAt(syscallStackBase, 0x10000);
+        memory::KernelVirtualAllocator::unmapAt(interruptsStackBase, 0x10000);
+    }
 
     void ProcessManager::kill(pid_t pid) {
         Process *proc = getProcessData(pid);
