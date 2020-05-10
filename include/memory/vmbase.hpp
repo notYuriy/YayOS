@@ -47,7 +47,7 @@ namespace memory {
                     bool hugePage : 1;
                     bool global : 1;
                     bool managed : 1;
-                    bool flag2 : 1;
+                    bool cow : 1;
                     bool flag3 : 1;
                 };
                 uint16_t lowFlags : 12;
@@ -71,12 +71,25 @@ namespace memory {
         PageTableEntry &operator[](uint16_t index) { return entries[index]; }
 
         INLINE PageTable *walkTo(vind_t index) {
+            if (this == nullptr) {
+                return nullptr;
+            }
             return (PageTable *)((((uint64_t)this) << 9ULL) |
                                  ((uint64_t)(index) << 12ULL));
         }
 
-        PageTable *walkToWithTempAlloc(vind_t index);
+        INLINE PageTable *walkToWithPrivelegeCheck(vind_t index,
+                                                   bool priveleged = true) {
+            if (this == nullptr) {
+                return nullptr;
+            }
+            if (!priveleged && !entries[index].userAccessible) {
+                return nullptr;
+            }
+            return walkTo(index);
+        }
 
+        PageTable *walkToWithTempAlloc(vind_t index);
         PageTable *walkToWithAlloc(vind_t index, paddr_t currentAddr,
                                    bool userAccessible);
     };

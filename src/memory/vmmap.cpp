@@ -157,4 +157,24 @@ namespace memory {
             freePageAt(addr);
         }
     }
+
+    bool VirtualMemoryMapper::isAvailable(vaddr_t addr, bool priveleged) {
+        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
+        vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
+               p2Index = getP2Index(addr), p1Index = getP1Index(addr);
+        return p4Table->walkToWithPrivelegeCheck(p4Index, priveleged)
+                   ->walkToWithPrivelegeCheck(p3Index, priveleged)
+                   ->walkToWithPrivelegeCheck(p2Index, priveleged)
+                   ->walkToWithPrivelegeCheck(p1Index, priveleged) != nullptr;
+    }
+
+    bool VirtualMemoryMapper::areAvailable(vaddr_t start, vaddr_t end,
+                                           bool priveleged) {
+        for (vaddr_t addr = start; addr < end; addr += 4096) {
+            if (!isAvailable(addr, priveleged)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }; // namespace memory

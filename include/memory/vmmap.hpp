@@ -9,13 +9,14 @@ namespace memory {
         static bool mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                  uint64_t flags);
         static void freePageAt(vaddr_t addr);
+        static bool isAvailable(vaddr_t addr, bool priveleged);
 
     public:
         static bool mapNewPages(vaddr_t start, vaddr_t end);
         static bool mapPages(vaddr_t start, vaddr_t end, paddr_t physStart,
                              uint64_t flags);
-        // precondition: every single VAddr from start to end is mapped
         static void freePages(vaddr_t start, vaddr_t end);
+        static bool areAvailable(vaddr_t start, vaddr_t end, bool priveleged);
     };
 }; // namespace memory
 
