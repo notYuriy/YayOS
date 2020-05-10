@@ -55,7 +55,7 @@ namespace core {
         }
     }
 
-    void putsn(char *str, uint64_t len) {
+    void putsn(const char *str, uint64_t len) {
         for (uint64_t i = 0; i < len; ++i) {
             Serial::send(SerialPort::COM1, str[i]);
         }

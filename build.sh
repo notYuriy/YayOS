@@ -17,7 +17,7 @@ do
     $CPP -c -o $objectPath $cppSource -Iinclude\
     -ffreestanding -funroll-loops -Wall -Wextra -O2 -mno-sse -mno-sse2 -mno-sse3\
     -mcmodel=large -mno-red-zone -fno-exceptions -fno-rtti\
-    -mno-red-zone -Wno-attributes || exit
+    -mno-red-zone -Wno-attributes -Wno-nonnull-compare || exit
 done
 
 asmPaths="eval find . -type f -name '*.s'"

@@ -2,30 +2,15 @@
 #define __VFS_HPP_INCLUDED__
 
 #include <fs/pathiter.hpp>
+#include <fs/usertypes.hpp>
+#include <proc/descriptor.hpp>
 #include <proc/mutex.hpp>
 #include <utils.hpp>
 
 namespace fs {
 
-    constexpr uint64_t NAME_MAX = 255;
-    constexpr uint64_t SEEK_SET = 0;
-    constexpr uint64_t SEEK_CUR = 1;
-    constexpr uint64_t SEEK_END = 2;
-
-    struct Dirent {
-        uint64_t inodeNumber;
-        uint16_t nameLength;
-        char name[NAME_MAX + 1];
-    };
-
-    struct IFile {
+    struct IFile : public proc::IDescriptor {
         struct DEntry *entry;
-        virtual int64_t read(int64_t size, uint8_t *buf) = 0;
-        virtual int64_t write(int64_t size, const uint8_t *buf) = 0;
-        virtual int64_t readdir(int64_t count, Dirent *buf) = 0;
-        virtual int64_t lseek(int64_t offset, int64_t whence) = 0;
-        virtual int64_t ltellg() = 0;
-        virtual void flush() = 0;
         virtual ~IFile();
     };
 

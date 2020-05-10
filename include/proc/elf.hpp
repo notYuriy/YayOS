@@ -1,7 +1,7 @@
 #ifndef __ELF_HPP_INCLUDED__
 #define __ELF_HPP_INCLUDED__
 
-#include <core/vec.hpp>
+#include <core/dynarray.hpp>
 #include <fs/vfs.hpp>
 #include <memory/physbase.hpp>
 #include <memory/usrvmmngr.hpp>

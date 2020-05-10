@@ -1,7 +1,7 @@
 #ifndef __RAMDISK_FS_HPP_INCLUDED__
 #define __RAMDISK_FS_HPP_INCLUDED__
 
-#include <core/vec.hpp>
+#include <core/dynarray.hpp>
 #include <fs/vfs.hpp>
 #include <memory/kvmmngr.hpp>
 #include <memory/memoryinfo.hpp>
@@ -34,7 +34,7 @@ namespace fs {
     };
 
     struct RamdiskDirNode : INode {
-        core::Vec<RamdiskDirEntry> entries;
+        core::DynArray<RamdiskDirEntry> entries;
         virtual uint64_t lookup(const char *name);
         virtual IFile *open(int perm);
     };
@@ -72,7 +72,7 @@ namespace fs {
     struct RamdiskFsSuperblock : ISuperblock {
         memory::vaddr_t mappingBase;
         uint64_t mappingSize;
-        core::Vec<INode *> nodes;
+        core::DynArray<INode *> nodes;
         virtual uint64_t getRootNum();
         virtual INode *getNode(uint64_t num);
         virtual void dropNode(uint64_t num);
