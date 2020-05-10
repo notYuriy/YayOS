@@ -41,6 +41,7 @@ namespace proc {
         static uint64_t *m_pidBitmap;
         static uint64_t m_pidBitmapSize;
         static uint64_t m_lastCheckedIndex;
+        static Process *m_idleProcess;
         static bool m_initialized;
 
         static void freePid(pid_t pid);

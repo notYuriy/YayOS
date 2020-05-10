@@ -6,6 +6,7 @@
 
 namespace proc {
     Process *ProcessManager::m_schedListHead;
+    Process *ProcessManager::m_idleProcess;
     Process *ProcessManager::m_processData;
     uint64_t *ProcessManager::m_pidBitmap;
     uint64_t ProcessManager::m_pidBitmapSize;
@@ -40,6 +41,9 @@ namespace proc {
         m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
+        if (m_schedListHead == m_idleProcess) {
+            m_schedListHead = m_schedListHead->next;
+        }
         m_schedListHead->state.loadToFrame(frame);
         x86_64::TSS::setKernelStack(m_schedListHead->interruptsStackTop);
         m_schedListHead->moveGsToMSR();
@@ -98,6 +102,7 @@ namespace proc {
             panic("[ProcessManager] Failed to setup init process");
         }
         m_schedListHead = &m_processData[initPid];
+        m_idleProcess = m_schedListHead;
         initProcess->moveGsToMSR();
         schedTimer->setCallback((x86_64::IDTVector)schedulerIntHandler);
     }
