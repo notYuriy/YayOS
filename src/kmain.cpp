@@ -17,6 +17,25 @@
 #include <x86_64/syscall.hpp>
 #include <x86_64/tss.hpp>
 
+void initProcess() {
+    fs::IFile *file = fs::VFS::open("/bin/init", 0);
+    if (file == nullptr) {
+        panic(
+            "[KernelInit] Failed to load init process executable from ramdisk");
+    }
+    proc::Elf *elf = proc::parseElf(file);
+    if (elf == nullptr) {
+        panic("[KernelInit] Failed to parse init process executable");
+    }
+    memory::UserVirtualAllocator *usralloc =
+        proc::ProcessManager::getRunningProcess()->usralloc;
+    if (!elf->load(file, usralloc)) {
+        panic("[KernelInit] Failed to load init process executable to memory");
+    }
+    core::log("Ok\n\r");
+    proc::jumpToUserMode(elf->head.entryPoint, elf->head.entryPoint);
+}
+
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
 
@@ -31,18 +50,34 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     drivers::PIT timer;
     timer.init(200);
     proc::ProcessManager::init(&timer);
-    timer.enable();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
-    fs::IFile *file = fs::VFS::open("/bin/binaryExample", 0);
-    proc::Elf *elf = proc::parseElf(file);
-    memory::UserVirtualAllocator *allocator = memory::newUserVirtualAllocator();
-    if (elf == nullptr) {
-        core::log("Elf is nullptr\n\r");
+    proc::pid_t initProcessPid = proc::ProcessManager::newProcess();
+    proc::Process *initProcessData =
+        proc::ProcessManager::getProcessData(initProcessPid);
+    initProcessData->setup();
+    initProcessData->state.generalRegs.zero();
+    initProcessData->state.extendedRegs.zero();
+    initProcessData->state.generalRegs.cs = getCS();
+    initProcessData->state.generalRegs.ds = getDS();
+    initProcessData->state.generalRegs.es = getES();
+    initProcessData->state.generalRegs.fs = getFS();
+    initProcessData->state.generalRegs.ss = getSS();
+    initProcessData->state.generalRegs.gs = getGS();
+    initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
+    initProcessData->state.generalRegs.cr3 = getPageTable();
+    initProcessData->state.generalRegs.rflags = getFlags();
+    initProcessData->pid = initProcessPid;
+    // this stack will only be used to setup the process
+    initProcessData->state.generalRegs.rsp = initProcessData->syscallStackTop;
+    // timer.enable();
+    proc::ProcessManager::addToRunList(initProcessPid);
+    proc::ProcessManager::yield();
+    // at this point this task is only executed
+    // if there is no other task to run
+    while (true) {
+        proc::ProcessManager::yield();
+        core::log("NO OTHER TASK TO RUN\n\r");
+        asm("pause" :::);
     }
-    elf->load(file, allocator);
-    core::log("Elf file successfully loaded\n\r");
-    proc::jumpToUserMode(elf->head.entryPoint, 0);
-    while (1)
-        ;
 }

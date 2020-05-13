@@ -14,6 +14,7 @@ namespace proc {
         uint64_t r13, r12, r11, r10, r9, r8;
         uint64_t rbp, rsi, rdi, rdx, rcx, rbx, rax;
         uint64_t rip, cs, rflags, rsp, ss;
+        INLINE void zero() { memset(this, sizeof(GeneralRegs), 0); }
     };
 
     typedef GeneralRegs SchedulerIntFrame;
@@ -23,10 +24,9 @@ namespace proc {
 
     struct ExtendedRegs {
         char buf[512];
-        INLINE void loadFromFPU() { /*extendedRegsLoadFromFpu(buf);*/
-        }
-        INLINE void loadToFPU() { /*extendedRegsSaveToFpu(buf);*/
-        }
+        INLINE void loadFromFPU() { extendedRegsLoadFromFpu(buf); }
+        INLINE void loadToFPU() { extendedRegsSaveToFpu(buf); }
+        INLINE void zero() { memset(this, sizeof(ExtendedRegs), 0); }
     };
 
     struct TaskState {

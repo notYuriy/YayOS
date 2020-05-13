@@ -28,6 +28,7 @@ namespace memory {
         memory::vaddr_t alloc(uint64_t size);
         bool reserve(memory::vaddr_t addr, uint64_t size);
         bool free(memory::vaddr_t addr, uint64_t size);
+        void trace();
         friend UserVirtualAllocator *newUserVirtualAllocator();
         ~UserVirtualAllocator();
     };

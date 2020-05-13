@@ -59,7 +59,7 @@ namespace proc {
         static void addToRunList(pid_t pid);
         static void suspendFromRunList(pid_t pid);
         static void kill(pid_t pid);
-        static void exit();
+        [[noreturn]] static void exit();
     };
 
 } // namespace proc

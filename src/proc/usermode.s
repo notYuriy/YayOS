@@ -19,6 +19,11 @@ jumpToUserMode:
     mov rax, 0x1b
     push rax
     push rdi
+    mov rax, 0x1b
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
     xor rax, rax
     iretq
 

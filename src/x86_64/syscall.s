@@ -26,8 +26,43 @@ syscallHandler:
     push r13
     push r14
     push r15
+    mov rbx, ds
+    push rbx
+    mov rbx, es
+    push rbx
+    mov rbx, gs
+    push rbx
+    mov rbx, fs
+    push rbx
+    mov bx, 0x10
+    mov ds, bx
+    mov es, bx
+    mov gs, bx
+    mov fs, bx
+
+    cmp rax, 1000
+    jg .invalidSyscall
     mov rbx, syscallTable
-    call [rbx + rax * 8]
+    shl rax, 3
+    add rbx, rax
+    mov rbx, [rbx]
+    cmp rbx, 0
+    je .invalidSyscall
+    call rbx
+    jmp .recovery
+.invalidSyscall:
+    mov rax, -38
+
+
+.recovery:
+    pop rbx
+    mov fs, bx
+    pop rbx
+    mov gs, bx
+    pop rbx
+    mov es, bx
+    pop rbx
+    mov ds, bx
     pop r15
     pop r14
     pop r13

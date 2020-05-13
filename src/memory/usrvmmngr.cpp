@@ -14,7 +14,8 @@ namespace memory {
         if (node == nullptr) {
             return nullptr;
         }
-        node->m_head = new UserVirtualMemoryArea(0x1000, 0x1000000000000);
+        node->m_head =
+            new UserVirtualMemoryArea(0x1000, 0x1000000000000 - 0x1000);
         if (node->m_head == nullptr) {
             return nullptr;
         }
@@ -46,6 +47,14 @@ namespace memory {
         }
     }
 
+    void UserVirtualAllocator::trace() {
+        UserVirtualMemoryArea *cur = m_head;
+        while (cur != nullptr) {
+            core::log("size: %p start: %p\n\r", cur->size, cur->start);
+            cur = cur->next;
+        }
+    }
+
     memory::vaddr_t UserVirtualAllocator::alloc(uint64_t size) {
         UserVirtualMemoryArea *area = findBestFit(size);
         if (area == nullptr) {
@@ -72,13 +81,18 @@ namespace memory {
             area->size = start - area->start;
             return true;
         }
-        UserVirtualMemoryArea *area2 =
-            new UserVirtualMemoryArea(area->start, size - area->start);
+        UserVirtualMemoryArea *area2 = new UserVirtualMemoryArea(
+            start + size, area->start + area->size - (start + size));
         if (area2 == nullptr) {
             return false;
         }
-        area->size = area->start + area->size - (start + size);
-        area->start = start + size;
+        if (area->next != nullptr) {
+            area->next->prev = area2;
+        }
+        area2->next = area->next;
+        area->next = area2;
+        area2->prev = area;
+        area->size = start - area->start;
         return true;
     }
 
@@ -197,12 +211,15 @@ namespace memory {
         UserVirtualMemoryArea *cur = m_head;
         vaddr_t end = 0x1000;
         while (cur != nullptr) {
+            core::log("%p %p\n\r", end, cur->start);
             memory::VirtualMemoryMapper::freePages(end, cur->start);
+            core::log("Terminated\n\r");
             end = cur->start + cur->size;
             UserVirtualMemoryArea *toDelete = cur;
             cur = cur->next;
             delete toDelete;
         }
+        core::log("Here~\n\r");
         memory::VirtualMemoryMapper::freePages(end, 0x1000000000000);
     }
 }; // namespace memory

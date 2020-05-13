@@ -38,6 +38,7 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
+        core::log("HereSchedule\n\r");
         m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
@@ -120,6 +121,7 @@ namespace proc {
 
     void ProcessManager::suspendFromRunList(pid_t pid) {
         disableInterrupts();
+        core::log("HereSuspend\n\r");
         Process *proc = &(m_processData[pid]);
         Process *prev = proc->prev;
         proc->next->prev = prev;
@@ -131,12 +133,13 @@ namespace proc {
     }
 
     void Process::cleanup() {
+        core::log("HereCleanup\n\r");
+        usralloc->trace();
         delete usralloc;
-        memory::KernelVirtualAllocator::unmapAt(syscallStackBase, 0x10000);
-        memory::KernelVirtualAllocator::unmapAt(interruptsStackBase, 0x10000);
     }
 
     void ProcessManager::kill(pid_t pid) {
+        core::log("HereKill\n\r");
         Process *proc = getProcessData(pid);
         if (pid == m_schedListHead->pid) {
             proc->cleanup();
@@ -147,7 +150,11 @@ namespace proc {
         }
     }
 
-    void ProcessManager::exit() { kill(m_schedListHead->pid); }
+    [[noreturn]] void ProcessManager::exit() {
+        kill(m_schedListHead->pid);
+        while (true) {
+        }
+    }
 
     Process *ProcessManager::getProcessData(pid_t pid) {
         return &(m_processData[pid]);
