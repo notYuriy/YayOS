@@ -38,7 +38,6 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
-        core::log("HereSchedule\n\r");
         m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
@@ -121,7 +120,6 @@ namespace proc {
 
     void ProcessManager::suspendFromRunList(pid_t pid) {
         disableInterrupts();
-        core::log("HereSuspend\n\r");
         Process *proc = &(m_processData[pid]);
         Process *prev = proc->prev;
         proc->next->prev = prev;
@@ -132,14 +130,10 @@ namespace proc {
         enableInterrupts();
     }
 
-    void Process::cleanup() {
-        core::log("HereCleanup\n\r");
-        usralloc->trace();
-        delete usralloc;
-    }
+    // TODO: deallocate stacks
+    void Process::cleanup() { delete usralloc; }
 
     void ProcessManager::kill(pid_t pid) {
-        core::log("HereKill\n\r");
         Process *proc = getProcessData(pid);
         if (pid == m_schedListHead->pid) {
             proc->cleanup();

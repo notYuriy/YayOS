@@ -32,7 +32,6 @@ void initProcess() {
     if (!elf->load(file, usralloc)) {
         panic("[KernelInit] Failed to load init process executable to memory");
     }
-    core::log("Ok\n\r");
     proc::jumpToUserMode(elf->head.entryPoint, elf->head.entryPoint);
 }
 

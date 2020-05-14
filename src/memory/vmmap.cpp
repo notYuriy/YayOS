@@ -92,11 +92,9 @@ namespace memory {
         }
         paddr_t pageAddr =
             p1Table->entries[p1Index].addr & (~pageTableEntryFlagsMask);
-        core::log("HereFreePage\n\r");
         if (p1Table->entries[p1Index].managed) {
             PhysAllocator::freePage(pageAddr);
         }
-        core::log("HereFreePage\n\r");
         p1Table->entries[p1Index].addr = 0;
         p1addr = p2Table->entries[p2Index].addr & (~pageTableEntryFlagsMask);
         p2addr = p3Table->entries[p3Index].addr & (~pageTableEntryFlagsMask);

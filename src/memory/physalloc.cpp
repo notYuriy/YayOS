@@ -140,12 +140,8 @@ namespace memory {
     }
 
     void PhysAllocator::freePage(paddr_t addr) {
-        core::log("Mutex\n\r");
         physMutex.lock();
-        core::log("Here\n\r");
-        core::log("%p\n\r", addr);
         if (--m_pageInfo[addr / 4096].refCount == 0) {
-            core::log("Here free\n\r");
             clearBit(m_bitmap[addr / (4096ULL * 64ULL)],
                      (addr / 4096ULL) % 64ULL);
             m_leastUncheckedIndex = 0;

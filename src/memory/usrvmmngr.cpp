@@ -211,15 +211,12 @@ namespace memory {
         UserVirtualMemoryArea *cur = m_head;
         vaddr_t end = 0x1000;
         while (cur != nullptr) {
-            core::log("%p %p\n\r", end, cur->start);
             memory::VirtualMemoryMapper::freePages(end, cur->start);
-            core::log("Terminated\n\r");
             end = cur->start + cur->size;
             UserVirtualMemoryArea *toDelete = cur;
             cur = cur->next;
             delete toDelete;
         }
-        core::log("Here~\n\r");
         memory::VirtualMemoryMapper::freePages(end, 0x1000000000000);
     }
 }; // namespace memory
