@@ -76,10 +76,10 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     proc::ProcessManager::yield();
     // at this point this task is only executed
     // if there is no other task to run
+    // or there are free stacks in stackpool
     while (true) {
         proc::ProcessManager::yield();
         while (proc::StackPool::freeStack()) {
-            core::log("Stack freed\n\r");
             asm("pause" :::);
         }
         asm("pause" :::);
