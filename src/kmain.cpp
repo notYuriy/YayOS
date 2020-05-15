@@ -11,6 +11,7 @@
 #include <proc/elf.hpp>
 #include <proc/mutex.hpp>
 #include <proc/proc.hpp>
+#include <proc/stackpool.hpp>
 #include <proc/usermode.hpp>
 #include <x86_64/gdt.hpp>
 #include <x86_64/interrupts.hpp>
@@ -49,6 +50,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     drivers::PIT timer;
     timer.init(200);
     proc::ProcessManager::init(&timer);
+    proc::StackPool::init();
     fs::RamdiskFsSuperblock initRd;
     fs::VFS::init(&initRd);
     proc::pid_t initProcessPid = proc::ProcessManager::newProcess();
@@ -76,7 +78,10 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     // if there is no other task to run
     while (true) {
         proc::ProcessManager::yield();
-        core::log("NO OTHER TASK TO RUN\n\r");
+        while (proc::StackPool::freeStack()) {
+            core::log("Stack freed\n\r");
+            asm("pause" :::);
+        }
         asm("pause" :::);
     }
 }

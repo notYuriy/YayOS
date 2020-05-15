@@ -2,6 +2,7 @@
 #include <memory/kvmmngr.hpp>
 #include <proc/intlock.hpp>
 #include <proc/mutex.hpp>
+#include <proc/stackpool.hpp>
 #include <x86_64/tss.hpp>
 
 namespace proc {
@@ -41,7 +42,8 @@ namespace proc {
         m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
-        if (m_schedListHead == m_idleProcess) {
+        if (m_schedListHead == m_idleProcess &&
+            !StackPool::freeStackAvailable()) {
             m_schedListHead = m_schedListHead->next;
         }
         m_schedListHead->state.loadToFrame(frame);
@@ -58,13 +60,11 @@ namespace proc {
     }
 
     bool Process::setup() {
-        interruptsStackBase = memory::KernelVirtualAllocator::getMapping(
-            0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
+        interruptsStackBase = StackPool::getNewStack();
         if (interruptsStackBase == 0) {
             return false;
         }
-        syscallStackBase = memory::KernelVirtualAllocator::getMapping(
-            0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
+        syscallStackBase = StackPool::getNewStack();
         if (syscallStackBase == 0) {
             memory::KernelVirtualAllocator::unmapAt(interruptsStackBase,
                                                     0x10000);
@@ -137,6 +137,9 @@ namespace proc {
         Process *proc = getProcessData(pid);
         if (pid == m_schedListHead->pid) {
             proc->cleanup();
+            disableInterrupts();
+            StackPool::pushStack(proc->interruptsStackBase);
+            StackPool::pushStack(proc->syscallStackBase);
             suspendFromRunList(pid);
         } else {
             suspendFromRunList(pid);
@@ -146,8 +149,7 @@ namespace proc {
 
     [[noreturn]] void ProcessManager::exit() {
         kill(m_schedListHead->pid);
-        while (true) {
-        }
+        panic("Unreachable reached at proc.cpp:148\n\r");
     }
 
     Process *ProcessManager::getProcessData(pid_t pid) {

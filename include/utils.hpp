@@ -20,7 +20,7 @@ INLINE static uint64_t alignDown(uint64_t value, uint64_t align) {
     return (value / align) * align;
 }
 
-INLINE static void panic(const char *msg) {
+[[noreturn]] INLINE void panic(const char *msg) {
     core::log("\u001b[31m");
     core::log(msg);
     while (1) {
