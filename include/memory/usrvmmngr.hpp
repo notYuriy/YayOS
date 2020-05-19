@@ -16,11 +16,14 @@ namespace memory {
     };
     class UserVirtualAllocator {
         UserVirtualMemoryArea *m_head;
+        uint64_t m_brkMin, m_brk;
 
         UserVirtualMemoryArea *findBestFit(uint64_t size);
         void cut(UserVirtualMemoryArea *area);
         bool cutFrom(UserVirtualMemoryArea *area, memory::vaddr_t start,
                      uint64_t size);
+        void setBrkParams(uint64_t brk);
+        uint64_t sbrk(int64_t size);
         UserVirtualMemoryArea *findLastBefore(memory::vaddr_t start);
 
     public:

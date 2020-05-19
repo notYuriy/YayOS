@@ -207,6 +207,32 @@ namespace memory {
         return true;
     }
 
+    void UserVirtualAllocator::setBrkParams(uint64_t brk) {
+        m_brkMin = m_brk = brk;
+    }
+
+    uint64_t UserVirtualAllocator::sbrk(int64_t brk) {
+        if (brk == 0) {
+            return m_brk;
+        } else if (brk > 0) {
+            if (!reserve(m_brk, brk)) {
+                return 0;
+            }
+            uint64_t oldBrk = m_brk;
+            m_brk += brk;
+            return oldBrk;
+        }
+        if (m_brk - m_brkMin < brk) {
+            return 0;
+        }
+        if (!free(m_brk - brk, brk)) {
+            return 0;
+        }
+        uint64_t oldBrk = m_brk;
+        m_brk -= brk;
+        return oldBrk;
+    }
+
     UserVirtualAllocator::~UserVirtualAllocator() {
         UserVirtualMemoryArea *cur = m_head;
         vaddr_t end = 0x1000;
