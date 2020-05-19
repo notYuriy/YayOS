@@ -222,7 +222,7 @@ namespace memory {
             m_brk += brk;
             return oldBrk;
         }
-        if (m_brk - m_brkMin < brk) {
+        if (m_brk - m_brkMin < (uint64_t)(-brk)) {
             return 0;
         }
         if (!free(m_brk - brk, brk)) {
