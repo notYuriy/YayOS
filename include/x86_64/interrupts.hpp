@@ -11,7 +11,7 @@ namespace x86_64 {
         uint16_t selector;
         uint8_t ist : 3;
         uint8_t zeroed1 : 5;
-        uint8_t type : 1;
+        bool intsEnabled : 1;
         uint8_t ones1 : 3;
         uint8_t zeroed2 : 1;
         uint8_t dpl : 2;
@@ -41,7 +41,8 @@ namespace x86_64 {
     public:
         INLINE static bool isInitialized() { return m_initialized; }
         static void init();
-        static void install(uint8_t index, IDTVector handler);
+        static void install(uint8_t index, IDTVector handler, uint8_t cpl = 0,
+                            bool disableInts = true);
     };
 
 }; // namespace x86_64

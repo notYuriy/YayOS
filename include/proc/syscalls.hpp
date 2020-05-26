@@ -5,6 +5,7 @@
 
 namespace proc {
     [[noreturn]] void sysExit();
-};
+    int64_t sysHelloWorld();
+}; // namespace proc
 
 #endif

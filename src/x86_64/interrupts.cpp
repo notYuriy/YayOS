@@ -20,16 +20,17 @@ namespace x86_64 {
         }
     }
 
-    void IDT::install(uint8_t index, IDTVector vec) {
+    void IDT::install(uint8_t index, IDTVector vec, uint8_t cpl,
+                      bool disableInts) {
         IDTEntry &entry = m_table[index];
         entry.addrLow = (uint16_t)vec;
         entry.addrMiddle = (uint16_t)(vec >> 16);
         entry.addrHigh = (uint32_t)(vec >> 32);
         entry.zeroed1 = 0;
         entry.zeroed2 = 0;
-        entry.type = 0;
+        entry.intsEnabled = !disableInts;
         entry.ist = 0;
-        entry.dpl = 0;
+        entry.dpl = cpl;
         entry.ones1 = 0b111;
         entry.selector = 0x8;
         entry.present = 1;

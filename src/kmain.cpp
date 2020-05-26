@@ -70,8 +70,8 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
     // this stack will only be used to setup the process
-    initProcessData->state.generalRegs.rsp = initProcessData->syscallStackTop;
-    // timer.enable();
+    initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
+    timer.enable();
     proc::ProcessManager::addToRunList(initProcessPid);
     proc::ProcessManager::yield();
     // at this point this task is only executed

@@ -39,7 +39,6 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
-        m_schedListHead->moveGsFromMSR();
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
         if (m_schedListHead == m_idleProcess &&
@@ -47,8 +46,7 @@ namespace proc {
             m_schedListHead = m_schedListHead->next;
         }
         m_schedListHead->state.loadToFrame(frame);
-        x86_64::TSS::setKernelStack(m_schedListHead->interruptsStackTop);
-        m_schedListHead->moveGsToMSR();
+        x86_64::TSS::setKernelStack(m_schedListHead->kernelStackTop);
     }
 
     void ProcessManager::freePid(pid_t pid) {
@@ -60,28 +58,17 @@ namespace proc {
     }
 
     bool Process::setup() {
-        interruptsStackBase = StackPool::getNewStack();
-        if (interruptsStackBase == 0) {
-            return false;
-        }
-        syscallStackBase = StackPool::getNewStack();
-        if (syscallStackBase == 0) {
-            memory::KernelVirtualAllocator::unmapAt(interruptsStackBase,
-                                                    0x10000);
+        kernelStackBase = StackPool::getNewStack();
+        if (kernelStackBase == 0) {
             return false;
         }
         usralloc = memory::newUserVirtualAllocator();
         if (usralloc == nullptr) {
-            memory::KernelVirtualAllocator::unmapAt(interruptsStackBase,
-                                                    0x10000);
-            memory::KernelVirtualAllocator::unmapAt(syscallStackBase, 0x10000);
+            memory::KernelVirtualAllocator::unmapAt(kernelStackBase, 0x10000);
             return false;
         }
-        interruptsStackSize = syscallStackSize = 0x10000;
-        interruptsStackTop = interruptsStackBase + 0x10000;
-        syscallStackTop = syscallStackBase + 0x10000;
-        savedUserRSP = 0;
-        msrGS = (uint64_t)(this);
+        kernelStackSize = 0x10000;
+        kernelStackTop = kernelStackBase + 0x10000;
         return true;
     }
 
@@ -103,7 +90,6 @@ namespace proc {
         }
         m_schedListHead = &m_processData[initPid];
         m_idleProcess = m_schedListHead;
-        initProcess->moveGsToMSR();
         schedTimer->setCallback((x86_64::IDTVector)schedulerIntHandler);
     }
 
@@ -138,8 +124,7 @@ namespace proc {
         if (pid == m_schedListHead->pid) {
             proc->cleanup();
             disableInterrupts();
-            StackPool::pushStack(proc->interruptsStackBase);
-            StackPool::pushStack(proc->syscallStackBase);
+            StackPool::pushStack(proc->kernelStackBase);
             suspendFromRunList(pid);
         } else {
             suspendFromRunList(pid);
