@@ -7,4 +7,8 @@ namespace proc {
         core::log("Hello world!\n\r");
         return 1;
     }
+    extern "C" int64_t sysForkWithFrame() {
+        core::log("Hello, world\n\r");
+        return -1;
+    }
 }; // namespace proc

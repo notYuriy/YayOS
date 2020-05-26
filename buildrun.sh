@@ -1,4 +1,4 @@
 #!/bin/bash
 
-./build.sh
+./build.sh || exit
 ./test.sh

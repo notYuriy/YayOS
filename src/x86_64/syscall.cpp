@@ -2,7 +2,9 @@
 #include <x86_64/interrupts.hpp>
 #include <x86_64/syscall.hpp>
 
+extern "C" {
 uint64_t syscallHandlerTable[x86_64::SYSCALL_MAX] = {0};
+}
 
 namespace x86_64 {
     extern "C" void syscallHandler();
