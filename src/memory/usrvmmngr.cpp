@@ -9,6 +9,11 @@ namespace memory {
         prev = next = nullptr;
     }
 
+    UserVirtualMemoryArea::UserVirtualMemoryArea(UserVirtualMemoryArea *copy) {
+        start = copy->start;
+        size = copy->size;
+    }
+
     UserVirtualAllocator *newUserVirtualAllocator() {
         UserVirtualAllocator *node = new UserVirtualAllocator;
         if (node == nullptr) {
@@ -231,6 +236,37 @@ namespace memory {
         uint64_t oldBrk = m_brk;
         m_brk -= brk;
         return oldBrk;
+    }
+
+    UserVirtualAllocator *UserVirtualAllocator::copy() {
+        UserVirtualAllocator *allocator = new UserVirtualAllocator;
+        if (allocator == nullptr) {
+            return nullptr;
+        }
+        UserVirtualMemoryArea *cur = m_head;
+        UserVirtualMemoryArea *curCopy = nullptr;
+        UserVirtualMemoryArea *curHead = nullptr;
+        while (cur != nullptr) {
+            UserVirtualMemoryArea *next = new UserVirtualMemoryArea(cur);
+            if (next == nullptr) {
+                // TODO: handle allocation failure
+                // (deallocate allocated nodes back)
+                return nullptr;
+            }
+            if (curHead == nullptr) {
+                curHead = next;
+                curCopy = next;
+            } else {
+                curCopy->next = next;
+                next->prev = curCopy;
+                curCopy = next;
+            }
+            cur = cur->next;
+        }
+        allocator->m_head = curHead;
+        allocator->m_brk = m_brk;
+        allocator->m_brkMin = m_brkMin;
+        return allocator;
     }
 
     UserVirtualAllocator::~UserVirtualAllocator() {

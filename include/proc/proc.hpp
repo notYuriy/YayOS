@@ -18,7 +18,7 @@ namespace proc {
         uint64_t kernelStackSize;
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
-        bool setup();
+        bool setup(bool createUserAllocator = true);
         void cleanup();
     };
 
@@ -33,7 +33,6 @@ namespace proc {
         static Process *m_idleProcess;
         static bool m_initialized;
 
-        static void freePid(pid_t pid);
         static void cleanupPid(pid_t pid);
 
     public:
@@ -41,6 +40,7 @@ namespace proc {
         INLINE static bool isInitilaized() { return m_initialized; }
         static Process *getProcessData(pid_t pid);
         static Process *getRunningProcess();
+        static void freePid(pid_t pid);
         static void yield();
         static pid_t newProcess();
         static void init(drivers::ITimer *timer);

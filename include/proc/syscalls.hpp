@@ -6,6 +6,7 @@
 namespace proc {
     [[noreturn]] void sysExit();
     int64_t sysHelloWorld();
+    extern "C" void sysFork();
 }; // namespace proc
 
 #endif

@@ -50,6 +50,7 @@ mkdir isotree/boot || exit
 mkdir isotree/boot/grub || exit
 cp grub/grub.cfg isotree/boot/grub/grub.cfg || exit
 cp obj/kernel.bin isotree/boot/kernel.bin || exit
+cp obj/kernel.bin kernel.bin
 
 echo -e "\033[1;32m[ RD ]\033[0m \033[1;37minitrd\033[0m"
 tar -cf isotree/initrd.img initrd/ --format=v7 || exit

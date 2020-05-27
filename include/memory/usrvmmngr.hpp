@@ -12,6 +12,7 @@ namespace memory {
         memory::vaddr_t start;
         uint64_t size;
         UserVirtualMemoryArea(memory::vaddr_t start, uint64_t size);
+        UserVirtualMemoryArea(UserVirtualMemoryArea *area);
         bool in(memory::vaddr_t addr);
     };
     class UserVirtualAllocator {
@@ -32,6 +33,7 @@ namespace memory {
         bool reserve(memory::vaddr_t addr, uint64_t size);
         bool free(memory::vaddr_t addr, uint64_t size);
         void trace();
+        UserVirtualAllocator *copy();
         friend UserVirtualAllocator *newUserVirtualAllocator();
         ~UserVirtualAllocator();
     };

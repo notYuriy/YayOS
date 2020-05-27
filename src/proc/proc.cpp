@@ -57,15 +57,18 @@ namespace proc {
         m_pidBitmap[index] &= ~(1ULL << (pid % 64));
     }
 
-    bool Process::setup() {
+    bool Process::setup(bool createUserAllocator) {
         kernelStackBase = StackPool::getNewStack();
         if (kernelStackBase == 0) {
             return false;
         }
-        usralloc = memory::newUserVirtualAllocator();
-        if (usralloc == nullptr) {
-            memory::KernelVirtualAllocator::unmapAt(kernelStackBase, 0x10000);
-            return false;
+        if (createUserAllocator) {
+            usralloc = memory::newUserVirtualAllocator();
+            if (usralloc == nullptr) {
+                memory::KernelVirtualAllocator::unmapAt(kernelStackBase,
+                                                        0x10000);
+                return false;
+            }
         }
         kernelStackSize = 0x10000;
         kernelStackTop = kernelStackBase + 0x10000;
@@ -116,7 +119,6 @@ namespace proc {
         enableInterrupts();
     }
 
-    // TODO: deallocate stacks
     void Process::cleanup() { delete usralloc; }
 
     void ProcessManager::kill(pid_t pid) {
