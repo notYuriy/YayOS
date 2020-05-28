@@ -30,9 +30,9 @@ namespace memory {
     public:
         static void init();
         INLINE static bool isInitialized() { return m_initialized; }
-        static paddr_t newPage(vaddr_t vaddrHint = 0);
+        static paddr_t newPage();
         static void incrementRefCount(paddr_t addr);
-        static paddr_t copyOnWrite(paddr_t orig, vaddr_t addrHint = 0);
+        static paddr_t copyOnWrite(paddr_t orig);
         static void freePage(paddr_t addr);
         static void freePages(paddr_t addr, uint64_t count);
         static void incrementMapCount(paddr_t addr);

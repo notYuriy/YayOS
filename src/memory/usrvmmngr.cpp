@@ -271,14 +271,10 @@ namespace memory {
 
     UserVirtualAllocator::~UserVirtualAllocator() {
         UserVirtualMemoryArea *cur = m_head;
-        vaddr_t end = 0x1000;
         while (cur != nullptr) {
-            memory::VirtualMemoryMapper::freePages(end, cur->start);
-            end = cur->start + cur->size;
             UserVirtualMemoryArea *toDelete = cur;
             cur = cur->next;
             delete toDelete;
         }
-        memory::VirtualMemoryMapper::freePages(end, 0x1000000000000);
     }
 }; // namespace memory

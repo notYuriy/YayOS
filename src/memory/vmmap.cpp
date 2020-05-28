@@ -5,7 +5,7 @@ namespace memory {
     bool VirtualMemoryMapper::mapNewPageAt(vaddr_t addr, paddr_t physAddr,
                                            uint64_t flags) {
         bool userAccessible = (flags & (1LLU << 2)) != 0;
-        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
+        PageTable *p4Table = (PageTable *)P4_TABLE_VIRTUAL_ADDRESS;
         vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         paddr_t p3addr, p2addr, p1addr;
@@ -79,7 +79,7 @@ namespace memory {
     }
 
     void VirtualMemoryMapper::freePageAt(vaddr_t addr) {
-        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
+        PageTable *p4Table = (PageTable *)P4_TABLE_VIRTUAL_ADDRESS;
         vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         PageTable *p3Table, *p2Table, *p1Table;
@@ -159,7 +159,7 @@ namespace memory {
     }
 
     bool VirtualMemoryMapper::isAvailable(vaddr_t addr, bool priveleged) {
-        PageTable *p4Table = (PageTable *)p4TableVirtualAddress;
+        PageTable *p4Table = (PageTable *)P4_TABLE_VIRTUAL_ADDRESS;
         vind_t p4Index = getP4Index(addr), p3Index = getP3Index(addr),
                p2Index = getP2Index(addr), p1Index = getP1Index(addr);
         return p4Table->walkToWithPrivelegeCheck(p4Index, priveleged)

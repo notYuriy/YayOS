@@ -21,7 +21,7 @@ namespace memory {
             p3Index = getP3Index(addr);
             p2Index = getP2Index(addr);
             p1Index = getP1Index(addr);
-            PageTable *root = (PageTable *)p4TableVirtualAddress;
+            PageTable *root = (PageTable *)P4_TABLE_VIRTUAL_ADDRESS;
             root = root->walkToWithTempAlloc(p4Index);
             root = root->walkToWithTempAlloc(p3Index);
             root = root->walkToWithTempAlloc(p2Index);

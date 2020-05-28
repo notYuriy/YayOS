@@ -1,3 +1,4 @@
+#include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <proc/proc.hpp>
 #include <proc/syscalls.hpp>
@@ -34,6 +35,7 @@ namespace proc {
         newProc->pid = newProcessID;
         frame->rax = 0;
         newProc->state.generalRegs.copyFrom(frame);
+        newProc->state.generalRegs.cr3 = memory::CoW::clonePageTable();
         uint64_t stackOffset = currentProc->kernelStackTop - frame->rsp;
         uint64_t newStackLocation = newProc->kernelStackTop - stackOffset;
         newProc->state.extendedRegs.loadFromFPU();

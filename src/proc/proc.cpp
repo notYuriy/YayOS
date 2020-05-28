@@ -1,4 +1,5 @@
 #include <core/cpprt.hpp>
+#include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <proc/intlock.hpp>
 #include <proc/mutex.hpp>
@@ -119,7 +120,10 @@ namespace proc {
         enableInterrupts();
     }
 
-    void Process::cleanup() { delete usralloc; }
+    void Process::cleanup() {
+        delete usralloc;
+        memory::CoW::deallocateUserMemory();
+    }
 
     void ProcessManager::kill(pid_t pid) {
         Process *proc = getProcessData(pid);

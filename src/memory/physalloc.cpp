@@ -110,7 +110,7 @@ namespace memory {
         m_initialized = true;
     }
 
-    paddr_t PhysAllocator::newPage(UNUSED vaddr_t addrHint) {
+    paddr_t PhysAllocator::newPage() {
         physMutex.lock();
         paddr_t addr = m_leastUncheckedIndex * 64 * 4096;
         for (uint64_t i = m_leastUncheckedIndex; i < m_bitmapSize;
@@ -130,12 +130,12 @@ namespace memory {
         return 0;
     }
 
-    paddr_t PhysAllocator::copyOnWrite(paddr_t addr, vaddr_t addrHint) {
+    paddr_t PhysAllocator::copyOnWrite(paddr_t addr) {
         if (m_pageInfo[addr / 4096].refCount == 1) {
             return addr;
         } else {
             m_pageInfo[addr / 4096].refCount--;
-            return newPage(addrHint);
+            return newPage();
         }
     }
 

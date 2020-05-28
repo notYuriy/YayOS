@@ -273,11 +273,12 @@ namespace memory {
         }
         vaddr_t initAreaStart, initAreaEnd;
         initAreaStart = TempVirtualAllocator::getBrk();
-        initAreaEnd = (vaddr_t)(((PageTable *)p4TableVirtualAddress)
+        initAreaEnd = (vaddr_t)(((PageTable *)P4_TABLE_VIRTUAL_ADDRESS)
                                     ->walkTo(511)
                                     ->walkTo(0)
                                     ->walkTo(0)
-                                    ->walkTo(0));
+                                    ->walkTo(0)) -
+                      4096;
         m_lastCheckedIndex = 127;
         freeRange(initAreaStart, initAreaEnd - initAreaStart);
         m_initialized = true;

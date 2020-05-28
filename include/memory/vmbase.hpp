@@ -23,7 +23,7 @@ namespace memory {
         return (addr >> 12ULL) & 0777ULL;
     }
 
-    const uint64_t p4TableVirtualAddress = 01777777777777777770000ULL;
+    const uint64_t P4_TABLE_VIRTUAL_ADDRESS = 01777777777777777770000ULL;
     const uint64_t pageTableEntryFlagsMask = 0b111111111111ULL | (1ULL << 63);
 
     const uint64_t levelSizes[] = {4096ULL, 4096ULL * 512ULL,

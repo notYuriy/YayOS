@@ -5,6 +5,7 @@
 #include <drivers/timer/pit.hpp>
 #include <fs/ramdiskfs.hpp>
 #include <fs/vfs.hpp>
+#include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <memory/mminit.hpp>
 #include <memory/usrvmmngr.hpp>
@@ -65,6 +66,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.fs = getFS();
     initProcessData->state.generalRegs.ss = getSS();
     initProcessData->state.generalRegs.gs = getGS();
+    initProcessData->state.generalRegs.cr3 = memory::CoW::newPageTable();
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
     initProcessData->state.generalRegs.cr3 = getPageTable();
     initProcessData->state.generalRegs.rflags = getFlags();
