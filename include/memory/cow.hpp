@@ -8,7 +8,9 @@ namespace memory {
     class CoW {
         static bool m_initialized;
         static void disposePageTableRec(uint64_t level, PageTable *entry);
-        static void cowPresent(PageTable *table);
+
+        static void markAsCoWRec(uint64_t level, PageTable *table);
+        static void markAsCoW();
 
     public:
         INLINE static bool isInitialized() { return m_initialized; }
@@ -17,6 +19,8 @@ namespace memory {
         static uint64_t newPageTable();
         static uint64_t markPageTable();
         static void deallocateUserMemory();
+        static PageTable *checkAndMoveToNext(PageTable *current, vind_t index,
+                                             uint64_t errorCode);
     };
 }; // namespace memory
 

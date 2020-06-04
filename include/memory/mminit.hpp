@@ -18,6 +18,13 @@ namespace memory {
         memory::PhysAllocator::init();
         memory::KernelVirtualAllocator::init();
         memory::KernelHeap::init();
+        // preallocating kernel page tables
+        // so they won't change in the future
+        PageTable *root = (PageTable *)(P4_TABLE_VIRTUAL_ADDRESS);
+        for (uint64_t i = 256; i < 512; ++i) {
+            vmbaseInvalidateCache(
+                (vaddr_t)(root->walkToWithAlloc(i, 0, false)));
+        }
     }
 } // namespace memory
 

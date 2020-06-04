@@ -24,7 +24,8 @@ namespace memory {
     }
 
     const uint64_t P4_TABLE_VIRTUAL_ADDRESS = 01777777777777777770000ULL;
-    const uint64_t pageTableEntryFlagsMask = 0b111111111111ULL | (1ULL << 63);
+    const uint64_t PAGE_TABLE_ENTRY_FLAGS_MASK =
+        0b111111111111ULL | (1ULL << 63);
 
     const uint64_t levelSizes[] = {4096ULL, 4096ULL * 512ULL,
                                    4096ULL * 512ULL * 512ULL,
@@ -48,11 +49,18 @@ namespace memory {
                     bool global : 1;
                     bool managed : 1;
                     bool cow : 1;
-                    bool flag3 : 1;
+                    bool wasWritable : 1;
                 };
                 uint16_t lowFlags : 12;
             };
         };
+        INLINE void setAddr(paddr_t newAddr) {
+            uint64_t flags = addr & (PAGE_TABLE_ENTRY_FLAGS_MASK);
+            addr = newAddr | flags;
+        }
+        INLINE paddr_t getAddr() {
+            return addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
+        }
     };
 #pragma pack(0)
 

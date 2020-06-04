@@ -180,8 +180,11 @@ namespace memory {
     }
 
     MemoryArea *KernelVirtualAllocator::findBestFit(uint64_t requestedSize) {
+        core::log("======================\n\r");
         MemoryArea *bestFit = nullptr, *current = m_kernelAreas;
         while (current != nullptr) {
+            core::log("Start: %p\n\r", current->offset);
+            core::log("Size: %p\n\r", current->size);
             if (current->size >= requestedSize) {
                 if (bestFit == nullptr) {
                     bestFit = current;
@@ -191,6 +194,7 @@ namespace memory {
             }
             current = current->next;
         }
+        core::log("======================\n\r");
         return bestFit;
     }
 
@@ -199,6 +203,7 @@ namespace memory {
         m_kvmmngrMutex.lock();
         MemoryArea *bestFit = findBestFit(size);
         if (bestFit == nullptr) {
+            core::log("Sorry. No are for you.\n\r");
             m_kvmmngrMutex.unlock();
             return 0;
         }
@@ -227,6 +232,7 @@ namespace memory {
     }
 
     void KernelVirtualAllocator::freeRange(vaddr_t virtualAddr, uint64_t size) {
+        core::log("Free: %p %p\n\r", virtualAddr, size);
         if (size == 0) {
             return;
         }

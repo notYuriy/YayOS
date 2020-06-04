@@ -2,6 +2,7 @@ bits 64
 
 global getPageTable
 global getFlags
+global getCR2
 global getFS
 global getCS
 global getGS
@@ -40,4 +41,8 @@ getES:
 
 getSS:
     mov rax, ss
+    ret
+
+getCR2:
+    mov rax, cr2
     ret

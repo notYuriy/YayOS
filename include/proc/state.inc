@@ -1,4 +1,4 @@
-%macro PUSHREGS 0
+%macro PUSHREGS_WITH_CODE 0
     push rax
     push rbx
     push rcx
@@ -25,6 +25,11 @@
     mov rax, fs
     push rax
     mov rdi, rsp
+%endmacro
+
+%macro PUSHREGS 0
+    sub rsp, 8
+    PUSHREGS_WITH_CODE
 %endmacro
 
 %macro POPREGS 0
@@ -57,6 +62,7 @@
     pop rcx
     pop rbx
     pop rax
+    add rsp, 8
 %endmacro
 
 %macro FAKE_INT_FRAME_INIT 0

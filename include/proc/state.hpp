@@ -13,7 +13,7 @@ namespace proc {
         uint64_t r15, r14;
         uint64_t r13, r12, r11, r10, r9, r8;
         uint64_t rbp, rsi, rdi, rdx, rcx, rbx, rax;
-        uint64_t rip, cs, rflags, rsp, ss;
+        uint64_t errcode, rip, cs, rflags, rsp, ss;
         INLINE void zero() { memset(this, sizeof(GeneralRegs), 0); }
         INLINE void copyFrom(GeneralRegs *regs) {
             memcpy(this, regs, sizeof(*this));

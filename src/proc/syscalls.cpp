@@ -36,6 +36,15 @@ namespace proc {
         frame->rax = 0;
         newProc->state.generalRegs.copyFrom(frame);
         newProc->state.generalRegs.cr3 = memory::CoW::clonePageTable();
+        if (!newProc->state.generalRegs.cr3) {
+            while (1)
+                ;
+            newProc->cleanup();
+            memory::KernelVirtualAllocator::unmapAt(newProc->kernelStackBase,
+                                                    newProc->kernelStackSize);
+            frame->rax = (uint64_t)(-ENOMEM);
+            return;
+        }
         uint64_t stackOffset = currentProc->kernelStackTop - frame->rsp;
         uint64_t newStackLocation = newProc->kernelStackTop - stackOffset;
         newProc->state.extendedRegs.loadFromFPU();

@@ -14,7 +14,8 @@ namespace memory {
         if (p3Table == nullptr) {
             return false;
         }
-        p3addr = p4Table->entries[p4Index].addr & (~pageTableEntryFlagsMask);
+        p3addr =
+            p4Table->entries[p4Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
         PageTable *p2Table =
             p3Table->walkToWithAlloc(p3Index, p3addr, userAccessible);
         if (p2Table == nullptr) {
@@ -24,7 +25,8 @@ namespace memory {
             }
             return false;
         }
-        p2addr = p3Table->entries[p3Index].addr & (~pageTableEntryFlagsMask);
+        p2addr =
+            p3Table->entries[p3Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
         PageTable *p1Table =
             p2Table->walkToWithAlloc(p2Index, p2addr, userAccessible);
         if (p1Table == nullptr) {
@@ -38,14 +40,15 @@ namespace memory {
             }
             return false;
         }
-        p1addr = p2Table->entries[p2Index].addr & (~pageTableEntryFlagsMask);
+        p1addr =
+            p2Table->entries[p2Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
         PageTableEntry &entry = p1Table->entries[p1Index];
         if (!entry.present) {
             entry.addr = flags;
             entry.present = true;
             if (physAddr == 0) {
                 entry.addr |= PhysAllocator::newPage();
-                if ((entry.addr & (~pageTableEntryFlagsMask)) == 0) {
+                if ((entry.addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK)) == 0) {
                     if (PhysAllocator::decrementMapCount(p1addr)) {
                         p2Table->entries[p2Index].addr = 0;
                         PhysAllocator::freePage(p1addr);
@@ -91,14 +94,17 @@ namespace memory {
             return;
         }
         paddr_t pageAddr =
-            p1Table->entries[p1Index].addr & (~pageTableEntryFlagsMask);
+            p1Table->entries[p1Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
         if (p1Table->entries[p1Index].managed) {
             PhysAllocator::freePage(pageAddr);
         }
         p1Table->entries[p1Index].addr = 0;
-        p1addr = p2Table->entries[p2Index].addr & (~pageTableEntryFlagsMask);
-        p2addr = p3Table->entries[p3Index].addr & (~pageTableEntryFlagsMask);
-        p3addr = p4Table->entries[p4Index].addr & (~pageTableEntryFlagsMask);
+        p1addr =
+            p2Table->entries[p2Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
+        p2addr =
+            p3Table->entries[p3Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
+        p3addr =
+            p4Table->entries[p4Index].addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK);
         if (!p2Table->entries[p2Index].managed) {
             return;
         }

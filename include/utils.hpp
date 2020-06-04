@@ -140,10 +140,16 @@ INLINE void hexdump(void *loc, uint64_t size) {
     }
 }
 
+INLINE uint64_t toCanonical(uint64_t addr) {
+    return ((addr & (1ULL << 47)) == 0) ? (addr & ((1ULL << 48) - 1))
+                                        : (addr | ~((1ULL << 48) - 1));
+}
+
 #define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
 extern "C" uint64_t getPageTable();
 extern "C" uint64_t getFlags();
+extern "C" uint64_t getCR2();
 extern "C" uint64_t getFS();
 extern "C" uint64_t getGS();
 extern "C" uint64_t getCS();

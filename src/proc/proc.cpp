@@ -1,4 +1,5 @@
 #include <core/cpprt.hpp>
+#include <drivers/serial.hpp>
 #include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <proc/intlock.hpp>
@@ -121,7 +122,9 @@ namespace proc {
     }
 
     void Process::cleanup() {
-        delete usralloc;
+        if (usralloc != 0) {
+            delete usralloc;
+        }
         memory::CoW::deallocateUserMemory();
     }
 

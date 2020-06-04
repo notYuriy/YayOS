@@ -251,6 +251,7 @@ namespace memory {
             if (next == nullptr) {
                 // TODO: handle allocation failure
                 // (deallocate allocated nodes back)
+                core::log("AAAAAAAAAAAAAAAAAAAA\n\r");
                 return nullptr;
             }
             if (curHead == nullptr) {
@@ -263,6 +264,7 @@ namespace memory {
             }
             cur = cur->next;
         }
+        curCopy->next = nullptr;
         allocator->m_head = curHead;
         allocator->m_brk = m_brk;
         allocator->m_brkMin = m_brkMin;

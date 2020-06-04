@@ -18,6 +18,7 @@ namespace proc {
         uint64_t kernelStackSize;
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
+        uint64_t pad[7];
         bool setup(bool createUserAllocator = true);
         void cleanup();
     };

@@ -46,6 +46,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     x86_64::GDT::init();
     x86_64::TSS::init();
     x86_64::IDT::init();
+    memory::CoW::init();
     x86_64::SyscallTable::init();
     drivers::IPIC::detectPIC();
     drivers::PIT timer;
@@ -68,12 +69,11 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.gs = getGS();
     initProcessData->state.generalRegs.cr3 = memory::CoW::newPageTable();
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
-    initProcessData->state.generalRegs.cr3 = getPageTable();
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
     // this stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
-    timer.enable();
+    // timer.enable();
     proc::ProcessManager::addToRunList(initProcessPid);
     proc::ProcessManager::yield();
     // at this point this task is only executed
