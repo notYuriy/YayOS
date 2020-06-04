@@ -123,12 +123,17 @@ namespace memory {
         } else {
             return;
         }
-        if (!p4Table->entries[p4Index].managed) {
-            return;
-        }
-        if (PhysAllocator::decrementMapCount(p3addr)) {
-            PhysAllocator::freePage(p3addr);
-            p4Table->entries[p4Index].addr = 0;
+        // do not deallocate l3 kernel pages
+        // they should be equal across all page tables
+        // so kernel won't see change in its part of address space
+        if (p4Index > 255) {
+            if (!p4Table->entries[p4Index].managed) {
+                return;
+            }
+            if (PhysAllocator::decrementMapCount(p3addr)) {
+                PhysAllocator::freePage(p3addr);
+                p4Table->entries[p4Index].addr = 0;
+            }
         }
         vmbaseInvalidateCache(addr);
     }
