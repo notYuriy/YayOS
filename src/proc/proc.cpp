@@ -67,8 +67,7 @@ namespace proc {
         if (createUserAllocator) {
             usralloc = memory::newUserVirtualAllocator();
             if (usralloc == nullptr) {
-                memory::KernelVirtualAllocator::unmapAt(kernelStackBase,
-                                                        0x10000);
+                StackPool::pushStack(kernelStackBase);
                 return false;
             }
         }

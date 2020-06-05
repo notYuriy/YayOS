@@ -14,6 +14,28 @@ namespace memory {
 
     static_assert(sizeof(MemoryAreaPool) == 4096);
 
+    void checkForExistance(MemoryArea *root, MemoryArea *area) {
+        MemoryArea *current = root;
+        MemoryArea *prev = nullptr;
+        while (current != nullptr) {
+            if (current == area) {
+                asm("cli");
+                KernelVirtualAllocator::trace();
+                panic("Allocated not freed node");
+            }
+            prev = current;
+            current = current->next;
+        }
+        while (prev != nullptr) {
+            if (prev == area) {
+                asm("cli");
+                KernelVirtualAllocator::trace();
+                panic("Allocated not freed node");
+            }
+            prev = prev->prev;
+        }
+    }
+
     void KernelVirtualAllocator::cutPool(MemoryAreaPool *pool) {
         if (pool->prev == nullptr) {
             m_poolHeads[pool->count] = pool->next;
@@ -54,6 +76,18 @@ namespace memory {
         return nullptr;
     }
 
+    void KernelVirtualAllocator::trace() {
+        MemoryArea *area = m_kernelAreas;
+        while (area != nullptr) {
+            core::log("TRACE: %p\n\r", area);
+            core::log("size: %p\n\r", area->size);
+            core::log("offset: %p\n\r", area->offset);
+            core::log("next: %p\n\r", area->next);
+            core::log("prev: %p\n\r", area->prev);
+            area = area->next;
+        }
+    }
+
     void KernelVirtualAllocator::freeMemoryArea(MemoryArea *node) {
         MemoryAreaPool *pool =
             (MemoryAreaPool *)alignDown((uint64_t)node, 4096);
@@ -63,11 +97,11 @@ namespace memory {
         if (pool->count < m_lastCheckedIndex) {
             m_lastCheckedIndex = pool->count;
         }
-        return;
     }
 
     void KernelVirtualAllocator::insertBefore(MemoryArea *area,
                                               MemoryArea *point) {
+        checkForExistance(m_kernelAreas, area);
         MemoryArea *prev = point->prev;
         if (prev != nullptr) {
             prev->next = area;
@@ -82,6 +116,8 @@ namespace memory {
     void KernelVirtualAllocator::cutNode(MemoryArea *area) {
         if (area->prev != nullptr) {
             area->prev->next = area->next;
+        } else {
+            m_kernelAreas = area->next;
         }
         if (area->next != nullptr) {
             area->next->prev = area->prev;
@@ -98,13 +134,11 @@ namespace memory {
         }
         if (mergeLeft) {
             MemoryArea *prev = area->prev;
-            if (area->prev->prev == nullptr) {
-                m_kernelAreas = area;
-            }
             area->offset = area->prev->offset;
             area->size += area->prev->size;
             cutNode(prev);
             freeMemoryArea(prev);
+            checkForExistance(m_kernelAreas, prev);
         }
         if (mergeRight) {
             MemoryArea *next = area->next;
@@ -123,6 +157,7 @@ namespace memory {
         while (current->next != nullptr) {
             if (current->offset > area->offset) {
                 insertBefore(area, current);
+                goto merge;
             }
             current = current->next;
         }
@@ -131,7 +166,9 @@ namespace memory {
         } else {
             current->next = area;
             area->prev = current;
+            area->next = nullptr;
         }
+    merge:
         mergeAdjacent(area);
     }
 
@@ -180,11 +217,8 @@ namespace memory {
     }
 
     MemoryArea *KernelVirtualAllocator::findBestFit(uint64_t requestedSize) {
-        core::log("======================\n\r");
         MemoryArea *bestFit = nullptr, *current = m_kernelAreas;
         while (current != nullptr) {
-            core::log("Start: %p\n\r", current->offset);
-            core::log("Size: %p\n\r", current->size);
             if (current->size >= requestedSize) {
                 if (bestFit == nullptr) {
                     bestFit = current;
@@ -194,7 +228,6 @@ namespace memory {
             }
             current = current->next;
         }
-        core::log("======================\n\r");
         return bestFit;
     }
 
@@ -203,7 +236,6 @@ namespace memory {
         m_kvmmngrMutex.lock();
         MemoryArea *bestFit = findBestFit(size);
         if (bestFit == nullptr) {
-            core::log("Sorry. No are for you.\n\r");
             m_kvmmngrMutex.unlock();
             return 0;
         }
@@ -232,11 +264,11 @@ namespace memory {
     }
 
     void KernelVirtualAllocator::freeRange(vaddr_t virtualAddr, uint64_t size) {
-        core::log("Free: %p %p\n\r", virtualAddr, size);
         if (size == 0) {
             return;
         }
         MemoryArea *area = allocMemoryArea();
+        checkForExistance(m_kernelAreas, area);
         if (area == nullptr) {
             if (!allocNewPool()) {
                 vaddr_t offset = virtualAddr;

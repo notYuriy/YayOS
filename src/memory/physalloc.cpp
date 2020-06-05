@@ -157,7 +157,9 @@ namespace memory {
     }
 
     void PhysAllocator::incrementRefCount(paddr_t addr) {
+        physMutex.lock();
         ++(m_pageInfo[addr / 4096].refCount);
+        physMutex.unlock();
     }
 
     void PhysAllocator::incrementMapCount(paddr_t addr) {

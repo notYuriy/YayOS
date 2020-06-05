@@ -46,6 +46,7 @@ namespace memory {
         bool instructionFetch = (errorCode & (1ULL << 4)) != 0;
         if (!entry->present) {
             if (!fromUserspace) {
+                asm __volatile__("cli" :::);
                 panic("[Page Fault Handler] Attempt to access unmapped virtual "
                       "address in kernel code");
             }
@@ -273,9 +274,7 @@ namespace memory {
             return 0;
         }
         markAsCoW();
-        core::log("Not ok %p\n\r", mapping);
         memcpy((void *)mapping, (void *)P4_TABLE_VIRTUAL_ADDRESS, 0x1000);
-        core::log("Ok\n\r");
         PageTable *table = (PageTable *)mapping;
         table->entries[511].setAddr(newFrame);
         memory::KernelVirtualAllocator::unmapAt(mapping, 0x1000);

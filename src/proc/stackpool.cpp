@@ -12,8 +12,9 @@ namespace proc {
         Stack *result = m_head;
         if (result == nullptr) {
             enableInterrupts();
-            return memory::KernelVirtualAllocator::getMapping(
+            memory::vaddr_t result = memory::KernelVirtualAllocator::getMapping(
                 0x10000, 0, memory::DEFAULT_KERNEL_FLAGS);
+            return result;
         }
         m_head = m_head->next;
         enableInterrupts();

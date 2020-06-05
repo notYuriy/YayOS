@@ -1,6 +1,7 @@
 #include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <proc/proc.hpp>
+#include <proc/stackpool.hpp>
 #include <proc/syscalls.hpp>
 
 namespace proc {
@@ -9,7 +10,7 @@ namespace proc {
 
     [[noreturn]] void sysExit() { proc::ProcessManager::exit(); }
     int64_t sysHelloWorld() {
-        core::log("Hello world!\n\r");
+        core::log("\033[1;31mHello world!\n\r\033[0m");
         return 1;
     }
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
@@ -25,10 +26,10 @@ namespace proc {
             frame->rax = (uint64_t)(-ENOMEM);
             return;
         }
+
         if ((newProc->usralloc = currentProc->usralloc->copy()) == nullptr) {
             newProc->cleanup();
-            memory::KernelVirtualAllocator::unmapAt(newProc->kernelStackBase,
-                                                    newProc->kernelStackSize);
+            StackPool::pushStack(newProc->kernelStackBase);
             frame->rax = (uint64_t)(-ENOMEM);
             return;
         }
@@ -40,8 +41,7 @@ namespace proc {
             while (1)
                 ;
             newProc->cleanup();
-            memory::KernelVirtualAllocator::unmapAt(newProc->kernelStackBase,
-                                                    newProc->kernelStackSize);
+            StackPool::pushStack(newProc->kernelStackBase);
             frame->rax = (uint64_t)(-ENOMEM);
             return;
         }

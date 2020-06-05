@@ -21,6 +21,7 @@ INLINE static uint64_t alignDown(uint64_t value, uint64_t align) {
 }
 
 [[noreturn]] INLINE void panic(const char *msg) {
+    asm __volatile__("cli");
     core::log("\u001b[31m");
     core::log(msg);
     while (1) {

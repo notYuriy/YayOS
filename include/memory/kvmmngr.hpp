@@ -9,10 +9,10 @@
 namespace memory {
 #pragma pack(1)
     struct MemoryArea {
-        MemoryArea *next;
-        MemoryArea *prev;
         vaddr_t offset;
         uint64_t size;
+        MemoryArea *next;
+        MemoryArea *prev;
     };
     struct MemoryAreaPool {
         MemoryArea *first;
@@ -43,6 +43,7 @@ namespace memory {
             count++;
         }
     };
+    static_assert(sizeof(MemoryAreaPool) == 4096);
 #pragma pack(0)
 
     class KernelVirtualAllocator {
@@ -70,6 +71,7 @@ namespace memory {
                                   uint64_t flags);
         static void unmapAt(vaddr_t virtualAddr, uint64_t size);
         static void init();
+        static void trace();
         INLINE static bool isInitialized() { return m_initialized; }
     };
 }; // namespace memory

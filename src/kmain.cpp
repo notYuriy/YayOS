@@ -73,7 +73,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->pid = initProcessPid;
     // this stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
-    // timer.enable();
+    timer.enable();
     proc::ProcessManager::addToRunList(initProcessPid);
     proc::ProcessManager::yield();
     // at this point this task is only executed
