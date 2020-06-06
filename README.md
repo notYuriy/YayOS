@@ -7,8 +7,7 @@ YayOS is a monolitic hobby operating system powered by YYSloth kerner. For now, 
 
 The API provided by the system is extremely simple. Programs can print to serial port, duplicate (similarly to fork), terminate, yield, and get system info (similarly to uname).
 
-The "/bin/init" program was assembled from the following code, that illustrates how to
-use system calls.
+The "/bin/init" program was assembled from the following code
 
 ```nasm
 bits 64
