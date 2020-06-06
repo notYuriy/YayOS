@@ -1,4 +1,4 @@
-#include <proc/syscalls.hpp>
+#include <proc/userapi.hpp>
 #include <x86_64/interrupts.hpp>
 #include <x86_64/syscall.hpp>
 
@@ -9,9 +9,11 @@ uint64_t syscallHandlerTable[x86_64::SYSCALL_MAX] = {0};
 namespace x86_64 {
     extern "C" void syscallHandler();
     void SyscallTable::loadSystemCallsToTable() {
-        syscallHandlerTable[1] = (uint64_t)proc::sysExit;
-        syscallHandlerTable[0] = (uint64_t)proc::sysFork;
-        syscallHandlerTable[29] = (uint64_t)proc::sysHelloWorld;
+        syscallHandlerTable[0] = (uint64_t)proc::YY_ExitProcess;
+        syscallHandlerTable[1] = (uint64_t)proc::YY_DuplicateProcess;
+        syscallHandlerTable[2] = (uint64_t)proc::YY_ConsoleWrite;
+        syscallHandlerTable[3] = (uint64_t)proc::YY_GetSystemInfo;
+        syscallHandlerTable[4] = (uint64_t)proc::YY_Yield;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

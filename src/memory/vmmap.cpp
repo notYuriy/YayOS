@@ -57,9 +57,11 @@ namespace memory {
                         p3Table->entries[p3Index].addr = 0;
                         PhysAllocator::freePage(p2addr);
                     }
-                    if (PhysAllocator::decrementMapCount(p3addr)) {
-                        p4Table->entries[p4Index].addr = 0;
-                        PhysAllocator::freePage(p3addr);
+                    if (p4Index < 255) {
+                        if (PhysAllocator::decrementMapCount(p3addr)) {
+                            p4Table->entries[p4Index].addr = 0;
+                            PhysAllocator::freePage(p3addr);
+                        }
                     }
                     return false;
                 }
@@ -126,7 +128,7 @@ namespace memory {
         // do not deallocate l3 kernel pages
         // they should be equal across all page tables
         // so kernel won't see change in its part of address space
-        if (p4Index > 255) {
+        if (p4Index < 255) {
             if (!p4Table->entries[p4Index].managed) {
                 return;
             }
@@ -153,7 +155,9 @@ namespace memory {
     bool VirtualMemoryMapper::mapPages(vaddr_t start, vaddr_t end,
                                        paddr_t physAddr, uint64_t flags) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            if (!mapNewPageAt(addr, addr - start + physAddr, flags)) {
+            if (!mapNewPageAt(addr,
+                              (physAddr == 0) ? 0 : addr - start + physAddr,
+                              flags)) {
                 for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
                     freePageAt(addr2);
                 }

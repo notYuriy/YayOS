@@ -14,28 +14,6 @@ namespace memory {
 
     static_assert(sizeof(MemoryAreaPool) == 4096);
 
-    void checkForExistance(MemoryArea *root, MemoryArea *area) {
-        MemoryArea *current = root;
-        MemoryArea *prev = nullptr;
-        while (current != nullptr) {
-            if (current == area) {
-                asm("cli");
-                KernelVirtualAllocator::trace();
-                panic("Allocated not freed node");
-            }
-            prev = current;
-            current = current->next;
-        }
-        while (prev != nullptr) {
-            if (prev == area) {
-                asm("cli");
-                KernelVirtualAllocator::trace();
-                panic("Allocated not freed node");
-            }
-            prev = prev->prev;
-        }
-    }
-
     void KernelVirtualAllocator::cutPool(MemoryAreaPool *pool) {
         if (pool->prev == nullptr) {
             m_poolHeads[pool->count] = pool->next;
@@ -101,7 +79,6 @@ namespace memory {
 
     void KernelVirtualAllocator::insertBefore(MemoryArea *area,
                                               MemoryArea *point) {
-        checkForExistance(m_kernelAreas, area);
         MemoryArea *prev = point->prev;
         if (prev != nullptr) {
             prev->next = area;
@@ -138,7 +115,6 @@ namespace memory {
             area->size += area->prev->size;
             cutNode(prev);
             freeMemoryArea(prev);
-            checkForExistance(m_kernelAreas, prev);
         }
         if (mergeRight) {
             MemoryArea *next = area->next;
@@ -268,7 +244,6 @@ namespace memory {
             return;
         }
         MemoryArea *area = allocMemoryArea();
-        checkForExistance(m_kernelAreas, area);
         if (area == nullptr) {
             if (!allocNewPool()) {
                 vaddr_t offset = virtualAddr;

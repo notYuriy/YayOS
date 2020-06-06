@@ -108,6 +108,7 @@ namespace memory {
     bool UserVirtualAllocator::reserve(memory::vaddr_t addr, uint64_t size) {
         UserVirtualMemoryArea *current = m_head;
         while (current != nullptr) {
+            core::log("");
             if (current->in(addr)) {
                 if (current->in(addr + size)) {
                     return cutFrom(current, addr, size);

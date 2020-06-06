@@ -29,9 +29,7 @@ void initProcess() {
     if (elf == nullptr) {
         panic("[KernelInit] Failed to parse init process executable");
     }
-    memory::UserVirtualAllocator *usralloc =
-        proc::ProcessManager::getRunningProcess()->usralloc;
-    if (!elf->load(file, usralloc)) {
+    if (!elf->load(file, proc::ProcessManager::getRunningProcess()->usralloc)) {
         panic("[KernelInit] Failed to load init process executable to memory");
     }
     proc::jumpToUserMode(elf->head.entryPoint, elf->head.entryPoint);
@@ -39,7 +37,6 @@ void initProcess() {
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
-
     executeCtors(ctorsStart, ctorsEnd);
     drivers::Serial::init(drivers::SerialPort::COM1);
     memory::init(mbPointer);
@@ -71,6 +68,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
+
     // this stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
     timer.enable();

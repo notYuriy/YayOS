@@ -27,11 +27,6 @@ namespace memory {
     const uint64_t PAGE_TABLE_ENTRY_FLAGS_MASK =
         0b111111111111ULL | (1ULL << 63);
 
-    const uint64_t levelSizes[] = {4096ULL, 4096ULL * 512ULL,
-                                   4096ULL * 512ULL * 512ULL,
-                                   4096ULL * 512ULL * 512ULL * 512ULL,
-                                   4096ULL * 512ULL * 512ULL * 512ULL * 512ULL};
-
 #pragma pack(1)
     union PageTableEntry {
         paddr_t addr;

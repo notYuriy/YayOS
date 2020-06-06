@@ -5,9 +5,9 @@ section .text
 %include "include/proc/state.inc"
 
 extern sysForkWithFrame
-global sysFork
+global YY_DuplicateProcess
 
-sysFork:
+YY_DuplicateProcess:
 ; idt frame begin
     mov rax, ss
     push rax

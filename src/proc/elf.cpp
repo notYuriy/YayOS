@@ -125,6 +125,7 @@ namespace proc {
                     areas[i].unmap();
                 }
                 return false;
+            } else {
             }
         }
         return true;
