@@ -29,7 +29,7 @@ namespace proc {
         }
         memset(info, sizeof(YY_SystemInfo), '\0');
 
-        static const char kernelName[] = "YYSloth Kernel";
+        static const char kernelName[] = "YYSloth";
         static const char kernelRelease[] = "0.0.1";
         static const char kernelVersion[] = "#1-YayOS " __TIME__ " " __DATE__;
         static const char arch[] = "amd64";
