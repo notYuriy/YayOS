@@ -1,18 +1,18 @@
 # YayOS
 
-###What is this repo for?
+### What is this repo for?
 
 YayOS is an operating system powered by YYSloth kernel. 
 
-###What is the system capable of doing?
+### What is the system capable of doing?
 
 For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```/bin/init```).
 
-#####What is the kernel capable of doing?
+##### What is the kernel capable of doing?
 
 The API provided by the kernel is extremely simple. It is now fully described in the file ```YYSloth/README.md```. Docs are coming in the future.
 
-###How directory structure works
+### How directory structure works
 
 ```YYSloth/``` - everything related to the kernel (source, docs, binary...)
 
@@ -22,13 +22,13 @@ The API provided by the kernel is extremely simple. It is now fully described in
 
 ```grub``` - grub metadata
 
-###What are shell scripts doing?
+### What are shell scripts doing?
 
 ```build.sh``` - build the whole system
 ```buildkernel.sh``` - only build kernel
 ```builduserspace.sh``` - create ISO. Requires ```buildkernel.sh``` to be executed in advance
 ```test.sh``` - run the kernel in qemu. There are multiply lines. You can uncomment one that you need.
 
-###Licensing
+### Licensing
 
 MIT License applies to every single file in the source code except YYSloth/src/boot/boot.s. This file is an updated version of boot.s from the first edition of blog_os ("https://github.com/phil-opp/blog_os") and it is licensed under YYSloth/src/boot/LICENSE-MIT

@@ -1,9 +1,9 @@
-#YYSloth Kernel
+# YYSloth Kernel
 
-###Why it is named like this?
+### Why it is named like this?
 "YY_" is a prefix that stands for **Yay**Os. Sloth is one of the slowest animals on the earth, which kinda mimics YYSloth kernel performance in some cases.
 
-###What system calls are currently available?
+### What system calls are currently available?
 
 Here are all of them
 
@@ -77,6 +77,6 @@ _start:
     int 57h
 ```
 
-###Any docs on the kernel source?
+### Any docs on the kernel source?
 
 Perhaps one day...
