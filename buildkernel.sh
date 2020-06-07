@@ -13,12 +13,8 @@ function cleanup {
     test "$error_code" == 0 && echo -e -n "\033[1;32mDone. "; 
     test "$error_code" == 0 || echo -e -n "\033[1;31mError ($error_code). ";
     echo -e "Cleaning up\033[0m"
-    #echo -e "\033[1;32m[ RM ]\033[0m \033[1;37misotree\033[0m"
-    #rm -rf isotree 
     echo -e "\033[1;32m[ RM ]\033[0m \033[1;37mobj\033[0m"
     rm -rf YYSloth/obj 
-    #echo -e "\033[1;32m[ RM ]\033[0m \033[1;37mtmpinitrd\033[0m"
-    #rm -rf tmpinitrd
     return;
 }
 
@@ -30,7 +26,7 @@ cppPaths="eval find YYSloth/src -type f -name '*.cpp'"
 for cppSource in $($cppPaths)
 do
     echo -e "\033[1;31m[ CC ]\033[0m \033[1;37m$cppSource\033[0m"
-    objectPath="YYSloth/obj/cpp_$(basename "$cppSource" .c).o"
+    objectPath="YYSloth/obj/cpp_$(basename "$cppSource" .c)$(stat -c '%i' $cppSource).o"
 
     $CPP -c -o $objectPath $cppSource -IYYSloth/include\
     -ffreestanding -funroll-loops -Wall -Wextra -Werror -O2 -mno-sse -mno-sse2 -mno-sse3\
@@ -42,7 +38,7 @@ asmPaths="eval find YYSloth/src -type f -name '*.s'"
 for asmSource in $($asmPaths)
 do
     echo  -e "\033[1;33m[ AS ]\033[0m \033[1;37m$asmSource\033[0m"
-    objectPath="YYSloth/obj/asm_$(basename "$asmSource" .s).o"
+    objectPath="YYSloth/obj/asm_$(basename "$asmSource" .s)$(stat -c '%i' $asmSource).o"
     $ASM -f elf64 $asmSource "-IYYSloth/include" -o  $objectPath -w-number-overflow || exit
 done
 
