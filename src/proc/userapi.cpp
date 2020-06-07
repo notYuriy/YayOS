@@ -114,11 +114,11 @@ namespace proc {
         if (pagesCount == 0) {
             return -1;
         }
-        memory::VirtualMemoryMapper::freePages(start, pagesCount * 0x1000);
         if (!memory::virtualRangeConditionCheck(start, pagesCount * 0x1000,
                                                 false, false, false)) {
             return -1;
         }
+        memory::VirtualMemoryMapper::freePages(start, pagesCount * 0x1000);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (!(proc->usralloc->free(start, pagesCount * 0x1000))) {
             // not enough memory to free the memory
