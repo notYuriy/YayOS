@@ -34,11 +34,18 @@ namespace proc {
     constexpr uint64_t YY_VirtualFlagsWritable = 1ULL << 0;
     constexpr uint64_t YY_VirtualFlagsExecutable = 1ULL << 1;
 
-    extern "C" uint64_t YY_GetPageSize();
-
     extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
 
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount);
+
+    constexpr uint64_t YY_APIInfoId_PageSize = 1;
+    constexpr uint64_t YY_APIInfoId_MaxArgLength = 2;
+    constexpr uint64_t YY_APIInfoID_MaxArgCount = 3;
+
+    extern "C" uint64_t YY_QueriAPIInfo(uint64_t id);
+
+    constexpr uint64_t YY_MaxArgLength = 4096;
+    constexpr uint64_t YY_MaxArgCount = 4096;
 }; // namespace proc
 
 #endif

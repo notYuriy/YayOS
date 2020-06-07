@@ -86,7 +86,19 @@ namespace proc {
         ProcessManager::addToRunList(newProcessID);
     }
     extern "C" void YY_Yield() { proc::ProcessManager::yield(); }
-    extern "C" uint64_t YY_GetPageSize() { return 0x1000; }
+    extern "C" uint64_t YY_QueryApiInfo(uint64_t id) {
+        switch (id) {
+        case YY_APIInfoId_PageSize:
+            return 0x1000;
+        case YY_APIInfoID_MaxArgCount:
+            return YY_MaxArgCount;
+        case YY_APIInfoId_MaxArgLength:
+            return YY_MaxArgLength;
+        default:
+            // API Info at this id is not supported
+            return (uint64_t)(-1);
+        }
+    }
 
     extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags) {
         // core::log("YY_VirtualAlloc(%llu, %llu);\n\r", pagesCount, flags);

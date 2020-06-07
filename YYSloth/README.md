@@ -48,8 +48,16 @@ void* YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
 //Deallocate pagesCount pages starting from address. Syscall number 6
 int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 
-//Get page size Syscall number 7
-uint64_t YY_GetPageSize();
+//Query some info about system API. Use it for
+//getting page size, max length of argument and
+//max argument count. More params are coming soon
+//Return (uint64_t)(-1) if this APIInfo entry is not 
+//present. Syscall number 7.
+//Examples:
+//YY_QueriAPIInfo(1) //query page size
+//YY_QueriAPIInfo(2) //query max arguments count
+//YY_QueriAPIInfo(3) //query max arguments length
+uint64_t YY_QueriAPIInfo(uint64_t id);
 ```
 
 ### How can I use these system calls in assembly?

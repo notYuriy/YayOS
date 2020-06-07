@@ -47,6 +47,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     memory::CoW::init();
     x86_64::SyscallTable::init();
     drivers::IPIC::detectPIC();
+    drivers::IPIC::getSystemPIC()->enableLegacyIrq(8);
     drivers::PIT timer;
     timer.init(200);
     proc::ProcessManager::init(&timer);
