@@ -30,6 +30,15 @@ namespace proc {
     extern "C" int64_t YY_GetSystemInfo(YY_SystemInfo *info);
 
     extern "C" void YY_Yield();
+
+    constexpr uint64_t YY_VirtualFlagsWritable = 1ULL << 0;
+    constexpr uint64_t YY_VirtualFlagsExecutable = 1ULL << 1;
+
+    extern "C" uint64_t YY_GetPageSize();
+
+    extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
+
+    extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount);
 }; // namespace proc
 
 #endif

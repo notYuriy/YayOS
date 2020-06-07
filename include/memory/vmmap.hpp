@@ -12,7 +12,7 @@ namespace memory {
         static bool isAvailable(vaddr_t addr, bool priveleged);
 
     public:
-        static bool mapNewPages(vaddr_t start, vaddr_t end);
+        static bool mapNewPages(vaddr_t start, vaddr_t end, uint64_t flags);
         static bool mapPages(vaddr_t start, vaddr_t end, paddr_t physStart,
                              uint64_t flags);
         static void freePages(vaddr_t start, vaddr_t end);

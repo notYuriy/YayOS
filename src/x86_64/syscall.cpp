@@ -14,6 +14,9 @@ namespace x86_64 {
         syscallHandlerTable[2] = (uint64_t)proc::YY_ConsoleWrite;
         syscallHandlerTable[3] = (uint64_t)proc::YY_GetSystemInfo;
         syscallHandlerTable[4] = (uint64_t)proc::YY_Yield;
+        syscallHandlerTable[5] = (uint64_t)proc::YY_VirtualAlloc;
+        syscallHandlerTable[6] = (uint64_t)proc::YY_VirtualFree;
+        syscallHandlerTable[7] = (uint64_t)proc::YY_GetPageSize;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

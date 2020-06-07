@@ -174,7 +174,8 @@ namespace memory {
             return false;
         }
         vaddr_t newPoolAddr = m_kernelAreas->offset;
-        if (!VirtualMemoryMapper::mapNewPages(newPoolAddr, 4096)) {
+        if (!VirtualMemoryMapper::mapNewPages(newPoolAddr, newPoolAddr + 4096,
+                                              DEFAULT_KERNEL_FLAGS)) {
             return false;
         }
         m_kernelAreas->offset += 4096;
@@ -216,23 +217,26 @@ namespace memory {
             return 0;
         }
         vaddr_t offset = bestFit->offset;
-        bestFit->offset += size;
-        bestFit->size -= size;
-        if (bestFit->size == 0) {
-            cutNode(bestFit);
-            freeMemoryArea(bestFit);
-        }
         if (physBase == 0) {
-            if (!VirtualMemoryMapper::mapNewPages(offset, offset + size)) {
+            if (!VirtualMemoryMapper::mapNewPages(offset, offset + size,
+                                                  flags)) {
+
                 m_kvmmngrMutex.unlock();
                 return 0;
             }
         } else {
             if (!VirtualMemoryMapper::mapPages(offset, offset + size, physBase,
                                                flags)) {
+
                 m_kvmmngrMutex.unlock();
                 return 0;
             }
+        }
+        bestFit->offset += size;
+        bestFit->size -= size;
+        if (bestFit->size == 0) {
+            cutNode(bestFit);
+            freeMemoryArea(bestFit);
         }
         freePools();
         m_kvmmngrMutex.unlock();
@@ -249,7 +253,8 @@ namespace memory {
                 vaddr_t offset = virtualAddr;
                 virtualAddr += 4096;
                 size -= 4096;
-                VirtualMemoryMapper::mapNewPages(offset, offset + 4096);
+                VirtualMemoryMapper::mapNewPages(offset, offset + 4096,
+                                                 DEFAULT_KERNEL_FLAGS);
                 MemoryAreaPool *pool = (MemoryAreaPool *)offset;
                 pool->init();
                 pool->next = m_poolHeads[127];

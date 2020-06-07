@@ -46,9 +46,11 @@ namespace memory {
         if (!entry.present) {
             entry.addr = flags;
             entry.present = true;
+            vmbaseInvalidateCache(addr);
+            vmbaseInvalidateCache((memory::vaddr_t)&entry);
             if (physAddr == 0) {
-                entry.addr |= PhysAllocator::newPage();
-                if ((entry.addr & (~PAGE_TABLE_ENTRY_FLAGS_MASK)) == 0) {
+                entry.setAddr(PhysAllocator::newPage());
+                if (entry.getAddr() == 0) {
                     if (PhysAllocator::decrementMapCount(p1addr)) {
                         p2Table->entries[p2Index].addr = 0;
                         PhysAllocator::freePage(p1addr);
@@ -63,6 +65,7 @@ namespace memory {
                             PhysAllocator::freePage(p3addr);
                         }
                     }
+                    entry.addr = 0;
                     return false;
                 }
             } else {
@@ -71,6 +74,7 @@ namespace memory {
                     PhysAllocator::incrementRefCount(entry.addr);
                 }
             }
+
             PhysAllocator::incrementMapCount(p1addr);
         } else {
             bool managed = entry.managed;
@@ -140,9 +144,10 @@ namespace memory {
         vmbaseInvalidateCache(addr);
     }
 
-    bool VirtualMemoryMapper::mapNewPages(vaddr_t start, vaddr_t end) {
+    bool VirtualMemoryMapper::mapNewPages(vaddr_t start, vaddr_t end,
+                                          uint64_t flags) {
         for (uint64_t addr = start; addr < end; addr += 4096) {
-            if (!mapNewPageAt(addr, 0, DEFAULT_KERNEL_FLAGS)) {
+            if (!mapNewPageAt(addr, 0, flags)) {
                 for (uint64_t addr2 = start; addr2 < addr; addr2 += 4096) {
                     freePageAt(addr2);
                 }
