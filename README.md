@@ -25,8 +25,11 @@ The API provided by the kernel is extremely simple. It is now fully described in
 ### What are shell scripts doing?
 
 ```build.sh``` - build the whole system
+
 ```buildkernel.sh``` - only build kernel
+
 ```builduserspace.sh``` - create ISO. Requires ```buildkernel.sh``` to be executed in advance
+
 ```test.sh``` - run the kernel in qemu. There are multiply lines. You can uncomment one that you need.
 
 ### Licensing
