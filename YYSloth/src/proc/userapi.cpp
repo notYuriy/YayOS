@@ -86,7 +86,7 @@ namespace proc {
         ProcessManager::addToRunList(newProcessID);
     }
     extern "C" void YY_Yield() { proc::ProcessManager::yield(); }
-    extern "C" uint64_t YY_QueryApiInfo(uint64_t id) {
+    extern "C" uint64_t YY_QueryAPIInfo(uint64_t id) {
         switch (id) {
         case YY_APIInfoId_PageSize:
             return 0x1000;

@@ -54,10 +54,10 @@ int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 //Return (uint64_t)(-1) if this APIInfo entry is not 
 //present. Syscall number 7.
 //Examples:
-//YY_QueriAPIInfo(1) //query page size
-//YY_QueriAPIInfo(2) //query max arguments count
-//YY_QueriAPIInfo(3) //query max arguments length
-uint64_t YY_QueriAPIInfo(uint64_t id);
+//YY_QueryAPIInfo(1) //query page size
+//YY_QueryAPIInfo(2) //query max arguments count
+//YY_QueryAPIInfo(3) //query max arguments length
+uint64_t YY_QueryAPIInfo(uint64_t id);
 ```
 
 ### How can I use these system calls in assembly?
