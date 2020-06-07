@@ -1,10 +1,10 @@
 #YayOS userspace projects
 
-####What is this folder for?
+###What is this folder for?
 
 This folder hosts source of all YayOS userspace applications
 
-####What is a structure of application directory?
+###What is a structure of application directory?
 
 Assuming that project is named ```x```
 
