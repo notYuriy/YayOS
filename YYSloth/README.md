@@ -52,7 +52,7 @@ int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 uint64_t YY_GetPageSize();
 ```
 
-###How can I use these system calls in assembly?
+### How can I use these system calls in assembly?
 
 YYSloth uses ```int 57h``` instruction for system calls. System call number is passed to ```rax``` and everything else is specified by SysV x86_64 calling convention. Here is an example:
 ```nasm

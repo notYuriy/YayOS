@@ -8,7 +8,7 @@ YayOS is an operating system powered by YYSloth kernel.
 
 For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```/bin/init```).
 
-##### What is the kernel capable of doing?
+### What is the kernel capable of doing?
 
 The API provided by the kernel is extremely simple. It is now fully described in the file ```YYSloth/README.md```. Docs are coming in the future.
 
