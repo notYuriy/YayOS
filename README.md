@@ -2,27 +2,27 @@
 
 #####What is this repo for?
 
-YayOS is a monolitic hobby operating system powered by YYSloth kernel. 
+YayOS is an operating system powered by YYSloth kernel. 
 
-#####What is system capable of doing?
+#####What is the system capable of doing?
 
-For now, it is only capable of runnning one executable from ramdisk (stored in the file ```/bin/init```).
+For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```/bin/init```).
 
-#####What is kernel capable of doing?
+#####What is the kernel capable of doing?
 
-The API provided by the kernel is extremely simple. It is now fully described in ```YYSloth/README.md```. Docs are coming in the future.
+The API provided by the kernel is extremely simple. It is now fully described in the file ```YYSloth/README.md```. Docs are coming in the future.
 
 #####How directory structure works
 
-```YYSloth/``` - everything related to kernel (source, docs, binary...)
+```YYSloth/``` - everything related to the kernel (source, docs, binary...)
 
-```YYUserspace/``` - source code of userspace applications. One folder is used for each application. For the application folder structure see ```YYUserspace/README.md```
+```YYUserspace/``` - source code of the user space applications. One folder is used for each application. For the application folder structure see ```YYUserspace/README.md```
 
 ```initrd``` - static data that needs to be located at the root of filesystem
 
 ```grub``` - grub metadata
 
-#####What shell scripts are doing?
+#####What are shell scripts doing?
 
 ```build.sh``` - build the whole system
 ```buildkernel.sh``` - only build kernel
