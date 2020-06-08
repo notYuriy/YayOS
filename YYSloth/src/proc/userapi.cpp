@@ -29,6 +29,7 @@ namespace proc {
                                                 true, false)) {
             return 0;
         }
+        core::log("YY_GetSystemInfo(%p);\n\r", info);
         memset(info, sizeof(YY_SystemInfo), '\0');
 
         static const char kernelName[] = "YYSloth";
@@ -86,8 +87,12 @@ namespace proc {
         frame->rax = newProcessID;
         ProcessManager::addToRunList(newProcessID);
     }
-    extern "C" void YY_Yield() { proc::ProcessManager::yield(); }
+    extern "C" void YY_Yield() {
+        core::log("YY_Yield();\n\r");
+        proc::ProcessManager::yield();
+    }
     extern "C" uint64_t YY_QueryAPIInfo(uint64_t id) {
+        core::log("YY_QueryAPIInfo(%llu);\n\r", id);
         switch (id) {
         case YY_APIInfoId_PageSize:
             return 0x1000;
