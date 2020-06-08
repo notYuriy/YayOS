@@ -70,6 +70,8 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
+    initProcessData->ppid = 0;
+    initProcessData->dead = 0;
 
     // this stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;

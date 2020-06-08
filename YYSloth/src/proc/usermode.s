@@ -6,6 +6,8 @@ section .text
 
 ; arg1 - rdi - entryPoint
 ; arg2 - rsi - allocatedStack
+; arg3 - argc
+; arg4 - argv
 jumpToUserMode:
     mov rax, 0x23 ; user data + RPL
     push rax

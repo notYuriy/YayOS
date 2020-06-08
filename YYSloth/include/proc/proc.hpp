@@ -13,12 +13,12 @@ namespace proc {
     struct Process {
         TaskState state;
         Process *next, *prev;
-        pid_t pid;
+        pid_t pid, ppid, dead;
         uint64_t kernelStackTop;
         uint64_t kernelStackSize;
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
-        uint64_t pad[7];
+        uint64_t pad[5];
         bool setup(bool createUserAllocator = true);
         void cleanup();
     };

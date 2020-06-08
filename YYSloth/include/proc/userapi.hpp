@@ -46,6 +46,8 @@ namespace proc {
 
     constexpr uint64_t YY_MaxArgLength = 4096;
     constexpr uint64_t YY_MaxArgCount = 4096;
+
+    extern "C" uint64_t YY_CheckProcStatus(uint64_t pid);
 }; // namespace proc
 
 #endif

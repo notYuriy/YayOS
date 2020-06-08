@@ -132,6 +132,7 @@ namespace proc {
         if (pid == m_schedListHead->pid) {
             proc->cleanup();
             disableInterrupts();
+            proc->dead = 1;
             StackPool::pushStack(proc->kernelStackBase);
             suspendFromRunList(pid);
         } else {

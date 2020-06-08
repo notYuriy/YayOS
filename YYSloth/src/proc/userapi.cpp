@@ -7,13 +7,12 @@
 #include <proc/userapi.hpp>
 
 namespace proc {
-
     [[noreturn]] void YY_ExitProcess() {
-        // core::log("YY_ExitProcess();\n\r");
+        core::log("YY_ExitProcess();\n\r");
         proc::ProcessManager::exit();
     }
     extern "C" int64_t YY_ConsoleWrite(char *location, uint64_t size) {
-        // core::log("YY_ConsoleWrite(%p, %llu);\n\r", location, size);
+        core::log("YY_ConsoleWrite(%p, %llu);\n\r", location, size);
         if (size > YY_ConsoleOperationsSizeLimit) {
             return -1;
         }
@@ -48,6 +47,7 @@ namespace proc {
         return 1;
     }
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
+        core::log("YY_DuplicateProcess();\n\r");
         pid_t newProcessID = ProcessManager::newProcess();
         if (newProcessID == pidCount) {
             frame->rax = (uint64_t)(-1);
@@ -60,7 +60,6 @@ namespace proc {
             frame->rax = (uint64_t)(-1);
             return;
         }
-
         if ((newProc->usralloc = currentProc->usralloc->copy()) == nullptr) {
             newProc->cleanup();
             StackPool::pushStack(newProc->kernelStackBase);
@@ -68,6 +67,8 @@ namespace proc {
             return;
         }
         newProc->pid = newProcessID;
+        newProc->ppid = currentProc->pid;
+        newProc->dead = 0;
         frame->rax = 0;
         newProc->state.generalRegs.copyFrom(frame);
         newProc->state.generalRegs.cr3 = memory::CoW::clonePageTable();
@@ -101,7 +102,7 @@ namespace proc {
     }
 
     extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags) {
-        // core::log("YY_VirtualAlloc(%llu, %llu);\n\r", pagesCount, flags);
+        core::log("YY_VirtualAlloc(%llu, %llu);\n\r", pagesCount, flags);
         Process *proc = proc::ProcessManager::getRunningProcess();
         memory::vaddr_t result = proc->usralloc->alloc(pagesCount * 0x1000);
         if (result == 0) {
@@ -122,7 +123,7 @@ namespace proc {
         return result;
     }
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount) {
-        // core::log("YY_VirtualFree(%p, %llu)\n\r", start, pagesCount);
+        core::log("YY_VirtualFree(%p, %llu)\n\r", start, pagesCount);
         if (pagesCount == 0) {
             return -1;
         }
@@ -138,5 +139,13 @@ namespace proc {
             proc::ProcessManager::exit();
         }
         return 1;
+    }
+    extern "C" uint64_t YY_CheckProcStatus(uint64_t pid) {
+        core::log("YY_CheckProcStatus(%llu)\n\r", pid);
+        Process *proc = ProcessManager::getProcessData(pid);
+        if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
+            return (uint64_t)(-1);
+        }
+        return proc->dead;
     }
 }; // namespace proc

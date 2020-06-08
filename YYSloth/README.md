@@ -58,6 +58,11 @@ int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 //YY_QueryAPIInfo(2) //query max arguments count
 //YY_QueryAPIInfo(3) //query max arguments length
 uint64_t YY_QueryAPIInfo(uint64_t id);
+
+//Get child proces status. Returns -1 if process is not
+//allowed to know this information, 0 if process is still running
+//and 1 if process has terminated. Syscall number 8.
+uint64_t YY_GetProcessStatus(uint64_t pid);
 ```
 
 ### How can I use these system calls in assembly?
@@ -84,6 +89,11 @@ _start:
     mov rax, YY_ExitProcess ; syscall number
     int 57h
 ```
+
+### Can I please have stack?
+
+No, you can't. Just add it to the section .bss and set it up yourself. Alternative solution is
+to allocate it dynamically.
 
 ### Any docs on the kernel source?
 
