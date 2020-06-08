@@ -34,8 +34,7 @@ cp YYSloth/kernel.bin isotree/boot/kernel.bin || exit
 
 cp -r initrd tmpinitrd
 
-programsPaths="eval find YYUserspace -maxdepth 1 -mindepth 1 -type d -name '*'"
-for path in "$($programsPaths)"
+for path in YYUserspace/*/
 do
     echo -e "\033[1;32m[ SH ]\033[0m \033[1;37m$path/build.sh\033[0m"
     cd "$path"
