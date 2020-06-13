@@ -20,7 +20,7 @@
 #include <x86_64/tss.hpp>
 
 void initProcess() {
-    fs::IFile *file = fs::VFS::open("/bin/init", 0);
+    fs::IFile *file = fs::VFS::open("Y:\\bin\\init", 0);
     if (file == nullptr) {
         panic(
             "[KernelInit] Failed to load init process executable from ramdisk");
@@ -62,7 +62,8 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     proc::ProcessManager::init(&timer);
     proc::StackPool::init();
     fs::RamdiskFsSuperblock initRd;
-    fs::VFS::init(&initRd);
+    fs::VFS::init();
+    fs::VFS::mount('Y', &initRd);
     proc::pid_t initProcessPid = proc::ProcessManager::newProcess();
     proc::Process *initProcessData =
         proc::ProcessManager::getProcessData(initProcessPid);

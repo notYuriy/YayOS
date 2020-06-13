@@ -4,6 +4,8 @@
 #include <utils.hpp>
 
 namespace fs {
+    constexpr char PATH_SEPARATOR = '\\';
+
     class PathIterator {
         char *m_pathcopy;
         uint64_t m_pos, m_endPos, m_basenamePos;
@@ -15,7 +17,7 @@ namespace fs {
             m_basenamePos = 0;
             m_pos = 0;
             for (uint64_t i = 0; i < m_endPos; ++i) {
-                if (m_pathcopy[i] == '/') {
+                if (m_pathcopy[i] == PATH_SEPARATOR) {
                     m_pathcopy[i] = '\0';
                     m_basenamePos = i + 1;
                 }

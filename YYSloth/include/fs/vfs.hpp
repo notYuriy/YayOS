@@ -62,12 +62,13 @@ namespace fs {
     };
 
     class VFS {
-        // support for one fs for now
-        static ISuperblock *m_rootFs;
-        static DEntry *m_fsTree;
+        static ISuperblock *m_rootFs[26];
+        static DEntry *m_fsTrees[26];
+        static proc::Mutex m_rootMutex;
 
     public:
-        static void init(ISuperblock *sb);
+        static void init();
+        static bool mount(char letter, ISuperblock *sb);
         static IFile *open(const char *path, int perm);
     };
 

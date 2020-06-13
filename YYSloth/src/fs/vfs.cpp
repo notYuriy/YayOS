@@ -3,8 +3,9 @@
 
 namespace fs {
 
-    ISuperblock *VFS::m_rootFs;
-    DEntry *VFS::m_fsTree;
+    ISuperblock *VFS::m_rootFs[26];
+    DEntry *VFS::m_fsTrees[26];
+    proc::Mutex VFS::m_rootMutex;
 
     DEntry *DEntry::createNode(const char *name) {
         DEntry *newDEntry = new DEntry;
@@ -201,25 +202,60 @@ namespace fs {
         return current;
     }
 
-    void VFS::init(ISuperblock *sb) {
-        m_rootFs = sb;
-        m_rootFs->mount();
-        m_fsTree = DEntry::createNode("/");
-        if (m_fsTree == nullptr) {
-            panic("[VFS] Can't allocate vfs root node\n\r");
+    INLINE int64_t getIndex(char letter) {
+        if (('a' <= letter) && (letter <= 'z')) {
+            return letter - 'a';
         }
-        m_fsTree->next = m_fsTree;
-        m_fsTree->prev = m_fsTree;
-        m_fsTree->par = m_fsTree;
-        m_fsTree->isFilesystemRoot = true;
-        m_fsTree->sb = sb;
-        m_fsTree->node = sb->getNode(sb->getRootNum());
-        m_fsTree->incrementUsedCount();
+        if (('A' <= letter) && (letter <= 'Z')) {
+            return letter - 'A';
+        }
+        return -1;
+    }
+
+    void VFS::init() {
+        for (uint64_t i = 0; i < 26; ++i) {
+            m_fsTrees[i] = nullptr;
+            m_rootFs[i] = nullptr;
+        }
+    }
+
+    bool VFS::mount(char letter, ISuperblock *sb) {
+        int64_t index = getIndex(letter);
+        if (index == -1) {
+            return false;
+        }
+        m_rootMutex.lock();
+        if (m_fsTrees[index] == nullptr) {
+            m_rootFs[index] = sb;
+            m_rootFs[index]->mount();
+            m_fsTrees[index] = DEntry::createNode("");
+            m_fsTrees[index]->next = m_fsTrees[index];
+            m_fsTrees[index]->prev = m_fsTrees[index];
+            m_fsTrees[index]->par = m_fsTrees[index];
+            m_fsTrees[index]->isFilesystemRoot = true;
+            m_fsTrees[index]->sb = sb;
+            m_fsTrees[index]->node = sb->getNode(sb->getRootNum());
+            m_fsTrees[index]->incrementUsedCount();
+            m_rootMutex.unlock();
+            return true;
+        }
+        m_rootMutex.unlock();
+        return false;
     }
 
     IFile *VFS::open(const char *path, int perm) {
-        PathIterator iter(path);
-        DEntry *entry = m_fsTree->walk(&iter);
+        if (strlen(path, 3) != 3) {
+            return nullptr;
+        }
+        int64_t index = getIndex(path[0]);
+        if (index == -1) {
+            return nullptr;
+        }
+        PathIterator iter(path + 2);
+        m_rootMutex.lock();
+        DEntry *root = m_fsTrees[index];
+        m_rootMutex.unlock();
+        DEntry *entry = root->walk(&iter);
         if (entry == nullptr) {
             return nullptr;
         }
