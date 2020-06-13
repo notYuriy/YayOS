@@ -3,9 +3,39 @@
 
 namespace fs {
 
+    struct DEntry {
+        DEntry *par, *next, *prev, *chld, *mnt;
+        proc::Mutex mutex;
+        bool isFilesystemRoot, isMountpoint;
+        // usedCount =
+        // number of threads traversing vfs in this DEntry +
+        // number of opened file descriptors here +
+        // number of children nodes
+        uint64_t usedCount;
+        uint64_t nameHash;
+        ISuperblock *sb;
+        INode *node;
+        char *name;
+
+        static DEntry *createNode(const char *name);
+        DEntry *createChildNode(const char *name);
+        DEntry *softLookup(const char *name);
+        DEntry *hardLookup(const char *name);
+        DEntry *goToParent();
+        DEntry *goToChild(const char *name);
+        // the last node remain in observed state (so it is not deleted)
+        DEntry *walk(PathIterator *iter, bool resolveLast = true);
+        void incrementUsedCount();
+        void decrementUsedCount();
+        void dispose();
+        void cut();
+        bool drop();
+        void dropRec();
+    };
+
     ISuperblock *VFS::m_rootFs[26];
     DEntry *VFS::m_fsTrees[26];
-    proc::Mutex VFS::m_rootMutex;
+    proc::Mutex *VFS::m_rootMutex;
 
     DEntry *DEntry::createNode(const char *name) {
         DEntry *newDEntry = new DEntry;
@@ -217,6 +247,7 @@ namespace fs {
             m_fsTrees[i] = nullptr;
             m_rootFs[i] = nullptr;
         }
+        m_rootMutex = new proc::Mutex;
     }
 
     bool VFS::mount(char letter, ISuperblock *sb) {
@@ -224,7 +255,7 @@ namespace fs {
         if (index == -1) {
             return false;
         }
-        m_rootMutex.lock();
+        m_rootMutex->lock();
         if (m_fsTrees[index] == nullptr) {
             m_rootFs[index] = sb;
             m_rootFs[index]->mount();
@@ -236,10 +267,10 @@ namespace fs {
             m_fsTrees[index]->sb = sb;
             m_fsTrees[index]->node = sb->getNode(sb->getRootNum());
             m_fsTrees[index]->incrementUsedCount();
-            m_rootMutex.unlock();
+            m_rootMutex->unlock();
             return true;
         }
-        m_rootMutex.unlock();
+        m_rootMutex->unlock();
         return false;
     }
 
@@ -252,9 +283,9 @@ namespace fs {
             return nullptr;
         }
         PathIterator iter(path + 2);
-        m_rootMutex.lock();
+        m_rootMutex->lock();
         DEntry *root = m_fsTrees[index];
-        m_rootMutex.unlock();
+        m_rootMutex->unlock();
         DEntry *entry = root->walk(&iter);
         if (entry == nullptr) {
             return nullptr;

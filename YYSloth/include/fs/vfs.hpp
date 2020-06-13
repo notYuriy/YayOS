@@ -4,7 +4,6 @@
 #include <fs/pathiter.hpp>
 #include <fs/usertypes.hpp>
 #include <proc/descriptor.hpp>
-#include <proc/mutex.hpp>
 #include <utils.hpp>
 
 namespace fs {
@@ -31,40 +30,10 @@ namespace fs {
         virtual ~ISuperblock();
     };
 
-    struct DEntry {
-        DEntry *par, *next, *prev, *chld, *mnt;
-        proc::Mutex mutex;
-        bool isFilesystemRoot, isMountpoint;
-        // usedCount =
-        // number of threads traversing vfs in this DEntry +
-        // number of opened file descriptors here +
-        // number of children nodes
-        uint64_t usedCount;
-        uint64_t nameHash;
-        ISuperblock *sb;
-        INode *node;
-        char *name;
-
-        static DEntry *createNode(const char *name);
-        DEntry *createChildNode(const char *name);
-        DEntry *softLookup(const char *name);
-        DEntry *hardLookup(const char *name);
-        DEntry *goToParent();
-        DEntry *goToChild(const char *name);
-        // the last node remain in observed state (so it is not deleted)
-        DEntry *walk(PathIterator *iter, bool resolveLast = true);
-        void incrementUsedCount();
-        void decrementUsedCount();
-        void dispose();
-        void cut();
-        bool drop();
-        void dropRec();
-    };
-
     class VFS {
         static ISuperblock *m_rootFs[26];
-        static DEntry *m_fsTrees[26];
-        static proc::Mutex m_rootMutex;
+        static struct DEntry *m_fsTrees[26];
+        static struct proc::Mutex *m_rootMutex;
 
     public:
         static void init();
