@@ -8,7 +8,7 @@
 
 namespace proc {
     typedef uint64_t pid_t;
-    constexpr pid_t pidCount = 65536;
+    constexpr pid_t PID_MAX = 65536;
 
     struct Process {
         TaskState state;

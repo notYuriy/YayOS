@@ -32,14 +32,23 @@ void initProcess() {
     if (!elf->load(file, proc::ProcessManager::getRunningProcess()->usralloc)) {
         panic("[KernelInit] Failed to load init process executable to memory");
     }
-    // core::log("End of kernel init. Jumping to init process...\n\r");
-    proc::jumpToUserMode(elf->head.entryPoint, elf->head.entryPoint);
+
+    char **fakeArgs =
+        (char **)proc::ProcessManager::getRunningProcess()->usralloc->alloc(
+            0x1000);
+    memory::VirtualMemoryMapper::mapPages((memory::vaddr_t)fakeArgs,
+                                          ((memory::vaddr_t)fakeArgs) + 0x1000,
+                                          0, (0x7));
+    fakeArgs[0] = NULL;
+    proc::jumpToUserMode(elf->head.entryPoint, 0, fakeArgs);
 }
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
     executeCtors(ctorsStart, ctorsEnd);
     drivers::Serial::init(drivers::SerialPort::COM1);
+    // drivers::Serial::recieve(drivers::SerialPort::COM1);
+    // drivers::Serial::recieve(drivers::SerialPort::COM1);
     memory::init(mbPointer);
     x86_64::GDT::init();
     x86_64::TSS::init();

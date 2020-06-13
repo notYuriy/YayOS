@@ -9,6 +9,7 @@ namespace memory {
     typedef uint32_t vind_t;
     extern "C" void vmbaseLoadP4(memory::paddr_t p4addr);
     extern "C" void vmbaseInvalidateCache(memory::vaddr_t page);
+    extern "C" void vmbaseInvalidateAll();
 
     INLINE static vind_t getP4Index(vaddr_t addr) {
         return (addr >> 39ULL) & 0777ULL;

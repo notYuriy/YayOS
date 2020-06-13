@@ -41,13 +41,18 @@ namespace proc {
     constexpr uint64_t YY_APIInfoId_PageSize = 1;
     constexpr uint64_t YY_APIInfoId_MaxArgLength = 2;
     constexpr uint64_t YY_APIInfoID_MaxArgCount = 3;
+    constexpr uint64_t YY_APIInfoID_ExecMaxPathLength = 4;
 
     extern "C" uint64_t YY_QueryAPIInfo(uint64_t id);
 
     constexpr uint64_t YY_MaxArgLength = 4096;
     constexpr uint64_t YY_MaxArgCount = 4096;
+    constexpr uint64_t YY_ExecMaxPathLength = 1024;
 
     extern "C" uint64_t YY_CheckProcStatus(uint64_t pid);
+
+    extern "C" uint64_t YY_ExecuteBinary(const char *path, uint64_t argc,
+                                         const char **argv);
 }; // namespace proc
 
 #endif

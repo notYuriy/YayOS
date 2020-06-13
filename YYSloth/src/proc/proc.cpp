@@ -35,7 +35,7 @@ namespace proc {
             m_pidBitmap[m_lastCheckedIndex] |= (1ULL << bit);
             return bit + m_lastCheckedIndex * 64;
         }
-        return pidCount;
+        return PID_MAX;
     }
 
     void ProcessManager::yield() { schedulerYield(); }
@@ -79,11 +79,11 @@ namespace proc {
     void ProcessManager::init(drivers::ITimer *schedTimer) {
         m_timer = schedTimer;
         m_processData = (Process *)memory::KernelVirtualAllocator::getMapping(
-            alignUp(sizeof(Process) * pidCount, 4096), 0,
+            alignUp(sizeof(Process) * PID_MAX, 4096), 0,
             memory::DEFAULT_KERNEL_FLAGS);
-        m_pidBitmap = new uint64_t[alignUp(pidCount, 64)];
-        m_pidBitmapSize = alignUp(pidCount, 64) / 64;
-        memset(m_pidBitmap, alignUp(pidCount, 64) / 64, 0);
+        m_pidBitmap = new uint64_t[alignUp(PID_MAX, 64)];
+        m_pidBitmapSize = alignUp(PID_MAX, 64) / 64;
+        memset(m_pidBitmap, alignUp(PID_MAX, 64) / 64, 0);
         pid_t initPid = newProcess();
         Process *initProcess = &(m_processData[initPid]);
         initProcess->next = &m_processData[initPid];
@@ -112,8 +112,9 @@ namespace proc {
         disableInterrupts();
         Process *proc = &(m_processData[pid]);
         Process *prev = proc->prev;
-        proc->next->prev = prev;
-        prev->next = proc->next;
+        Process *next = proc->next;
+        prev->next = next;
+        next->prev = prev;
         if (pid == m_schedListHead->pid) {
             proc::ProcessManager::yield();
         }
@@ -137,6 +138,7 @@ namespace proc {
             suspendFromRunList(pid);
         } else {
             suspendFromRunList(pid);
+            proc->dead = 1;
             proc->cleanup();
         }
     }

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-rm -rf forktest.o
+rm -rf init.o
 rm -rf fsroot/bin/init

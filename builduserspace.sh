@@ -13,7 +13,7 @@ function cleanup {
     echo -e "\033[1;32m[ RM ]\033[0m \033[1;37mtmpinitrd\033[0m"
     rm -rf tmpinitrd
     programsPaths="eval find YYUserspace -maxdepth 1 -mindepth 1 -type d -name '*'"
-    for path in "$($programsPaths)"
+    for path in YYUserspace/*/
     do
         echo -e "\033[1;32m[ SH ]\033[0m \033[1;37m$path/cleanup.sh\033[0m"
         cd "$path"

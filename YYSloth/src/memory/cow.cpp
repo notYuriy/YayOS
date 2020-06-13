@@ -39,7 +39,6 @@ namespace memory {
     extern "C" void pageFaultHandler();
     PageTable *CoW::checkAndMoveToNext(PageTable *current, vind_t index,
                                        uint64_t errorCode) {
-
         PageTableEntry *entry = current->entries + index;
         bool fromUserspace = (errorCode & (1ULL << 2)) != 0;
         bool writableAccess = (errorCode & (1ULL << 1)) != 0;
@@ -77,6 +76,9 @@ namespace memory {
     }
     extern "C" void
     pageFaultHandlerWithFrame(UNUSED proc::SchedulerIntFrame *frame) {
+        core::log("FAULT at %p!\n\r", frame->rip);
+        while (1)
+            ;
         vaddr_t addr = getCR2();
         vind_t p4Index, p3Index, p2Index, p1Index;
         p4Index = getP4Index(addr);
@@ -298,10 +300,11 @@ namespace memory {
         for (uint64_t i = 0; i < 256; ++i) {
             if (addr->entries[i].present) {
                 disposePageTableRec(3, addr->walkTo(i));
-                PhysAllocator::freePage(addr->entries[i].addr &
-                                        (~PAGE_TABLE_ENTRY_FLAGS_MASK));
+                PhysAllocator::freePage(addr->entries[i].getAddr());
+                addr->entries[i].addr = 0;
             }
         }
+        vmbaseInvalidateAll();
     }
     void CoW::disposePageTableRec(uint64_t level, PageTable *addr) {
         if (level == 0) {
@@ -310,8 +313,7 @@ namespace memory {
         for (uint64_t i = 0; i < 512; ++i) {
             if (addr->entries[i].present) {
                 disposePageTableRec(level - 1, addr->walkTo(i));
-                PhysAllocator::freePage(addr->entries[i].addr &
-                                        (~PAGE_TABLE_ENTRY_FLAGS_MASK));
+                PhysAllocator::freePage(addr->entries[i].getAddr());
             }
         }
     }

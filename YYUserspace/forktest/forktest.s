@@ -5,12 +5,13 @@ YY_DuplicateProcess: equ 1
 YY_CheckProcessStatus: equ 8
 YY_ConsoleWrite: equ 2
 YY_Yield: equ 4
+YY_ExecuteBinary: equ 9
 
 section .data
-chldmsg: db "Message from the child", 13, 10
-chldmsglen: equ $ - chldmsg
 msg: db "Child Terminated", 13, 10
 msglen: equ $ - msg
+path: db "/bin/helloworld", 0
+args: dq 0
 
 section .text
     global _start
@@ -21,33 +22,25 @@ _start:
 
     cmp rax, 0
     je .child
-.parent:
+
     mov rdi, rax
 .loop:
     mov rax, YY_CheckProcessStatus
     int 57h
+
     cmp rax, 1
     je .done
-
-    mov rax, YY_Yield
-    int 57h
-
+    
     jmp .loop
-.done: 
-    ; child terminated
-    mov rdi, msg
-    mov rsi, msglen
-    mov rax, YY_ConsoleWrite
-    int 57h
+.done:
 
     mov rax, YY_ExitProcess
     int 57h
 
 .child:
-    mov rdi, chldmsg
-    mov rsi, chldmsglen
-    mov rax, YY_ConsoleWrite
-    int 57h
+    mov rdi, path
+    xor rsi, rsi
+    mov rdx, args
 
-    mov rax, YY_ExitProcess
+    mov rax, YY_ExecuteBinary
     int 57h

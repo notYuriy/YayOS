@@ -86,12 +86,14 @@ INLINE static bool streqn(const char *str1, const char *str2, uint64_t n) {
     return true;
 }
 
-INLINE static uint64_t strlen(const char *str) {
-    for (uint64_t i = 0;; ++i) {
+INLINE static uint64_t strlen(const char *str,
+                              uint64_t lengthLimit = (uint64_t)(-1)) {
+    for (uint64_t i = 0; i < lengthLimit; ++i) {
         if (str[i] == 0) {
             return i;
         }
     }
+    return lengthLimit;
 }
 
 INLINE static char *strdup(const char *str) {

@@ -7,6 +7,15 @@ global syscallHandler
 %include "proc/state.inc"
 
 syscallHandler:
+    mov r9, rax
+    push rax
+    mov ax, 0x10
+    mov ss, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    pop rax
     push rbx
     push rcx
     push rdx
@@ -22,14 +31,16 @@ syscallHandler:
     push r14
     push r15
     cmp rax, 1000
-    jnl .invalid
+    jae .invalid
     mov rbx, syscallHandlerTable
-    mov rax, qword [rbx + 8 * rax]
+    mov rbx, qword [rbx + 8 * rax]
+    mov rax, rbx
     cmp rax, 0
     je .invalid
     call rax
     jmp .done
 .invalid:
+    int3
     mov rax, -38
 .done:
     pop r15

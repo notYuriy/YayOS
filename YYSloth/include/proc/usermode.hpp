@@ -5,7 +5,7 @@
 
 namespace proc {
     extern "C" [[noreturn]] void jumpToUserMode(uint64_t entryPoint,
-                                                uint64_t rsp);
+                                                uint64_t argc, char **argv);
 };
 
 #endif

@@ -1,10 +1,13 @@
+#include <fs/vfs.hpp>
 #include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <memory/msecurity.hpp>
 #include <memory/vmbase.hpp>
+#include <proc/elf.hpp>
 #include <proc/proc.hpp>
 #include <proc/stackpool.hpp>
 #include <proc/userapi.hpp>
+#include <proc/usermode.hpp>
 
 namespace proc {
     [[noreturn]] void YY_ExitProcess() {
@@ -50,7 +53,7 @@ namespace proc {
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
         core::log("YY_DuplicateProcess();\n\r");
         pid_t newProcessID = ProcessManager::newProcess();
-        if (newProcessID == pidCount) {
+        if (newProcessID == PID_MAX) {
             frame->rax = (uint64_t)(-1);
             return;
         }
@@ -100,6 +103,8 @@ namespace proc {
             return YY_MaxArgCount;
         case YY_APIInfoId_MaxArgLength:
             return YY_MaxArgLength;
+        case YY_APIInfoID_ExecMaxPathLength:
+            return YY_ExecMaxPathLength;
         default:
             // API Info at this id is not supported
             return (uint64_t)(-1);
@@ -151,6 +156,115 @@ namespace proc {
         if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
             return (uint64_t)(-1);
         }
-        return proc->dead;
+        uint64_t dead = proc->dead;
+        if (dead == 1) {
+            ProcessManager::freePid(pid);
+        }
+        return dead;
+    }
+    extern "C" uint64_t YY_ExecuteBinary(const char *path, uint64_t argc,
+                                         const char **argv) {
+        core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
+        // TODO: check pages while calculating length
+        if (strlen(path, YY_ExecMaxPathLength + 1) > YY_ExecMaxPathLength) {
+            return (uint64_t)(-1);
+        }
+        if (!memory::virtualRangeConditionCheck(
+                (memory::vaddr_t)argv, 8 * (argc + 1), true, false, false)) {
+            return (uint64_t)(-1);
+        }
+        Process *proc = ProcessManager::getRunningProcess();
+        fs::IFile *binary = nullptr;
+        Elf *elf = nullptr;
+        bool recovarable = true;
+
+        if (argc > YY_MaxArgCount) {
+            return (uint64_t)(-1);
+        }
+        for (uint64_t i = 0; i < argc; ++i) {
+            // TODO: check pages while calculating length
+            if (strlen(argv[i], YY_MaxArgLength + 1) > YY_MaxArgLength) {
+                return (uint64_t)(-1);
+            }
+        }
+
+        char **argsTmp = new char *[argc + 1];
+        memory::vaddr_t argsStorage = 0;
+        char **argsPointers = nullptr;
+        char *argsValues = nullptr;
+
+        memset(argsTmp, sizeof(char *) * (argc + 1), '\0');
+        uint64_t fullsizeof = 8 * (argc + 1);
+        for (uint64_t i = 0; i < argc; ++i) {
+            fullsizeof += (strlen(argv[i]) + 1);
+            argsTmp[i] = strdup(argv[i]);
+            if (argsTmp[i] == 0) {
+                goto failureArgsCleanup;
+            }
+        }
+        fullsizeof = alignUp(fullsizeof, 0x1000);
+        argsTmp[argc] = NULL;
+
+        binary = fs::VFS::open(path, 1);
+        if (binary == nullptr) {
+            goto failureArgsCleanup;
+        }
+        memory::CoW::deallocateUserMemory();
+        recovarable = false;
+        delete proc->usralloc;
+        proc->usralloc = memory::newUserVirtualAllocator();
+        if (proc->usralloc == nullptr) {
+            goto failureFileCleanup;
+        }
+        elf = parseElf(binary);
+        if (elf == nullptr) {
+            goto failureUsrallocCleanup;
+        }
+        if (!elf->load(binary, proc->usralloc)) {
+            goto failureElfCleanup;
+        }
+        argsStorage = proc->usralloc->alloc(fullsizeof);
+        if (argsStorage == 0) {
+            goto failureElfCleanup;
+        }
+        if (!memory::VirtualMemoryMapper::mapPages(
+                argsStorage, argsStorage + fullsizeof, 0, (0x7))) {
+            goto failureElfCleanup;
+        }
+        argsPointers = (char **)argsStorage;
+        argsValues = (char *)(argsStorage + (sizeof(8) * (argc + 1)));
+        for (uint64_t i = 0; i < argc; ++i) {
+            argsPointers[i] = argsValues;
+            uint64_t spaceUsed = strlen(argsTmp[i]) + 1;
+            memcpy(argsPointers[i], argsTmp[i], spaceUsed);
+            argsValues += spaceUsed;
+        }
+        delete binary;
+        delete elf;
+        for (uint64_t i = 0; i < argc; ++i) {
+            if (argsTmp[i] != 0) {
+                delete argsTmp[i];
+            }
+        }
+        delete argsTmp;
+        jumpToUserMode(elf->head.entryPoint, argc, argsPointers);
+    failureElfCleanup:
+        delete elf;
+    failureUsrallocCleanup:
+        delete proc->usralloc;
+    failureFileCleanup:
+        delete binary;
+    failureArgsCleanup:
+        for (uint64_t i = 0; i < argc; ++i) {
+            if (argsTmp[i] != 0) {
+                delete argsTmp[i];
+            }
+        }
+        delete argsTmp;
+        if (recovarable) {
+            return (uint64_t)(-1);
+        } else {
+            proc::ProcessManager::exit();
+        }
     }
 }; // namespace proc
