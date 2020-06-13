@@ -36,14 +36,14 @@ namespace fs {
     struct RamdiskDirNode : INode {
         core::DynArray<RamdiskDirEntry> entries;
         virtual uint64_t lookup(const char *name);
-        virtual IFile *open(int perm);
+        virtual IFile *open(bool writable);
     };
 
     struct RamdiskFileNode : INode {
         uint64_t fileSize;
         uint8_t *data;
         virtual uint64_t lookup(const char *name);
-        virtual IFile *open(int perm);
+        virtual IFile *open(bool writable);
         RamdiskFileNode(V7TarHeader *header);
     };
 

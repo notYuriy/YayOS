@@ -91,7 +91,10 @@ namespace fs {
         return 0;
     }
 
-    IFile *RamdiskDirNode::open(UNUSED int perm) {
+    IFile *RamdiskDirNode::open(bool writable) {
+        if (writable) {
+            return nullptr;
+        }
         RamdiskDirView *result = new RamdiskDirView;
         if (result == nullptr) {
             return nullptr;
@@ -101,7 +104,10 @@ namespace fs {
         return result;
     }
 
-    IFile *RamdiskFileNode::open(UNUSED int perm) {
+    IFile *RamdiskFileNode::open(bool writable) {
+        if (writable) {
+            return nullptr;
+        }
         RamdiskFileView *result = new RamdiskFileView;
         if (result == nullptr) {
             return nullptr;

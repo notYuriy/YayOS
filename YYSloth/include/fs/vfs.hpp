@@ -17,7 +17,7 @@ namespace fs {
         struct ISuperblock *sb;
         uint64_t num;
         virtual uint64_t lookup(const char *name) = 0;
-        virtual IFile *open(int perm) = 0;
+        virtual IFile *open(bool writable) = 0;
         virtual ~INode();
     };
 
@@ -37,7 +37,7 @@ namespace fs {
     public:
         static void init();
         static bool mount(char letter, ISuperblock *sb);
-        static IFile *open(const char *path, int perm);
+        static IFile *open(const char *path, bool writable);
     };
 
 }; // namespace fs

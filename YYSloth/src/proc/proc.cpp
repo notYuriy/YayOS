@@ -125,6 +125,13 @@ namespace proc {
         if (usralloc != 0) {
             delete usralloc;
         }
+        if (descriptors != nullptr) {
+            for (uint64_t i = 0; i < descriptors->size(); ++i) {
+                descriptors->at(i)->release();
+            }
+            delete descriptors;
+            descriptors = nullptr;
+        }
         memory::CoW::deallocateUserMemory();
     }
 

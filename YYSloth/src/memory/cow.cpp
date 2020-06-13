@@ -77,6 +77,7 @@ namespace memory {
     extern "C" void
     pageFaultHandlerWithFrame(UNUSED proc::SchedulerIntFrame *frame) {
         core::log("FAULT at %p!\n\r", frame->rip);
+        asm __volatile__("cli");
         while (1)
             ;
         vaddr_t addr = getCR2();

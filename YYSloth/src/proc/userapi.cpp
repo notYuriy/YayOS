@@ -3,6 +3,7 @@
 #include <memory/kvmmngr.hpp>
 #include <memory/msecurity.hpp>
 #include <memory/vmbase.hpp>
+#include <proc/descriptor.hpp>
 #include <proc/elf.hpp>
 #include <proc/proc.hpp>
 #include <proc/stackpool.hpp>
@@ -65,6 +66,7 @@ namespace proc {
             return;
         }
         if ((newProc->usralloc = currentProc->usralloc->copy()) == nullptr) {
+            ProcessManager::freePid(newProcessID);
             newProc->cleanup();
             StackPool::pushStack(newProc->kernelStackBase);
             frame->rax = (uint64_t)(-1);
@@ -76,11 +78,31 @@ namespace proc {
         frame->rax = 0;
         newProc->state.generalRegs.copyFrom(frame);
         newProc->state.generalRegs.cr3 = memory::CoW::clonePageTable();
+        newProc->descriptors = nullptr;
         if (newProc->state.generalRegs.cr3 == 0) {
+            ProcessManager::freePid(newProcessID);
             newProc->cleanup();
             StackPool::pushStack(newProc->kernelStackBase);
             frame->rax = (uint64_t)(-1);
             return;
+        }
+        newProc->descriptors = new core::DynArray<DescriptorHandle *>;
+        if (newProc->descriptors == nullptr) {
+            ProcessManager::freePid(newProcessID);
+            newProc->cleanup();
+            StackPool::pushStack(newProc->kernelStackBase);
+            frame->rax = (uint64_t)(-1);
+            return;
+        }
+        for (uint64_t i = 0; i < currentProc->descriptors->size(); ++i) {
+            if (!(newProc->descriptors->pushBack(
+                    (*(currentProc->descriptors))[i]->clone()))) {
+                ProcessManager::freePid(newProcessID);
+                newProc->cleanup();
+                StackPool::pushStack(newProc->kernelStackBase);
+                frame->rax = (uint64_t)(-1);
+                return;
+            }
         }
         uint64_t stackOffset = currentProc->kernelStackTop - frame->rsp;
         uint64_t newStackLocation = newProc->kernelStackTop - stackOffset;
@@ -94,7 +116,7 @@ namespace proc {
         core::log("YY_Yield();\n\r");
         proc::ProcessManager::yield();
     }
-    extern "C" uint64_t YY_QueryAPIInfo(uint64_t id) {
+    extern "C" int64_t YY_QueryAPIInfo(uint64_t id) {
         core::log("YY_QueryAPIInfo(%llu);\n\r", id);
         switch (id) {
         case YY_APIInfoId_PageSize:
@@ -105,18 +127,22 @@ namespace proc {
             return YY_MaxArgLength;
         case YY_APIInfoID_ExecMaxPathLength:
             return YY_ExecMaxPathLength;
+        case YY_APIInfoID_MaxFileIOBufSize:
+            return YY_MaxFileIOBufSize;
+        case YY_APIInfoID_MaxOpenFilePathLength:
+            return YY_MaxOpenFilePath;
         default:
             // API Info at this id is not supported
             return (uint64_t)(-1);
         }
     }
 
-    extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags) {
+    extern "C" int64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags) {
         core::log("YY_VirtualAlloc(%llu, %llu);\n\r", pagesCount, flags);
         Process *proc = proc::ProcessManager::getRunningProcess();
         memory::vaddr_t result = proc->usralloc->alloc(pagesCount * 0x1000);
         if (result == 0) {
-            return (uint64_t)-1;
+            return -1;
         }
         uint64_t mask = (1ULL << 0) | (1ULL << 2);
         if ((flags & YY_VirtualFlagsWritable) != 0) {
@@ -130,7 +156,7 @@ namespace proc {
             proc->usralloc->free(result, pagesCount * 0x1000);
             return 0;
         }
-        return result;
+        return (int64_t)result;
     }
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount) {
         core::log("YY_VirtualFree(%p, %llu)\n\r", start, pagesCount);
@@ -150,28 +176,28 @@ namespace proc {
         }
         return 1;
     }
-    extern "C" uint64_t YY_CheckProcStatus(uint64_t pid) {
-        core::log("YY_CheckProcStatus(%llu)\n\r", pid);
+    extern "C" int64_t YY_CheckProcStatus(uint64_t pid) {
+        // core::log("YY_CheckProcStatus(%llu)\n\r", pid);
         Process *proc = ProcessManager::getProcessData(pid);
         if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
-            return (uint64_t)(-1);
+            return -1;
         }
         uint64_t dead = proc->dead;
         if (dead == 1) {
             ProcessManager::freePid(pid);
         }
-        return dead;
+        return (int64_t)dead;
     }
-    extern "C" uint64_t YY_ExecuteBinary(const char *path, uint64_t argc,
-                                         const char **argv) {
+    extern "C" int64_t YY_ExecuteBinary(const char *path, uint64_t argc,
+                                        const char **argv) {
         core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
-        if (memory::validateCString(path, true, false, false,
-                                    YY_ExecMaxPathLength)) {
-            return (uint64_t)(-1);
+        if (!memory::validateCString(path, true, false, false,
+                                     YY_ExecMaxPathLength)) {
+            return -1;
         }
         if (!memory::virtualRangeConditionCheck(
                 (memory::vaddr_t)argv, 8 * (argc + 1), true, false, false)) {
-            return (uint64_t)(-1);
+            return -1;
         }
         Process *proc = ProcessManager::getRunningProcess();
         fs::IFile *binary = nullptr;
@@ -179,12 +205,12 @@ namespace proc {
         bool recovarable = true;
 
         if (argc > YY_MaxArgCount) {
-            return (uint64_t)(-1);
+            return -1;
         }
         for (uint64_t i = 0; i < argc; ++i) {
-            if (memory::validateCString(path, true, false, false,
-                                        YY_MaxArgLength)) {
-                return (uint64_t)(-1);
+            if (!memory::validateCString(path, true, false, false,
+                                         YY_MaxArgLength)) {
+                return -1;
             }
         }
 
@@ -205,19 +231,19 @@ namespace proc {
         fullsizeof = alignUp(fullsizeof, 0x1000);
         argsTmp[argc] = NULL;
 
-        binary = fs::VFS::open(path, 1);
+        binary = fs::VFS::open(path, false);
         if (binary == nullptr) {
             goto failureArgsCleanup;
         }
-        memory::CoW::deallocateUserMemory();
+        proc->cleanup();
         recovarable = false;
-        delete proc->usralloc;
         proc->usralloc = memory::newUserVirtualAllocator();
+        proc->descriptors = new core::DynArray<DescriptorHandle *>;
         if (proc->usralloc == nullptr) {
             goto failureFileCleanup;
         }
         elf = parseElf(binary);
-        if (elf == nullptr) {
+        if (elf == nullptr || proc->descriptors == nullptr) {
             goto failureUsrallocCleanup;
         }
         if (!elf->load(binary, proc->usralloc)) {
@@ -251,7 +277,7 @@ namespace proc {
     failureElfCleanup:
         delete elf;
     failureUsrallocCleanup:
-        delete proc->usralloc;
+        proc->cleanup();
     failureFileCleanup:
         delete binary;
     failureArgsCleanup:
@@ -266,5 +292,63 @@ namespace proc {
         } else {
             proc::ProcessManager::exit();
         }
+    }
+    extern "C" int64_t YY_OpenFile(const char *path, bool writable) {
+        if (!memory::validateCString(path, true, false, false,
+                                     YY_MaxOpenFilePath)) {
+            core::log("Here $1\n\r");
+            return -1;
+        }
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        int64_t ind = proc->descriptors->size();
+        for (int64_t i = 0; i < (int64_t)(proc->descriptors->size()); ++i) {
+            if (proc->descriptors->at(ind) == nullptr) {
+                ind = i;
+                break;
+            }
+        }
+        bool newElem = false;
+        if (ind == (int64_t)(proc->descriptors->size())) {
+            if (!(proc->descriptors->pushBack(nullptr))) {
+                return -1;
+            }
+            newElem = true;
+        }
+        fs::IFile *file = fs::VFS::open(path, writable);
+        if (file == nullptr) {
+            if (newElem) {
+                proc->descriptors->popBack();
+            }
+            return -1;
+        }
+        DescriptorHandle *handle = new DescriptorHandle(file);
+        if (handle == nullptr) {
+            core::log("Here\n\r");
+            delete file;
+            if (newElem) {
+                proc->descriptors->popBack();
+            }
+            return -1;
+        }
+        proc->descriptors->at(ind) = handle;
+        return ind;
+    }
+    extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size) {
+        if (size > YY_MaxFileIOBufSize) {
+            return -1;
+        }
+        if (!memory::virtualRangeConditionCheck(
+                (memory::vaddr_t)buf, (uint64_t)size, true, true, false)) {
+            return -1;
+        }
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->read(size, (uint8_t *)buf);
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
     }
 }; // namespace proc

@@ -30,6 +30,9 @@ _start:
 
     cmp rax, 1
     je .done
+
+    mov rax, YY_Yield
+    int 57h
     
     jmp .loop
 .done:

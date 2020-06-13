@@ -20,7 +20,7 @@
 #include <x86_64/tss.hpp>
 
 void initProcess() {
-    fs::IFile *file = fs::VFS::open("Y:\\Binaries\\init", 0);
+    fs::IFile *file = fs::VFS::open("Y:\\Binaries\\init", false);
     if (file == nullptr) {
         panic(
             "[KernelInit] Failed to load init process executable from ramdisk");
@@ -80,12 +80,13 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
+    initProcessData->descriptors = new core::DynArray<proc::DescriptorHandle *>;
     initProcessData->ppid = 0;
     initProcessData->dead = 0;
 
     // this stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
-    timer.enable();
+    // timer.enable();
     proc::ProcessManager::addToRunList(initProcessPid);
     proc::ProcessManager::yield();
     // at this point this task is only executed

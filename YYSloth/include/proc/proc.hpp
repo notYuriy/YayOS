@@ -1,8 +1,10 @@
 #ifndef __PROC_HPP_INCLUDED__
 #define __PROC_HPP_INCLUDED__
 
+#include <core/dynarray.hpp>
 #include <drivers/timer/timer.hpp>
 #include <memory/usrvmmngr.hpp>
+#include <proc/descriptor.hpp>
 #include <proc/state.hpp>
 #include <x86_64/msr.hpp>
 
@@ -18,7 +20,8 @@ namespace proc {
         uint64_t kernelStackSize;
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
-        uint64_t pad[5];
+        core::DynArray<DescriptorHandle *> *descriptors;
+        uint64_t pad[4];
         bool setup(bool createUserAllocator = true);
         void cleanup();
     };

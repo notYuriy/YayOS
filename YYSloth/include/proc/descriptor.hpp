@@ -14,6 +14,15 @@ namespace proc {
         virtual void flush() = 0;
         virtual ~IDescriptor() = 0;
     };
+
+    struct DescriptorHandle {
+        IDescriptor *val;
+        struct Mutex *mutex;
+        uint64_t refCount;
+        DescriptorHandle(IDescriptor *desc);
+        DescriptorHandle *clone();
+        void release();
+    };
 }; // namespace proc
 
 #endif

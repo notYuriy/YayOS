@@ -18,12 +18,16 @@ namespace core {
             }
             return result;
         }
-        INLINE void relocate(uint64_t newCapacity) {
+        INLINE bool relocate(uint64_t newCapacity) {
             T *newarr = new T[newCapacity];
+            if (newarr == nullptr) {
+                return false;
+            }
             memcpy(newarr, m_data, m_size);
             delete m_data;
             m_data = newarr;
             m_capacity = newCapacity;
+            return true;
         }
         INLINE void init() {
             m_data = new T[16];
@@ -40,12 +44,16 @@ namespace core {
             m_disposed = other.m_disposed;
             m_size = other.m_size;
         }
-        INLINE void pushBack(T elem) {
+        INLINE bool pushBack(T elem) {
             m_data[m_size++] = elem;
             if (m_size == m_capacity) {
                 uint64_t newCapacity = calculcateCapacity(m_size);
-                relocate(newCapacity);
+                if (!relocate(newCapacity)) {
+                    m_size--;
+                    return false;
+                }
             }
+            return true;
         }
         INLINE void popBack() {
             m_size--;
@@ -54,12 +62,7 @@ namespace core {
                 relocate(newCapacity);
             }
         }
-        INLINE T &operator[](uint64_t index) {
-            if (UNLIKELY(index >= m_size)) {
-                panic("Vec: array overflow");
-            }
-            return m_data[index];
-        }
+        INLINE T &operator[](uint64_t index) { return at(index); }
         INLINE uint64_t size() { return m_size; }
         INLINE void dispose() {
             if (!m_disposed) {
@@ -69,6 +72,12 @@ namespace core {
         INLINE void clear() {
             delete m_data;
             init();
+        }
+        INLINE T &at(uint64_t index) {
+            if (UNLIKELY(index >= m_size)) {
+                panic("Vec: array overflow");
+            }
+            return m_data[index];
         }
         INLINE ~DynArray() { dispose(); }
     };

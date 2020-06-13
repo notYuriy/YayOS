@@ -43,9 +43,9 @@ void YY_Yield();
 //Allocate pagesCount pages with specified permissions
 //flags format: bit 0 - writable, bit 1 - executable
 //Syscall number 5
-//Note: returns -1 ((uint64_t)-1) if error, not zero. 
+//Note: returns -1 if error, not zero. 
 //This was done to make error code consistent across all system calls
-void* YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
+int64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
 
 //Deallocate pagesCount pages starting from address. Syscall number 6
 int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
@@ -53,22 +53,28 @@ int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 //Query some info about system API. Use it for
 //getting page size, max length of argument and
 //max argument count. More params are coming soon
-//Return (uint64_t)(-1) if this APIInfo entry is not 
+//Return -1 if this APIInfo entry is not 
 //present. Syscall number 7.
 //Examples:
 //YY_QueryAPIInfo(1) //query page size
 //YY_QueryAPIInfo(2) //query max arguments count
 //YY_QueryAPIInfo(3) //query max arguments length
-uint64_t YY_QueryAPIInfo(uint64_t id);
+int64_t YY_QueryAPIInfo(uint64_t id);
 
 //Get child proces status. Returns -1 if process is not
 //allowed to know this information, 0 if process is still running
 //and 1 if process has terminated. Syscall number 8.
-uint64_t YY_GetProcessStatus(uint64_t pid);
+int64_t YY_GetProcessStatus(uint64_t pid);
 
 //Analogues to exec (except enviroment variables are not supported)
 //Syscall number 9.
-uint64_t YY_ExecuteBinary(const char* path, uint64_t argc, const char** argv);
+int64_t YY_ExecuteBinary(const char* path, uint64_t argc, const char** argv);
+
+//Opens file. Syscall number 10.
+int64_t YY_OpenFile(const char* path, bool writable);
+
+//Reads from file. Syscall number 11.
+int64_t YY_ReadFile(int64_t fd, char* buf, uint64_t count);
 ```
 
 ### How can I use these system calls in assembly?

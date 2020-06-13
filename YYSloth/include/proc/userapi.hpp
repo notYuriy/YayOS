@@ -34,7 +34,7 @@ namespace proc {
     constexpr uint64_t YY_VirtualFlagsWritable = 1ULL << 0;
     constexpr uint64_t YY_VirtualFlagsExecutable = 1ULL << 1;
 
-    extern "C" uint64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
+    extern "C" int64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
 
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount);
 
@@ -42,17 +42,27 @@ namespace proc {
     constexpr uint64_t YY_APIInfoId_MaxArgLength = 2;
     constexpr uint64_t YY_APIInfoID_MaxArgCount = 3;
     constexpr uint64_t YY_APIInfoID_ExecMaxPathLength = 4;
+    constexpr uint64_t YY_APIInfoID_MaxOpenFilePathLength = 5;
+    constexpr uint64_t YY_APIInfoID_MaxFileIOBufSize = 6;
 
-    extern "C" uint64_t YY_QueryAPIInfo(uint64_t id);
+    extern "C" int64_t YY_QueryAPIInfo(uint64_t id);
 
-    constexpr uint64_t YY_MaxArgLength = 4096;
-    constexpr uint64_t YY_MaxArgCount = 4096;
-    constexpr uint64_t YY_ExecMaxPathLength = 1024;
+    extern "C" int64_t YY_CheckProcStatus(uint64_t pid);
 
-    extern "C" uint64_t YY_CheckProcStatus(uint64_t pid);
+    constexpr int64_t YY_MaxArgLength = 4096;
+    constexpr int64_t YY_MaxArgCount = 4096;
+    constexpr int64_t YY_ExecMaxPathLength = 1024;
 
-    extern "C" uint64_t YY_ExecuteBinary(const char *path, uint64_t argc,
-                                         const char **argv);
+    extern "C" int64_t YY_ExecuteBinary(const char *path, uint64_t argc,
+                                        const char **argv);
+
+    constexpr int64_t YY_MaxOpenFilePath = 4096;
+
+    extern "C" int64_t YY_OpenFile(const char *path, bool writable);
+
+    constexpr int64_t YY_MaxFileIOBufSize = 65536;
+
+    extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size);
 }; // namespace proc
 
 #endif

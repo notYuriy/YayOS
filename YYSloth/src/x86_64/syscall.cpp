@@ -19,6 +19,8 @@ namespace x86_64 {
         syscallHandlerTable[7] = (uint64_t)proc::YY_QueryAPIInfo;
         syscallHandlerTable[8] = (uint64_t)proc::YY_CheckProcStatus;
         syscallHandlerTable[9] = (uint64_t)proc::YY_ExecuteBinary;
+        syscallHandlerTable[10] = (uint64_t)proc::YY_OpenFile;
+        syscallHandlerTable[11] = (uint64_t)proc::YY_ReadFile;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

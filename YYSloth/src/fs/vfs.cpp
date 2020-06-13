@@ -273,7 +273,7 @@ namespace fs {
         return false;
     }
 
-    IFile *VFS::open(const char *path, int perm) {
+    IFile *VFS::open(const char *path, bool writable) {
         if (strlen(path, 3) != 3) {
             return nullptr;
         }
@@ -290,7 +290,7 @@ namespace fs {
             return nullptr;
         }
         entry->incrementUsedCount();
-        IFile *result = entry->node->open(perm);
+        IFile *result = entry->node->open(writable);
         if (result == nullptr) {
             return nullptr;
         }
