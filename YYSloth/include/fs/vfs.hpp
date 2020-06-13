@@ -33,7 +33,6 @@ namespace fs {
     class VFS {
         static ISuperblock *m_rootFs[26];
         static struct DEntry *m_fsTrees[26];
-        static struct proc::Mutex *m_rootMutex;
 
     public:
         static void init();

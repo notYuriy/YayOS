@@ -20,7 +20,7 @@
 #include <x86_64/tss.hpp>
 
 void initProcess() {
-    fs::IFile *file = fs::VFS::open("Y:\\bin\\init", 0);
+    fs::IFile *file = fs::VFS::open("Y:\\Binaries\\init", 0);
     if (file == nullptr) {
         panic(
             "[KernelInit] Failed to load init process executable from ramdisk");

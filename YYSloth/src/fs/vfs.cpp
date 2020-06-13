@@ -35,7 +35,7 @@ namespace fs {
 
     ISuperblock *VFS::m_rootFs[26];
     DEntry *VFS::m_fsTrees[26];
-    proc::Mutex *VFS::m_rootMutex;
+    proc::Mutex m_rootMutex;
 
     DEntry *DEntry::createNode(const char *name) {
         DEntry *newDEntry = new DEntry;
@@ -247,7 +247,6 @@ namespace fs {
             m_fsTrees[i] = nullptr;
             m_rootFs[i] = nullptr;
         }
-        m_rootMutex = new proc::Mutex;
     }
 
     bool VFS::mount(char letter, ISuperblock *sb) {
@@ -255,7 +254,7 @@ namespace fs {
         if (index == -1) {
             return false;
         }
-        m_rootMutex->lock();
+        m_rootMutex.lock();
         if (m_fsTrees[index] == nullptr) {
             m_rootFs[index] = sb;
             m_rootFs[index]->mount();
@@ -267,10 +266,10 @@ namespace fs {
             m_fsTrees[index]->sb = sb;
             m_fsTrees[index]->node = sb->getNode(sb->getRootNum());
             m_fsTrees[index]->incrementUsedCount();
-            m_rootMutex->unlock();
+            m_rootMutex.unlock();
             return true;
         }
-        m_rootMutex->unlock();
+        m_rootMutex.unlock();
         return false;
     }
 
@@ -283,9 +282,9 @@ namespace fs {
             return nullptr;
         }
         PathIterator iter(path + 2);
-        m_rootMutex->lock();
+        m_rootMutex.lock();
         DEntry *root = m_fsTrees[index];
-        m_rootMutex->unlock();
+        m_rootMutex.unlock();
         DEntry *entry = root->walk(&iter);
         if (entry == nullptr) {
             return nullptr;

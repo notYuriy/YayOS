@@ -1,4 +1,4 @@
 #!/bin/bash
 
 rm -rf init.o
-rm -rf fsroot/bin/init
+rm -rf fsroot/Binaries/init

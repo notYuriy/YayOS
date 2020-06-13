@@ -10,7 +10,7 @@ YY_ExecuteBinary: equ 9
 section .data
 msg: db "Child Terminated", 13, 10
 msglen: equ $ - msg
-path: db "Y:\bin\helloworld", 0
+path: db "Y:\Binaries\helloworld", 0
 args: dq 0
 
 section .text
