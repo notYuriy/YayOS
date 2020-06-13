@@ -43,6 +43,8 @@ void YY_Yield();
 //Allocate pagesCount pages with specified permissions
 //flags format: bit 0 - writable, bit 1 - executable
 //Syscall number 5
+//Note: returns -1 ((uint64_t)-1) if error, not zero. 
+//This was done to make error code consistent across all system calls
 void* YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
 
 //Deallocate pagesCount pages starting from address. Syscall number 6
@@ -63,6 +65,10 @@ uint64_t YY_QueryAPIInfo(uint64_t id);
 //allowed to know this information, 0 if process is still running
 //and 1 if process has terminated. Syscall number 8.
 uint64_t YY_GetProcessStatus(uint64_t pid);
+
+//Analogues to exec (except enviroment variables are not supported)
+//Syscall number 9.
+uint64_t YY_ExecuteBinary(const char* path, uint64_t argc, const char** argv);
 ```
 
 ### How can I use these system calls in assembly?
@@ -94,6 +100,16 @@ _start:
 
 No, you can't. Just add it to the section .bss and set it up yourself. Alternative solution is
 to allocate it dynamically.
+
+### How errors are indicated?
+
+Every syscall returns -1 on error. Error can be requested with YY_GetLastError, which will be added
+in the future.
+
+### How arguments are passed to programs?
+
+Kernel treat _start as a function that follow x86_64 SysV ABI. Having said that, rdi is argc and rsi is argv
+
 
 ### Any docs on the kernel source?
 
