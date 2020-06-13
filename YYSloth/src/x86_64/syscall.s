@@ -41,7 +41,7 @@ syscallHandler:
     jmp .done
 .invalid:
     int3
-    mov rax, -38
+    mov rax, -1
 .done:
     pop r15
     pop r14

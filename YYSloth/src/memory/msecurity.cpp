@@ -63,4 +63,21 @@ namespace memory {
         }
         return true;
     }
+
+    bool validateCString(const char *start, bool isUser, bool isWritable,
+                         bool isCode, uint64_t maxLength) {
+        for (uint64_t i = 0; i <= maxLength; ++i) {
+            if (i % 4096 == 0) {
+                if (virtualPageConditionCheck(
+                        alignDown(((vaddr_t)start) + i, 4096), isUser,
+                        isWritable, isCode)) {
+                    return false;
+                }
+                if (start[i] == '\0') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }; // namespace memory

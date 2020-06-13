@@ -24,13 +24,13 @@ namespace proc {
             return -1;
         }
         core::putsn(location, size);
-        return 1;
+        return 0;
     }
     extern "C" int64_t YY_GetSystemInfo(YY_SystemInfo *info) {
         if (!memory::virtualRangeConditionCheck((memory::vaddr_t)info,
                                                 sizeof(YY_SystemInfo), true,
                                                 true, false)) {
-            return 0;
+            return -1;
         }
         core::log("YY_GetSystemInfo(%p);\n\r", info);
         memset(info, sizeof(YY_SystemInfo), '\0');
@@ -48,7 +48,7 @@ namespace proc {
         memcpy(&(info->hardwarePlatform), arch, sizeof(arch));
         memcpy(&(info->operatingSystem), operatingSystem,
                sizeof(operatingSystem));
-        return 1;
+        return 0;
     }
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
         core::log("YY_DuplicateProcess();\n\r");
@@ -116,7 +116,7 @@ namespace proc {
         Process *proc = proc::ProcessManager::getRunningProcess();
         memory::vaddr_t result = proc->usralloc->alloc(pagesCount * 0x1000);
         if (result == 0) {
-            return 0;
+            return (uint64_t)-1;
         }
         uint64_t mask = (1ULL << 0) | (1ULL << 2);
         if ((flags & YY_VirtualFlagsWritable) != 0) {
@@ -165,8 +165,8 @@ namespace proc {
     extern "C" uint64_t YY_ExecuteBinary(const char *path, uint64_t argc,
                                          const char **argv) {
         core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
-        // TODO: check pages while calculating length
-        if (strlen(path, YY_ExecMaxPathLength + 1) > YY_ExecMaxPathLength) {
+        if (memory::validateCString(path, true, false, false,
+                                    YY_ExecMaxPathLength)) {
             return (uint64_t)(-1);
         }
         if (!memory::virtualRangeConditionCheck(
@@ -182,8 +182,8 @@ namespace proc {
             return (uint64_t)(-1);
         }
         for (uint64_t i = 0; i < argc; ++i) {
-            // TODO: check pages while calculating length
-            if (strlen(argv[i], YY_MaxArgLength + 1) > YY_MaxArgLength) {
+            if (memory::validateCString(path, true, false, false,
+                                        YY_MaxArgLength)) {
                 return (uint64_t)(-1);
             }
         }
