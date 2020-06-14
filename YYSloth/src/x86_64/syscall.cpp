@@ -24,6 +24,7 @@ namespace x86_64 {
         syscallHandlerTable[12] = (uint64_t)proc::YY_WriteFile;
         syscallHandlerTable[13] = (uint64_t)proc::YY_GetFilePos;
         syscallHandlerTable[14] = (uint64_t)proc::YY_SetFilePos;
+        syscallHandlerTable[15] = (uint64_t)proc::YY_CloseFile;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

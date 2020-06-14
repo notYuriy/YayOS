@@ -405,4 +405,13 @@ namespace proc {
         proc->descriptors->at(fd)->mutex->unlock();
         return result;
     }
+    extern "C" int64_t YY_CloseFile(int64_t fd) {
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->release();
+        proc->descriptors->at(fd) = nullptr;
+        return 0;
+    }
 }; // namespace proc

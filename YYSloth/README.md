@@ -86,6 +86,9 @@ int64_t YY_GetFilePos(int64_t fd);
 //Set file pos, Similar to fseek. Syscall number 14.
 int64_t YY_SetFilePos(int64_t fd, int64_t offset, 
 int64_t whence);
+
+//Close file. Syscall number 15
+void YY_CloseFile(int64_t fd);
 ```
 
 ### How can I use these system calls in assembly?

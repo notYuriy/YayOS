@@ -127,7 +127,10 @@ namespace proc {
         }
         if (descriptors != nullptr) {
             for (uint64_t i = 0; i < descriptors->size(); ++i) {
-                descriptors->at(i)->release();
+                DescriptorHandle *h = descriptors->at(i);
+                if (h != nullptr) {
+                    h->release();
+                }
             }
             delete descriptors;
             descriptors = nullptr;

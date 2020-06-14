@@ -1,6 +1,7 @@
 #ifndef __SYSCALLS_HPP_INCLUDED__
 #define __SYSCALLS_HPP_INCLUDED__
 
+#include <fs/usertypes.hpp>
 #include <utils.hpp>
 
 namespace proc {
@@ -70,6 +71,8 @@ namespace proc {
 
     extern "C" int64_t YY_SetFilePos(int64_t fd, int64_t offset,
                                      int64_t whence);
+
+    extern "C" int64_t YY_CloseFile(int64_t file);
 }; // namespace proc
 
 #endif
