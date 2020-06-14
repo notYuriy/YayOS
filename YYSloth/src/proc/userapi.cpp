@@ -15,6 +15,7 @@ namespace proc {
         core::log("YY_ExitProcess();\n\r");
         proc::ProcessManager::exit();
     }
+
     extern "C" int64_t YY_ConsoleWrite(char *location, uint64_t size) {
         core::log("YY_ConsoleWrite(%p, %llu);\n\r", location, size);
         if (size > YY_ConsoleOperationsSizeLimit) {
@@ -27,6 +28,7 @@ namespace proc {
         core::putsn(location, size);
         return 0;
     }
+
     extern "C" int64_t YY_GetSystemInfo(YY_SystemInfo *info) {
         if (!memory::virtualRangeConditionCheck((memory::vaddr_t)info,
                                                 sizeof(YY_SystemInfo), true,
@@ -51,6 +53,7 @@ namespace proc {
                sizeof(operatingSystem));
         return 0;
     }
+
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
         core::log("YY_DuplicateProcess();\n\r");
         pid_t newProcessID = ProcessManager::newProcess();
@@ -112,10 +115,12 @@ namespace proc {
         frame->rax = newProcessID;
         ProcessManager::addToRunList(newProcessID);
     }
+
     extern "C" void YY_Yield() {
         core::log("YY_Yield();\n\r");
         proc::ProcessManager::yield();
     }
+
     extern "C" int64_t YY_QueryAPIInfo(uint64_t id) {
         core::log("YY_QueryAPIInfo(%llu);\n\r", id);
         switch (id) {
@@ -158,6 +163,7 @@ namespace proc {
         }
         return (int64_t)result;
     }
+
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount) {
         core::log("YY_VirtualFree(%p, %llu)\n\r", start, pagesCount);
         if (pagesCount == 0) {
@@ -176,6 +182,7 @@ namespace proc {
         }
         return 1;
     }
+
     extern "C" int64_t YY_CheckProcStatus(uint64_t pid) {
         // core::log("YY_CheckProcStatus(%llu)\n\r", pid);
         Process *proc = ProcessManager::getProcessData(pid);
@@ -188,6 +195,7 @@ namespace proc {
         }
         return (int64_t)dead;
     }
+
     extern "C" int64_t YY_ExecuteBinary(const char *path, uint64_t argc,
                                         const char **argv) {
         core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
@@ -293,6 +301,7 @@ namespace proc {
             proc::ProcessManager::exit();
         }
     }
+
     extern "C" int64_t YY_OpenFile(const char *path, bool writable) {
         if (!memory::validateCString(path, true, false, false,
                                      YY_MaxOpenFilePath)) {
@@ -333,6 +342,7 @@ namespace proc {
         proc->descriptors->at(ind) = handle;
         return ind;
     }
+
     extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size) {
         if (size > YY_MaxFileIOBufSize) {
             return -1;
@@ -348,6 +358,50 @@ namespace proc {
         proc->descriptors->at(fd)->mutex->lock();
         IDescriptor *desc = proc->descriptors->at(fd)->val;
         int64_t result = desc->read(size, (uint8_t *)buf);
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
+    }
+
+    extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, int64_t size) {
+        if (size > YY_MaxFileIOBufSize) {
+            return -1;
+        }
+        if (!memory::virtualRangeConditionCheck(
+                (memory::vaddr_t)buf, (uint64_t)size, true, false, false)) {
+            return -1;
+        }
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->write(size, (uint8_t *)buf);
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
+    }
+
+    extern "C" int64_t YY_GetFilePos(int64_t fd) {
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->ltellg();
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
+    }
+
+    extern "C" int64_t YY_SetFilePos(int64_t fd, int64_t offset,
+                                     int64_t whence) {
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->lseek(offset, whence);
         proc->descriptors->at(fd)->mutex->unlock();
         return result;
     }

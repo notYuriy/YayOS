@@ -63,6 +63,13 @@ namespace proc {
     constexpr int64_t YY_MaxFileIOBufSize = 65536;
 
     extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size);
+
+    extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, int64_t size);
+
+    extern "C" int64_t YY_GetFilePos(int64_t fd);
+
+    extern "C" int64_t YY_SetFilePos(int64_t fd, int64_t offset,
+                                     int64_t whence);
 }; // namespace proc
 
 #endif

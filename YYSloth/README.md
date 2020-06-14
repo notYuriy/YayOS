@@ -75,6 +75,17 @@ int64_t YY_OpenFile(const char* path, bool writable);
 
 //Reads from file. Syscall number 11.
 int64_t YY_ReadFile(int64_t fd, char* buf, uint64_t count);
+
+//Writes to file. Syscall number 12.
+int64_t YY_WriteFile(int64_t fd, const char *buf, 
+int64_t size);
+
+//Get file pos. Similar to ftellg. Syscall number 13.
+int64_t YY_GetFilePos(int64_t fd);
+
+//Set file pos, Similar to fseek. Syscall number 14.
+int64_t YY_SetFilePos(int64_t fd, int64_t offset, 
+int64_t whence);
 ```
 
 ### How can I use these system calls in assembly?
