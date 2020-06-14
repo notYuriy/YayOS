@@ -184,7 +184,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_CheckProcStatus(uint64_t pid) {
-        // core::log("YY_CheckProcStatus(%llu)\n\r", pid);
+        core::log("YY_CheckProcStatus(%llu)\n\r", pid);
         Process *proc = ProcessManager::getProcessData(pid);
         if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
             return -1;

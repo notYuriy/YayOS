@@ -89,6 +89,19 @@ int64_t whence);
 
 //Close file. Syscall number 15
 void YY_CloseFile(int64_t fd);
+
+constexpr uint64_t YY_FileNameMaxLength = 255;
+//Dirent buffer
+#pragma pack(1)
+    struct YY_Dirent {
+        uint64_t inodeNumber;
+        uint16_t nameLength;
+        char name[YY_FileNameMaxLength];
+    };
+#pragma pack(0)
+
+//Read directory. Syscall number 16
+int64_t YY_ReadDirectory(int64_t fd, YY_Dirent *buf, uint64_t count);
 ```
 
 ### How can I use these system calls in assembly?
