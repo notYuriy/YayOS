@@ -303,6 +303,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_OpenFile(const char *path, bool writable) {
+        core::log("YY_OpenFile(%p, %d);\n\r", path, (int)writable);
         if (!memory::validateCString(path, true, false, false,
                                      YY_MaxOpenFilePath)) {
             core::log("Here $1\n\r");
@@ -344,11 +345,12 @@ namespace proc {
     }
 
     extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size) {
+        core::log("YY_ReadFile(%lld, %p, %llu)\n\r", fd, buf, size);
         if (size > YY_MaxFileIOBufSize) {
             return -1;
         }
-        if (!memory::virtualRangeConditionCheck(
-                (memory::vaddr_t)buf, (uint64_t)size, true, true, false)) {
+        if (!memory::virtualRangeConditionCheck((memory::vaddr_t)buf, size,
+                                                true, true, false)) {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
@@ -363,11 +365,12 @@ namespace proc {
     }
 
     extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, int64_t size) {
+        core::log("YY_ReadFile(%lld, %p, %llu)\n\r", fd, buf, size);
         if (size > YY_MaxFileIOBufSize) {
             return -1;
         }
-        if (!memory::virtualRangeConditionCheck(
-                (memory::vaddr_t)buf, (uint64_t)size, true, false, false)) {
+        if (!memory::virtualRangeConditionCheck((memory::vaddr_t)buf, size,
+                                                true, false, false)) {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
@@ -382,6 +385,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_GetFilePos(int64_t fd) {
+        core::log("YY_GetFilePos(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -395,6 +399,7 @@ namespace proc {
 
     extern "C" int64_t YY_SetFilePos(int64_t fd, int64_t offset,
                                      int64_t whence) {
+        core::log("YY_SetFilePos(%lld, %lld, %lld)\n\r", fd, offset, whence);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -406,6 +411,7 @@ namespace proc {
         return result;
     }
     extern "C" int64_t YY_CloseFile(int64_t fd) {
+        core::log("YY_CloseFile(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -413,5 +419,26 @@ namespace proc {
         proc->descriptors->at(fd)->release();
         proc->descriptors->at(fd) = nullptr;
         return 0;
+    }
+    extern "C" int64_t YY_ReadDirectory(int64_t fd, fs::Dirent *buf,
+                                        uint64_t count) {
+        core::log("YY_ReadDirectory(%lld, %p, %llu)\n\r", fd, buf, count);
+        if (count > YY_MaxReadDirectoryBufSize) {
+            return -1;
+        }
+        if (!memory::virtualRangeConditionCheck((memory::vaddr_t)buf,
+                                                sizeof(fs::Dirent) * count,
+                                                true, true, false)) {
+            return -1;
+        }
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->readdir(count, buf);
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
     }
 }; // namespace proc

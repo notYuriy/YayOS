@@ -45,6 +45,7 @@ namespace proc {
     constexpr uint64_t YY_APIInfoID_ExecMaxPathLength = 4;
     constexpr uint64_t YY_APIInfoID_MaxOpenFilePathLength = 5;
     constexpr uint64_t YY_APIInfoID_MaxFileIOBufSize = 6;
+    constexpr uint64_t YY_APIInfoID_MaxReadDirectoryCount = 7;
 
     extern "C" int64_t YY_QueryAPIInfo(uint64_t id);
 
@@ -73,6 +74,11 @@ namespace proc {
                                      int64_t whence);
 
     extern "C" int64_t YY_CloseFile(int64_t file);
+
+    constexpr int64_t YY_MaxReadDirectoryBufSize = 128;
+
+    extern "C" int64_t YY_ReadDirectory(int64_t fd, fs::Dirent *buf,
+                                        uint64_t count);
 }; // namespace proc
 
 #endif
