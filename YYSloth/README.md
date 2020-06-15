@@ -40,14 +40,17 @@ int64_t YY_GetSystemInfo(YY_SystemInfo* buf);
 //Yield execution. Syscall number 4
 void YY_Yield();
 
-//Allocate pagesCount pages with specified permissions
+//Allocate virtual memory
 //flags format: bit 0 - writable, bit 1 - executable
 //Syscall number 5
 //Note: returns -1 if error, not zero. 
-//This was done to make error code consistent across all system calls
-int64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags);
+//Note: requires size to be divisible by page size, see
+//YY_QueryAPIInfo for querying page size
+int64_t YY_VirtualAlloc(uint64_t size, uint64_t flags);
 
-//Deallocate pagesCount pages starting from address. Syscall number 6
+//Deallocate virtual memory. Syscall number 6
+//Note: requires size to be divisible by page size, see
+//YY_QueryAPIInfo for querying page size
 int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 
 //Query some info about system API. Use it for

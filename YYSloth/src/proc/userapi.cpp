@@ -142,10 +142,13 @@ namespace proc {
         }
     }
 
-    extern "C" int64_t YY_VirtualAlloc(uint64_t pagesCount, uint64_t flags) {
-        core::log("YY_VirtualAlloc(%llu, %llu);\n\r", pagesCount, flags);
+    extern "C" int64_t YY_VirtualAlloc(uint64_t size, uint64_t flags) {
+        core::log("YY_VirtualAlloc(%llu, %llu);\n\r", size, flags);
         Process *proc = proc::ProcessManager::getRunningProcess();
-        memory::vaddr_t result = proc->usralloc->alloc(pagesCount * 0x1000);
+        if (size % 0x1000 != 0) {
+            return -1;
+        }
+        memory::vaddr_t result = proc->usralloc->alloc(size * 0x1000);
         if (result == 0) {
             return -1;
         }
@@ -156,26 +159,26 @@ namespace proc {
         if ((flags & YY_VirtualFlagsExecutable) == 0) {
             mask |= (1ULL << 63);
         }
-        if (!memory::VirtualMemoryMapper::mapPages(
-                result, result + pagesCount * 0x1000, 0, mask)) {
-            proc->usralloc->free(result, pagesCount * 0x1000);
+        if (!memory::VirtualMemoryMapper::mapPages(result, result + size, 0,
+                                                   mask)) {
+            proc->usralloc->free(result, size);
             return 0;
         }
         return (int64_t)result;
     }
 
-    extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t pagesCount) {
-        core::log("YY_VirtualFree(%p, %llu)\n\r", start, pagesCount);
-        if (pagesCount == 0) {
+    extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t size) {
+        core::log("YY_VirtualFree(%p, %llu)\n\r", start, size);
+        if (size == 0 || (size % 0x1000 != 0)) {
             return -1;
         }
-        if (!memory::virtualRangeConditionCheck(start, pagesCount * 0x1000,
-                                                false, false, false)) {
+        if (!memory::virtualRangeConditionCheck(start, size, false, false,
+                                                false)) {
             return -1;
         }
-        memory::VirtualMemoryMapper::freePages(start, pagesCount * 0x1000);
+        memory::VirtualMemoryMapper::freePages(start, size);
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (!(proc->usralloc->free(start, pagesCount * 0x1000))) {
+        if (!(proc->usralloc->free(start, size))) {
             // not enough memory to free the memory
             // that is unfortunate
             proc::ProcessManager::exit();
