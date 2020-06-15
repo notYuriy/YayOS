@@ -1,5 +1,5 @@
 #include <core/cpprt.hpp>
-#include <drivers/serial.hpp>
+#include <drivers/serial/serial.hpp>
 #include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
 #include <proc/intlock.hpp>

@@ -306,13 +306,12 @@ namespace proc {
         core::log("YY_OpenFile(%p, %d);\n\r", path, (int)writable);
         if (!memory::validateCString(path, true, false, false,
                                      YY_MaxOpenFilePath)) {
-            core::log("Here $1\n\r");
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
         int64_t ind = proc->descriptors->size();
         for (int64_t i = 0; i < (int64_t)(proc->descriptors->size()); ++i) {
-            if (proc->descriptors->at(ind) == nullptr) {
+            if (proc->descriptors->at(i) == nullptr) {
                 ind = i;
                 break;
             }
@@ -365,7 +364,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, int64_t size) {
-        core::log("YY_ReadFile(%lld, %p, %llu)\n\r", fd, buf, size);
+        core::log("YY_WriteFile(%lld, %p, %llu)\n\r", fd, buf, size);
         if (size > YY_MaxFileIOBufSize) {
             return -1;
         }

@@ -1,4 +1,4 @@
-#include <drivers/serial.hpp>
+#include <drivers/serial/serial.hpp>
 #include <inttypes.hpp>
 #include <stdarg.h>
 

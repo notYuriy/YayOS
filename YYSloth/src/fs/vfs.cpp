@@ -23,6 +23,7 @@ namespace fs {
         DEntry *hardLookup(const char *name);
         DEntry *goToParent();
         DEntry *goToChild(const char *name);
+        void hide(const char *name);
         // the last node remain in observed state (so it is not deleted)
         DEntry *walk(PathIterator *iter, bool resolveLast = true);
         void incrementUsedCount();
@@ -92,6 +93,9 @@ namespace fs {
 
     DEntry *DEntry::hardLookup(const char *name) {
         if (node == nullptr) {
+            return nullptr;
+        }
+        if (strlen(name, 256) == 256) {
             return nullptr;
         }
         uint64_t num = node->lookup(name);
@@ -200,6 +204,15 @@ namespace fs {
             dispose();
             current = next;
         }
+    }
+
+    void DEntry::hide(const char *name) {
+        mutex.lock();
+        DEntry *node = softLookup(name);
+        if (node == nullptr) {
+            mutex.unlock();
+        }
+        mutex.unlock();
     }
 
     DEntry *DEntry::walk(PathIterator *iter, bool resolveLast) {

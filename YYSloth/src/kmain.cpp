@@ -1,8 +1,10 @@
 #include <core/log.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
-#include <drivers/serial.hpp>
+#include <drivers/serial/serial.hpp>
+#include <drivers/serial/serialfs.hpp>
 #include <drivers/timer/pit.hpp>
+#include <fs/devfs.hpp>
 #include <fs/ramdiskfs.hpp>
 #include <fs/vfs.hpp>
 #include <memory/cow.hpp>
@@ -45,25 +47,34 @@ void initProcess() {
 
 extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
                       void (**ctorsEnd)()) {
+    // Execute global constructors
     executeCtors(ctorsStart, ctorsEnd);
+    // Initialize serial port
     drivers::Serial::init(drivers::SerialPort::COM1);
-    // drivers::Serial::recieve(drivers::SerialPort::COM1);
-    // drivers::Serial::recieve(drivers::SerialPort::COM1);
+    // Initialize memory management and processor data structures
     memory::init(mbPointer);
     x86_64::GDT::init();
     x86_64::TSS::init();
     x86_64::IDT::init();
     memory::CoW::init();
     x86_64::SyscallTable::init();
+    // Initialize hardware (pic and timer)
     drivers::IPIC::detectPIC();
     drivers::IPIC::getSystemPIC()->enableLegacyIrq(8);
     drivers::PIT timer;
     timer.init(200);
+    // Initialize process subsystem
     proc::ProcessManager::init(&timer);
     proc::StackPool::init();
+    // Initialize filesystem
     fs::RamdiskFsSuperblock initRd;
+    fs::DevFSSuperblock devfs;
     fs::VFS::init();
     fs::VFS::mount('Y', &initRd);
+    fs::VFS::mount('D', &devfs);
+    fs::UARTNode serialDevice(drivers::SerialPort::COM1);
+    devfs.registerDevice("COM1", &serialDevice);
+    // Create init process
     proc::pid_t initProcessPid = proc::ProcessManager::newProcess();
     proc::Process *initProcessData =
         proc::ProcessManager::getProcessData(initProcessPid);
@@ -83,11 +94,13 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->descriptors = new core::DynArray<proc::DescriptorHandle *>;
     initProcessData->ppid = 0;
     initProcessData->dead = 0;
-
-    // this stack will only be used to setup the process
+    // This stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
-    // timer.enable();
+    // Enable preemptive multitasking by enabling timer
+    timer.enable();
+    // Run init process
     proc::ProcessManager::addToRunList(initProcessPid);
+    // We shall not run
     proc::ProcessManager::yield();
     // at this point this task is only executed
     // if there is no other task to run
