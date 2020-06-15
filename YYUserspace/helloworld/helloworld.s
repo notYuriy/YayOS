@@ -5,6 +5,7 @@ YY_ConsoleWrite: equ 2
 YY_OpenFile: equ 10
 YY_ReadFile: equ 11
 YY_WriteFile: equ 12
+YY_CloseFile: equ 15
 
 section .data
 buf: resb 56
@@ -19,6 +20,7 @@ _start:
     xor rsi, rsi
     mov rax, YY_OpenFile
     int 57h
+    mov r9, rax
 
     mov rdi, rax
     mov rsi, buf
@@ -30,11 +32,20 @@ _start:
     mov rsi, 1
     mov rax, YY_OpenFile
     int 57h
+    mov r10, rax
 
     mov rdi, rax
     mov rsi, buf
     mov rdx, 58
     mov rax, YY_WriteFile
+    int 57h
+
+    mov rdi, r9
+    mov rax, YY_CloseFile
+    int 57h
+
+    mov rdi, r10
+    mov rax, YY_CloseFile
     int 57h
 
     mov rax, YY_ExitProcess

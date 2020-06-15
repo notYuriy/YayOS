@@ -3,6 +3,7 @@
 #include <memory/kvmmngr.hpp>
 
 namespace fs {
+
     uint64_t V7TarHeader::getSize() {
         uint64_t result = 0;
         uint64_t base = 1;
@@ -17,15 +18,17 @@ namespace fs {
     }
 
     bool V7TarHeader::isDirectory() { return typeflag == '5'; }
+
     INode *RamdiskFsSuperblock::getNode(uint64_t num) {
         if (num > nodes.size() || num == 0) {
             return nullptr;
         }
         return nodes[num - 1];
     }
+
     void RamdiskFsSuperblock::dropNode(UNUSED uint64_t num) {}
+
     uint64_t RamdiskFsSuperblock::getRootNum() { return nodes.size(); }
-    uint64_t RamdiskFileNode::lookup(UNUSED const char *name) { return 0; }
 
     uint64_t RamdiskFsSuperblock::parseHeader(V7TarHeader *header,
                                               V7TarHeader **lookahead) {
@@ -117,14 +120,6 @@ namespace fs {
         return result;
     }
 
-    int64_t RamdiskDirView::read(UNUSED int64_t size, UNUSED uint8_t *buf) {
-        return -1;
-    }
-    int64_t RamdiskDirView::write(UNUSED int64_t size,
-                                  UNUSED const uint8_t *buf) {
-        return -1;
-    }
-
     int64_t RamdiskDirView::readdir(int64_t count, Dirent *buf) {
         int64_t realCount = count;
         if (currentEntryIndex + realCount > node->entries.size()) {
@@ -156,14 +151,7 @@ namespace fs {
         return realSize;
     }
 
-    int64_t RamdiskFileView::readdir(UNUSED int64_t count, UNUSED Dirent *buf) {
-        return -1;
-    }
     void RamdiskFileView::flush() {}
-    int64_t RamdiskFileView::write(UNUSED int64_t size,
-                                   UNUSED const uint8_t *buf) {
-        return -1;
-    }
 
     int64_t RamdiskFileView::lseek(int64_t offset, int64_t whence) {
         int64_t newpos;
@@ -184,10 +172,5 @@ namespace fs {
     }
 
     int64_t RamdiskFileView::ltellg() { return fileOffset; }
-    int64_t RamdiskDirView::lseek(UNUSED int64_t offset,
-                                  UNUSED int64_t whence) {
-        return -1;
-    }
-    int64_t RamdiskDirView::ltellg() { return -1; }
 
 }; // namespace fs

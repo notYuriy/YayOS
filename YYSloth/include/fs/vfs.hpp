@@ -16,8 +16,8 @@ namespace fs {
     struct INode {
         struct ISuperblock *sb;
         uint64_t num;
-        virtual uint64_t lookup(const char *name) = 0;
-        virtual IFile *open(bool writable) = 0;
+        virtual uint64_t lookup(const char *name);
+        virtual IFile *open(bool writable);
         virtual ~INode();
     };
 

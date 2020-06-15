@@ -6,13 +6,13 @@
 
 namespace proc {
     struct IDescriptor {
-        virtual int64_t read(int64_t size, uint8_t *buf) = 0;
-        virtual int64_t write(int64_t size, const uint8_t *buf) = 0;
-        virtual int64_t readdir(int64_t count, fs::Dirent *buf) = 0;
-        virtual int64_t lseek(int64_t offset, int64_t whence) = 0;
-        virtual int64_t ltellg() = 0;
-        virtual void flush() = 0;
-        virtual ~IDescriptor() = 0;
+        virtual int64_t read(int64_t size, uint8_t *buf);
+        virtual int64_t write(int64_t size, const uint8_t *buf);
+        virtual int64_t readdir(int64_t count, fs::Dirent *buf);
+        virtual int64_t lseek(int64_t offset, int64_t whence);
+        virtual int64_t ltellg();
+        virtual void flush();
+        virtual ~IDescriptor();
     };
 
     struct DescriptorHandle {

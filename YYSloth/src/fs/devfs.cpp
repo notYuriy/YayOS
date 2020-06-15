@@ -1,14 +1,6 @@
 #include <fs/devfs.hpp>
 
 namespace fs {
-    int64_t DevFSRootFile::read(UNUSED int64_t size, UNUSED uint8_t *buf) {
-        return -1;
-    }
-
-    int64_t DevFSRootFile::write(UNUSED int64_t size,
-                                 UNUSED const uint8_t *buf) {
-        return -1;
-    }
 
     int64_t DevFSRootFile::readdir(int64_t count, Dirent *buf) {
         sb->rootMutex.lock();
@@ -31,14 +23,6 @@ namespace fs {
         sb->rootMutex.unlock();
         return count;
     }
-
-    int64_t DevFSRootFile::lseek(UNUSED int64_t offset, UNUSED int64_t whence) {
-        return -1;
-    }
-
-    int64_t DevFSRootFile::ltellg() { return -1; }
-
-    void DevFSRootFile::flush() {}
 
     uint64_t DevFSRootNode::lookup(const char *name) {
         DevFSSuperblock *devsb = (DevFSSuperblock *)sb;
@@ -111,7 +95,5 @@ namespace fs {
     }
 
     DevINode::~DevINode() {}
-
-    uint64_t DevINode::lookup(UNUSED const char *name) { return -1; }
 
 }; // namespace fs

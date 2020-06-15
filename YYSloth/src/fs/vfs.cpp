@@ -317,6 +317,11 @@ namespace fs {
     }
 
     INode::~INode() {}
+
+    uint64_t INode::lookup(UNUSED const char *name) { return 0; }
+
+    IFile *INode::open(UNUSED bool writable) { return nullptr; }
+
     ISuperblock::~ISuperblock() {}
 
 }; // namespace fs

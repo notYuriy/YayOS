@@ -42,7 +42,6 @@ namespace fs {
     struct RamdiskFileNode : INode {
         uint64_t fileSize;
         uint8_t *data;
-        virtual uint64_t lookup(const char *name);
         virtual IFile *open(bool writable);
         RamdiskFileNode(V7TarHeader *header);
     };
@@ -51,8 +50,6 @@ namespace fs {
         RamdiskFileNode *node;
         uint64_t fileOffset;
         virtual int64_t read(int64_t size, uint8_t *buf);
-        virtual int64_t write(int64_t size, const uint8_t *buf);
-        virtual int64_t readdir(int64_t count, Dirent *buf);
         virtual int64_t lseek(int64_t offset, int64_t whence);
         virtual int64_t ltellg();
         virtual void flush();
@@ -61,11 +58,7 @@ namespace fs {
     struct RamdiskDirView : IFile {
         RamdiskDirNode *node;
         uint64_t currentEntryIndex;
-        virtual int64_t read(int64_t size, uint8_t *buf);
-        virtual int64_t write(int64_t size, const uint8_t *buf);
         virtual int64_t readdir(int64_t count, Dirent *buf);
-        virtual int64_t lseek(int64_t offset, int64_t whence);
-        virtual int64_t ltellg();
         virtual void flush();
     };
 

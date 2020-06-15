@@ -24,16 +24,4 @@ namespace fs {
         return size;
     }
 
-    int64_t UARTFile::readdir(UNUSED int64_t count, UNUSED Dirent *buf) {
-        return -1;
-    }
-
-    int64_t UARTFile::lseek(UNUSED int64_t offset, UNUSED int64_t whence) {
-        return -1;
-    }
-
-    int64_t UARTFile::ltellg() { return -1; }
-
-    void UARTFile::flush() {}
-
 }; // namespace fs

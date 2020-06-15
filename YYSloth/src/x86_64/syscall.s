@@ -7,7 +7,6 @@ global syscallHandler
 %include "proc/state.inc"
 
 syscallHandler:
-    mov r9, rax
     push rax
     mov ax, 0x10
     mov ss, ax
