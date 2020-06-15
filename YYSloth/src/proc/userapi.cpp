@@ -12,12 +12,12 @@
 
 namespace proc {
     [[noreturn]] void YY_ExitProcess() {
-        core::log("YY_ExitProcess();\n\r");
+        // core::log("YY_ExitProcess();\n\r");
         proc::ProcessManager::exit();
     }
 
     extern "C" int64_t YY_ConsoleWrite(char *location, uint64_t size) {
-        core::log("YY_ConsoleWrite(%p, %llu);\n\r", location, size);
+        // core::log("YY_ConsoleWrite(%p, %llu);\n\r", location, size);
         if (size > YY_ConsoleOperationsSizeLimit) {
             return -1;
         }
@@ -35,7 +35,7 @@ namespace proc {
                                                 true, false)) {
             return -1;
         }
-        core::log("YY_GetSystemInfo(%p);\n\r", info);
+        // core::log("YY_GetSystemInfo(%p);\n\r", info);
         memset(info, sizeof(YY_SystemInfo), '\0');
 
         static const char kernelName[] = "YYSloth";
@@ -55,7 +55,7 @@ namespace proc {
     }
 
     extern "C" void sysForkWithFrame(SchedulerIntFrame *frame) {
-        core::log("YY_DuplicateProcess();\n\r");
+        // core::log("YY_DuplicateProcess();\n\r");
         pid_t newProcessID = ProcessManager::newProcess();
         if (newProcessID == PID_MAX) {
             frame->rax = (uint64_t)(-1);
@@ -117,12 +117,12 @@ namespace proc {
     }
 
     extern "C" void YY_Yield() {
-        core::log("YY_Yield();\n\r");
+        // core::log("YY_Yield();\n\r");
         proc::ProcessManager::yield();
     }
 
     extern "C" int64_t YY_QueryAPIInfo(uint64_t id) {
-        core::log("YY_QueryAPIInfo(%llu);\n\r", id);
+        // core::log("YY_QueryAPIInfo(%llu);\n\r", id);
         switch (id) {
         case YY_APIInfoId_PageSize:
             return 0x1000;
@@ -143,7 +143,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_VirtualAlloc(uint64_t size, uint64_t flags) {
-        core::log("YY_VirtualAlloc(%llu, %llu);\n\r", size, flags);
+        // core::log("YY_VirtualAlloc(%llu, %llu);\n\r", size, flags);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (size % 0x1000 != 0) {
             return -1;
@@ -168,7 +168,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_VirtualFree(uint64_t start, uint64_t size) {
-        core::log("YY_VirtualFree(%p, %llu)\n\r", start, size);
+        // core::log("YY_VirtualFree(%p, %llu)\n\r", start, size);
         if (size == 0 || (size % 0x1000 != 0)) {
             return -1;
         }
@@ -187,7 +187,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_CheckProcStatus(uint64_t pid) {
-        core::log("YY_CheckProcStatus(%llu)\n\r", pid);
+        // core::log("YY_CheckProcStatus(%llu)\n\r", pid);
         Process *proc = ProcessManager::getProcessData(pid);
         if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
             return -1;
@@ -201,7 +201,7 @@ namespace proc {
 
     extern "C" int64_t YY_ExecuteBinary(const char *path, uint64_t argc,
                                         const char **argv) {
-        core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
+        // core::log("YY_ExecuteBinary(%p, %llu, %p);\n\r", path, argc, argv);
         if (!memory::validateCString(path, true, false, false,
                                      YY_ExecMaxPathLength)) {
             return -1;
@@ -306,7 +306,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_OpenFile(const char *path, bool writable) {
-        core::log("YY_OpenFile(%p, %d);\n\r", path, (int)writable);
+        // core::log("YY_OpenFile(%p, %d);\n\r", path, (int)writable);
         if (!memory::validateCString(path, true, false, false,
                                      YY_MaxOpenFilePath)) {
             return -1;
@@ -335,7 +335,7 @@ namespace proc {
         }
         DescriptorHandle *handle = new DescriptorHandle(file);
         if (handle == nullptr) {
-            core::log("Here\n\r");
+            // core::log("Here\n\r");
             delete file;
             if (newElem) {
                 proc->descriptors->popBack();
@@ -347,7 +347,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, int64_t size) {
-        core::log("YY_ReadFile(%lld, %p, %llu)\n\r", fd, buf, size);
+        // core::log("YY_ReadFile(%lld, %p, %llu)\n\r", fd, buf, size);
         if (size > YY_MaxFileIOBufSize) {
             return -1;
         }
@@ -367,7 +367,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, int64_t size) {
-        core::log("YY_WriteFile(%lld, %p, %llu)\n\r", fd, buf, size);
+        // core::log("YY_WriteFile(%lld, %p, %llu)\n\r", fd, buf, size);
         if (size > YY_MaxFileIOBufSize) {
             return -1;
         }
@@ -387,7 +387,7 @@ namespace proc {
     }
 
     extern "C" int64_t YY_GetFilePos(int64_t fd) {
-        core::log("YY_GetFilePos(%lld)\n\r", fd);
+        // core::log("YY_GetFilePos(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -401,7 +401,7 @@ namespace proc {
 
     extern "C" int64_t YY_SetFilePos(int64_t fd, int64_t offset,
                                      int64_t whence) {
-        core::log("YY_SetFilePos(%lld, %lld, %lld)\n\r", fd, offset, whence);
+        // core::log("YY_SetFilePos(%lld, %lld, %lld)\n\r", fd, offset, whence);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -413,7 +413,7 @@ namespace proc {
         return result;
     }
     extern "C" int64_t YY_CloseFile(int64_t fd) {
-        core::log("YY_CloseFile(%lld)\n\r", fd);
+        // core::log("YY_CloseFile(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
         if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
             return -1;
@@ -424,7 +424,7 @@ namespace proc {
     }
     extern "C" int64_t YY_ReadDirectory(int64_t fd, fs::Dirent *buf,
                                         uint64_t count) {
-        core::log("YY_ReadDirectory(%lld, %p, %llu)\n\r", fd, buf, count);
+        // core::log("YY_ReadDirectory(%lld, %p, %llu)\n\r", fd, buf, count);
         if (count > YY_MaxReadDirectoryBufSize) {
             return -1;
         }

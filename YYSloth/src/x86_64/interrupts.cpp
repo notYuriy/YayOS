@@ -5,7 +5,13 @@ namespace x86_64 {
     IDTPointer IDT::m_pointer;
     bool IDT::m_initialized;
 
-    void intDefaultHandler() { panic("[IDT] Unhandled interrupt\n\r"); }
+    void intDefaultHandler() {
+        asm("cli");
+        panic("[IDT] Unhandled interrupt\n\r");
+        while (1) {
+            asm("hlt");
+        }
+    }
 
     extern "C" void intLoadIDT(IDTPointer *pointer);
 

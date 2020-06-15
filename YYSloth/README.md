@@ -99,7 +99,7 @@ constexpr uint64_t YY_FileNameMaxLength = 255;
     struct YY_Dirent {
         uint64_t inodeNumber;
         uint16_t nameLength;
-        char name[YY_FileNameMaxLength];
+        char name[YY_FileNameMaxLength + 1];
     };
 #pragma pack(0)
 

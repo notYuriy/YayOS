@@ -97,7 +97,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     // This stack will only be used to setup the process
     initProcessData->state.generalRegs.rsp = initProcessData->kernelStackTop;
     // Enable preemptive multitasking by enabling timer
-    timer.enable();
+    // timer.enable();
     // Run init process
     proc::ProcessManager::addToRunList(initProcessPid);
     // We shall not run

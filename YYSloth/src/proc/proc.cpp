@@ -41,6 +41,7 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
+        // core::log("%llu (%p) -> ", m_schedListHead->pid, frame->rip);
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
         if (m_schedListHead == m_idleProcess &&
@@ -49,6 +50,7 @@ namespace proc {
         }
         m_schedListHead->state.loadToFrame(frame);
         x86_64::TSS::setKernelStack(m_schedListHead->kernelStackTop);
+        // core::log("%llu(%p)\n\r", m_schedListHead->pid, frame->rip);
     }
 
     void ProcessManager::freePid(pid_t pid) {

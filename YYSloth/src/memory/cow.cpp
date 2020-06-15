@@ -76,10 +76,6 @@ namespace memory {
     }
     extern "C" void
     pageFaultHandlerWithFrame(UNUSED proc::SchedulerIntFrame *frame) {
-        core::log("FAULT at %p!\n\r", frame->rip);
-        asm __volatile__("cli");
-        while (1)
-            ;
         vaddr_t addr = getCR2();
         vind_t p4Index, p3Index, p2Index, p1Index;
         p4Index = getP4Index(addr);

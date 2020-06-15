@@ -1,12 +1,14 @@
 # YayOS
 
+![sorry, no pic for you](./Pictures/shell.png)
+
 ### What is this repo for?
 
 YayOS is an operating system powered by YYSloth kernel. 
 
 ### What is the system capable of doing?
 
-For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```/bin/init```).
+For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```Y:\Binaries\init```).
 
 ### What is the kernel capable of doing?
 
