@@ -3,6 +3,7 @@
 
 #include <inttypes.hpp>
 #include <stdarg.h>
+#include <x86_64/interrupts.hpp>
 #include <x86_64/portio.hpp>
 
 namespace drivers {
@@ -16,12 +17,12 @@ namespace drivers {
 
     class Serial {
         static bool readyToSend(SerialPort port);
-        static bool readyToRecieve(SerialPort port);
 
     public:
+        static bool readyToRecieve(SerialPort port);
         static void init(SerialPort port);
         static void send(SerialPort port, uint8_t byte);
-        static uint8_t recieve(SerialPort port);
+        static uint8_t recieve(SerialPort port, bool nb = false);
     };
 
 } // namespace drivers

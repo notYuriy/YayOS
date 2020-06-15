@@ -40,6 +40,17 @@ _start:
     mov rax, YY_WriteFile
     int 57h
 
+    ; waiting for byte from serial port
+.wait:
+    mov rdi, r10
+    mov rsi, buf
+    mov rdx, 1
+    mov rax, YY_ReadFile
+    int 57h
+
+    cmp rax, 0
+    je .wait
+
     mov rdi, r9
     mov rax, YY_CloseFile
     int 57h

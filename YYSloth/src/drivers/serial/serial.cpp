@@ -28,9 +28,11 @@ namespace drivers {
         x86_64::Ports::outb(port, byte);
     }
 
-    uint8_t Serial::recieve(SerialPort port) {
-        while (!Serial::readyToRecieve(port)) {
-            asm("pause");
+    uint8_t Serial::recieve(SerialPort port, bool nb) {
+        if (!nb) {
+            while (!Serial::readyToRecieve(port)) {
+                asm("pause");
+            }
         }
         return x86_64::Ports::inb(port);
     }
