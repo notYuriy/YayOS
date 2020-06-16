@@ -123,10 +123,7 @@ void removeChar(char *buf, uint64_t pos, uint64_t len) {
 }
 
 void render(const char *buf, uint64_t count, uint64_t prevCount, uint64_t pos) {
-    puts("\033[0m \b");
-    for (uint64_t i = 0; i < prevCount; ++i) {
-        puts("\b \b");
-    }
+    puts("\r\033[J$ ");
     for (uint64_t i = 0; i < count; ++i) {
         if (pos == i) {
             puts("\033[47m\033[30m");
@@ -168,8 +165,8 @@ uint64_t getline(char *buf, uint64_t size) {
             break;
         } else if (c == '\b' || c == '\x7f') {
             if (pos != 0) {
-                removeChar(buf, pos, length--);
-                --pos;
+                removeChar(buf, pos - 1, length--);
+                pos--;
             }
         } else if (c == '\033') {
             char c = getc();
@@ -218,7 +215,7 @@ void shell() {
     memset(buf, 128, '\0');
     bool success = true;
     while (true) {
-        puts("$ ");
+        // puts("$ ");
         uint64_t count = getline(buf, 127);
         uint64_t argc = 0;
         char *argv[128];
@@ -299,9 +296,9 @@ void shell() {
             }
             int64_t fd = YY_OpenFile(argv[1], false);
             if (fd == -1) {
-                puts("Unable to open file");
+                puts("Unable to open file \'");
                 puts(argv[1]);
-                puts("\n");
+                puts("\'\n");
                 continue;
             }
             char filebuf[1024];

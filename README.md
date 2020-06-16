@@ -1,6 +1,7 @@
 # YayOS
 
 ![sorry, no pic for you](./Pictures/showcase.gif)
+*Recorded from xterm. QEMU links stdin with COM1, that YayOS uses*
 
 ### What is this repo for?
 
