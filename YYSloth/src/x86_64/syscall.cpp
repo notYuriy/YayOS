@@ -17,7 +17,7 @@ namespace x86_64 {
         syscallHandlerTable[5] = (uint64_t)proc::YY_VirtualAlloc;
         syscallHandlerTable[6] = (uint64_t)proc::YY_VirtualFree;
         syscallHandlerTable[7] = (uint64_t)proc::YY_QueryAPIInfo;
-        syscallHandlerTable[8] = (uint64_t)proc::YY_CheckProcStatus;
+        syscallHandlerTable[8] = (uint64_t)proc::YY_GetProcStatus;
         syscallHandlerTable[9] = (uint64_t)proc::YY_ExecuteBinary;
         syscallHandlerTable[10] = (uint64_t)proc::YY_OpenFile;
         syscallHandlerTable[11] = (uint64_t)proc::YY_ReadFile;
@@ -26,6 +26,7 @@ namespace x86_64 {
         syscallHandlerTable[14] = (uint64_t)proc::YY_SetFilePos;
         syscallHandlerTable[15] = (uint64_t)proc::YY_CloseFile;
         syscallHandlerTable[16] = (uint64_t)proc::YY_ReadDirectory;
+        syscallHandlerTable[17] = (uint64_t)proc::YY_GetSystemTime;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

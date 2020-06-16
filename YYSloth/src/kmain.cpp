@@ -1,6 +1,7 @@
 #include <core/log.hpp>
 #include <drivers/pic/pic.hpp>
 #include <drivers/pic/pic8259.hpp>
+#include <drivers/rtc.hpp>
 #include <drivers/serial/serial.hpp>
 #include <drivers/serial/serialfs.hpp>
 #include <drivers/timer/pit.hpp>
@@ -74,6 +75,9 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     fs::VFS::mount('D', &devfs);
     fs::UARTNode serialDevice(drivers::SerialPort::COM1);
     devfs.registerDevice("COM1", &serialDevice);
+    // Read startup time
+    core::TimeInfo info;
+    drivers::RTC::read(&info);
     // Create init process
     proc::pid_t initProcessPid = proc::ProcessManager::newProcess();
     proc::Process *initProcessData =

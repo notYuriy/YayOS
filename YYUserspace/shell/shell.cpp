@@ -1,5 +1,6 @@
 typedef unsigned long long int uint64_t;
 typedef long long int int64_t;
+typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
 // Length limit for YY_SystemInfo strings
@@ -43,6 +44,19 @@ extern "C" void YY_CloseFile(int64_t fd);
 extern "C" void run(const char *name, uint64_t argc, char **argv,
                     YY_ProcessStatus *stat);
 
+#pragma pack(1)
+struct YY_TimeInfo {
+    uint16_t year;
+    uint8_t second;
+    uint8_t minute;
+    uint8_t hour;
+    uint8_t day;
+    uint8_t month;
+};
+#pragma pack(0)
+
+extern "C" int64_t YY_GetSystemTime(YY_TimeInfo *buf);
+
 constexpr uint64_t YY_FileNameMaxLength = 255;
 
 struct YY_Dirent {
@@ -72,6 +86,18 @@ void putc(char c) {
         return;
     }
     YY_WriteFile(serialFd, &c, 1);
+}
+
+void putui(uint64_t integer, bool rec = false) {
+    if (integer == 0) {
+        if (!rec) {
+            putc('0');
+        }
+        return;
+    }
+    putui(integer / 10, true);
+    static char digits[] = "0123456789";
+    putc(digits[integer % 10]);
 }
 
 void puts(const char *msg) {
@@ -323,6 +349,7 @@ void shell() {
             puts("echo: print all arguments back\n");
             puts("exit: exit shell\n");
             puts("clear: clear screen\n");
+            puts("date: get system time and date\n");
             puts("?: check if last program terminated succesfully\n");
             puts("everything else: run file \'everything else\' as an "
                  "executable\n");
@@ -344,6 +371,26 @@ void shell() {
             }
         } else if (streq(argv[0], "clear")) {
             puts("\033[2J\033[H\e[?25l");
+        } else if (streq(argv[0], "date")) {
+            YY_TimeInfo info;
+            if (YY_GetSystemTime(&info) == -1) {
+                puts("Unable to query time from kernel\n");
+            }
+            static const char *monthnames[12] = {"Jan", "Feb", "Mar", "Apr",
+                                                 "May", "Jun", "Jul", "Aug",
+                                                 "Sep", "Oct", "Feb", "Dec"};
+            putui(info.hour);
+            putc(':');
+            putui(info.minute);
+            putc(':');
+            putui(info.second);
+            putc(' ');
+            putui(info.day);
+            putc(' ');
+            puts(monthnames[info.month - 1]);
+            putc(' ');
+            putui(info.year);
+            putc('\n');
         } else {
             YY_ProcessStatus buf;
             run(argv[0], argc, argv, &buf);

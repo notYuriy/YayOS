@@ -1,3 +1,4 @@
+#include <drivers/rtc.hpp>
 #include <fs/vfs.hpp>
 #include <memory/cow.hpp>
 #include <memory/kvmmngr.hpp>
@@ -190,7 +191,7 @@ namespace proc {
         return 1;
     }
 
-    extern "C" int64_t YY_CheckProcStatus(uint64_t pid, YY_ProcessStatus *buf) {
+    extern "C" int64_t YY_GetProcStatus(uint64_t pid, YY_ProcessStatus *buf) {
         if (pid >= PID_MAX) {
             return -1;
         }
@@ -458,5 +459,13 @@ namespace proc {
         int64_t result = desc->readdir(count, buf);
         proc->descriptors->at(fd)->mutex->unlock();
         return result;
+    }
+    extern "C" int64_t YY_GetSystemTime(YY_TimeInfo *buf) {
+        if (!memory::virtualRangeConditionCheck(
+                (memory::vaddr_t)buf, sizeof(buf), true, true, false)) {
+            return -1;
+        }
+        drivers::RTC::read(buf);
+        return 0;
     }
 }; // namespace proc

@@ -43,6 +43,7 @@ DEFINE_SYSCALL YY_GetFilePos, 13
 DEFINE_SYSCALL YY_SetFilePos, 14
 DEFINE_SYSCALL YY_CloseFile, 15
 DEFINE_SYSCALL YY_ReadDirectory, 16
+DEFINE_SYSCALL YY_GetSystemTime, 17
 
 run:
     mov rax, 1

@@ -1,6 +1,7 @@
 #ifndef __SYSCALLS_HPP_INCLUDED__
 #define __SYSCALLS_HPP_INCLUDED__
 
+#include <core/time.hpp>
 #include <fs/usertypes.hpp>
 #include <utils.hpp>
 
@@ -59,7 +60,7 @@ namespace proc {
     };
 #pragma pack(0)
 
-    extern "C" int64_t YY_CheckProcStatus(uint64_t pid, YY_ProcessStatus *buf);
+    extern "C" int64_t YY_GetProcStatus(uint64_t pid, YY_ProcessStatus *buf);
 
     constexpr int64_t YY_MaxArgLength = 4096;
     constexpr int64_t YY_MaxArgCount = 4096;
@@ -89,6 +90,11 @@ namespace proc {
 
     extern "C" int64_t YY_ReadDirectory(int64_t fd, fs::Dirent *buf,
                                         uint64_t count);
+
+    typedef core::TimeInfo YY_TimeInfo;
+
+    extern "C" int64_t YY_GetSystemTime(YY_TimeInfo *info);
+
 }; // namespace proc
 
 #endif
