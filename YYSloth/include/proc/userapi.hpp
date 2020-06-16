@@ -6,7 +6,7 @@
 
 namespace proc {
 
-    [[noreturn]] void YY_ExitProcess();
+    [[noreturn]] void YY_ExitProcess(int64_t returnCode);
 
     extern "C" int64_t YY_DuplicateProcess();
 
@@ -49,7 +49,17 @@ namespace proc {
 
     extern "C" int64_t YY_QueryAPIInfo(uint64_t id);
 
-    extern "C" int64_t YY_CheckProcStatus(uint64_t pid);
+    constexpr int64_t YY_Running = 1;
+    constexpr int64_t YY_ExitedAfterSyscall = 2;
+
+#pragma pack(1)
+    struct YY_ProcessStatus {
+        int64_t returnCode;
+        int64_t status;
+    };
+#pragma pack(0)
+
+    extern "C" int64_t YY_CheckProcStatus(uint64_t pid, YY_ProcessStatus *buf);
 
     constexpr int64_t YY_MaxArgLength = 4096;
     constexpr int64_t YY_MaxArgCount = 4096;

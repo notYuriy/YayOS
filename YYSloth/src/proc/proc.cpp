@@ -41,7 +41,6 @@ namespace proc {
     void ProcessManager::yield() { schedulerYield(); }
 
     void ProcessManager::schedule(SchedulerIntFrame *frame) {
-        // core::log("%llu (%p) -> ", m_schedListHead->pid, frame->rip);
         m_schedListHead->state.loadFromFrame(frame);
         m_schedListHead = m_schedListHead->next;
         if (m_schedListHead == m_idleProcess &&
@@ -50,7 +49,6 @@ namespace proc {
         }
         m_schedListHead->state.loadToFrame(frame);
         x86_64::TSS::setKernelStack(m_schedListHead->kernelStackTop);
-        // core::log("%llu(%p)\n\r", m_schedListHead->pid, frame->rip);
     }
 
     void ProcessManager::freePid(pid_t pid) {
@@ -155,9 +153,12 @@ namespace proc {
         }
     }
 
-    [[noreturn]] void ProcessManager::exit() {
+    [[noreturn]] void ProcessManager::exit(int64_t returnCode, int64_t status) {
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        proc->returnCode = returnCode;
+        proc->status = status;
         kill(m_schedListHead->pid);
-        panic("Unreachable reached at proc.cpp:148\n\r");
+        panic("Unreachable reached\n\r");
     }
 
     Process *ProcessManager::getProcessData(pid_t pid) {

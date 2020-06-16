@@ -11,7 +11,7 @@ namespace memory {
 
     void handleSecurityViolation() {
         core::log("Security violation\n\r");
-        proc::ProcessManager::exit();
+        proc::ProcessManager::exit(-1, YY_NonRecoverableError);
     }
 
     void dump(uint64_t addr) {
@@ -52,7 +52,7 @@ namespace memory {
             handleSecurityViolation();
         }
         if ((!entry->userAccessible) && fromUserspace) {
-            proc::ProcessManager::exit();
+            proc::ProcessManager::exit(-1, YY_NonRecoverableError);
         }
         if (instructionFetch && ((entry->addr & (1ULL << 63)) != 0)) {
             if (!fromUserspace) {

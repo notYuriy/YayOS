@@ -1,6 +1,15 @@
 #include <memory/msecurity.hpp>
 
 namespace memory {
+    bool isPWritable(PageTable *page, vind_t index) {
+        if (page->entries[index].writable) {
+            return true;
+        }
+        if (page->entries[index].cow && page->entries[index].wasWritable) {
+            return true;
+        }
+        return false;
+    }
     bool virtualPageConditionCheck(vaddr_t page, bool isUser, bool isWritable,
                                    bool isCode) {
         vind_t p4Index, p3Index, p2Index, p1Index;
@@ -40,13 +49,13 @@ namespace memory {
         } else if (isCode &&
                    (p1Table->entries[p1Index].addr & ((1ULL << 63) != 0))) {
             return false;
-        } else if (isWritable && !(p4Table->entries[p4Index].writable)) {
+        } else if (isWritable && !(isPWritable(p4Table, p4Index))) {
             return false;
-        } else if (isWritable && !(p3Table->entries[p3Index].writable)) {
+        } else if (isWritable && !(isPWritable(p3Table, p3Index))) {
             return false;
-        } else if (isWritable && !(p2Table->entries[p2Index].writable)) {
+        } else if (isWritable && !(isPWritable(p2Table, p2Index))) {
             return false;
-        } else if (isWritable && !(p1Table->entries[p1Index].writable)) {
+        } else if (isWritable && !(isPWritable(p1Table, p1Index))) {
             return false;
         }
         return true;

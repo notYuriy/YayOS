@@ -96,6 +96,7 @@ _start:
     PRINT_PARAM hardwarePlatform
     PRINT_PARAM operatingSystem
     
+    xor rdi, rdi
     mov rax, YY_ExitProcess
     int 57h
     

@@ -22,6 +22,7 @@ section .text
 _start:
     mov rsp, stacktop
     call YY_Main
+    mov rdi, rax
     xor rax, rax
     int 57h
 
@@ -46,12 +47,19 @@ DEFINE_SYSCALL YY_ReadDirectory, 16
 run:
     mov rax, 1
     int 57h
+    cmp rax, -1
+    je $
     cmp rax, 0
     jne .par
+.chld:
     mov rax, 9
-.par:
     int 57h
+    mov rdi, 0xcafebabedeadbeef
+    xor rax, rax
+    int 57h
+.par:
     mov rdi, rax
+    mov rsi, rcx
 .loop:
     mov rax, 8
     int 57h

@@ -8,6 +8,8 @@
 #include <proc/state.hpp>
 #include <x86_64/msr.hpp>
 
+constexpr int64_t YY_NonRecoverableError = 3;
+
 namespace proc {
     typedef uint64_t pid_t;
     constexpr pid_t PID_MAX = 65536;
@@ -21,7 +23,9 @@ namespace proc {
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
         core::DynArray<DescriptorHandle *> *descriptors;
-        uint64_t pad[4];
+        int64_t returnCode;
+        int64_t status;
+        uint64_t pad[2];
         bool setup(bool createUserAllocator = true);
         void cleanup();
     };
@@ -52,7 +56,7 @@ namespace proc {
         static void addToRunList(pid_t pid);
         static void suspendFromRunList(pid_t pid);
         static void kill(pid_t pid);
-        [[noreturn]] static void exit();
+        [[noreturn]] static void exit(int64_t returnCode, int64_t status);
     };
 
 } // namespace proc

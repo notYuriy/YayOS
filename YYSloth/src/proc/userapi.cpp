@@ -11,9 +11,8 @@
 #include <proc/usermode.hpp>
 
 namespace proc {
-    [[noreturn]] void YY_ExitProcess() {
-        // core::log("YY_ExitProcess();\n\r");
-        proc::ProcessManager::exit();
+    [[noreturn]] void YY_ExitProcess(int64_t returnCode) {
+        proc::ProcessManager::exit(returnCode, YY_ExitedAfterSyscall);
     }
 
     extern "C" int64_t YY_ConsoleWrite(char *location, uint64_t size) {
@@ -98,8 +97,13 @@ namespace proc {
             return;
         }
         for (uint64_t i = 0; i < currentProc->descriptors->size(); ++i) {
-            if (!(newProc->descriptors->pushBack(
-                    (*(currentProc->descriptors))[i]->clone()))) {
+            DescriptorHandle *copy;
+            if (currentProc->descriptors->at(i) == nullptr) {
+                copy = nullptr;
+            } else {
+                copy = currentProc->descriptors->at(i)->clone();
+            }
+            if (!(newProc->descriptors->pushBack(copy))) {
                 ProcessManager::freePid(newProcessID);
                 newProc->cleanup();
                 StackPool::pushStack(newProc->kernelStackBase);
@@ -181,19 +185,31 @@ namespace proc {
         if (!(proc->usralloc->free(start, size))) {
             // not enough memory to free the memory
             // that is unfortunate
-            proc::ProcessManager::exit();
+            proc::ProcessManager::exit(-1, YY_NonRecoverableError);
         }
         return 1;
     }
 
-    extern "C" int64_t YY_CheckProcStatus(uint64_t pid) {
-        // core::log("YY_CheckProcStatus(%llu)\n\r", pid);
+    extern "C" int64_t YY_CheckProcStatus(uint64_t pid, YY_ProcessStatus *buf) {
+        if (pid >= PID_MAX) {
+            return -1;
+        }
         Process *proc = ProcessManager::getProcessData(pid);
         if (proc->ppid != ProcessManager::getRunningProcess()->pid) {
             return -1;
         }
         uint64_t dead = proc->dead;
         if (dead == 1) {
+            if (buf != nullptr) {
+                if (!memory::virtualRangeConditionCheck((memory::vaddr_t)buf,
+                                                        sizeof(*buf), true,
+                                                        true, false)) {
+                    return -1;
+                }
+                buf->returnCode = proc->returnCode;
+                buf->status = proc->status;
+            }
+            proc->ppid = 0;
             ProcessManager::freePid(pid);
         }
         return (int64_t)dead;
@@ -301,7 +317,7 @@ namespace proc {
         if (recovarable) {
             return (uint64_t)(-1);
         } else {
-            proc::ProcessManager::exit();
+            proc::ProcessManager::exit(-1, YY_NonRecoverableError);
         }
     }
 

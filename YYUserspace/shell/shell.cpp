@@ -5,7 +5,6 @@ typedef unsigned short uint16_t;
 // Length limit for YY_SystemInfo strings
 constexpr uint64_t YY_SystemInfoStringLimit = 64;
 
-// System info struct used for getting system info
 #pragma pack(1)
 struct YY_SystemInfo {
     char kernelName[YY_SystemInfoStringLimit + 1];
@@ -18,19 +17,31 @@ struct YY_SystemInfo {
 };
 #pragma pack(0)
 
+constexpr int64_t YY_Running = 1;
+constexpr int64_t YY_ExitedAfterSyscall = 2;
+constexpr int64_t YY_NonRecoverableError = 3;
+
+#pragma pack(1)
+struct YY_ProcessStatus {
+    int64_t returnCode;
+    int64_t status;
+};
+#pragma pack(0)
+
 extern "C" int64_t YY_OpenFile(const char *path, bool writable);
 extern "C" int64_t YY_ReadFile(int64_t fd, char *buf, uint64_t count);
 extern "C" int64_t YY_WriteFile(int64_t fd, const char *buf, uint64_t count);
 extern "C" int64_t YY_DuplicateProcess();
 extern "C" int64_t YY_ExecuteBinary(const char *name, uint64_t argc,
                                     char **argv);
-extern "C" int64_t YY_GetProcessStatus(int64_t pid);
+extern "C" int64_t YY_GetProcessStatus(int64_t pid, YY_ProcessStatus *stat);
 extern "C" int64_t YY_GetSystemInfo(YY_SystemInfo *buf);
 extern "C" void YY_ConsoleWrite(const char *msg, uint64_t size);
 extern "C" void YY_Yield();
 extern "C" void YY_ExitProcess();
 extern "C" void YY_CloseFile(int64_t fd);
-extern "C" void run(const char *name, uint64_t argc, char **argv);
+extern "C" void run(const char *name, uint64_t argc, char **argv,
+                    YY_ProcessStatus *stat);
 
 constexpr uint64_t YY_FileNameMaxLength = 255;
 
@@ -205,8 +216,9 @@ uint64_t getline(char *buf, uint64_t size) {
 void shell() {
     char buf[128];
     memset(buf, 128, '\0');
+    bool success = true;
     while (true) {
-        puts("> ");
+        puts("$ ");
         uint64_t count = getline(buf, 127);
         uint64_t argc = 0;
         char *argv[128];
@@ -239,16 +251,16 @@ void shell() {
         if (argc == 0) {
             continue;
         }
-        if (streq(argv[0], "dir")) {
+        if (streq(argv[0], "ls")) {
             if (argc != 2) {
-                puts("Command \'dir\' requires one argument\n");
+                puts("Command \'ls\' requires one argument\n");
                 continue;
             }
             int64_t fd = YY_OpenFile(argv[1], false);
             if (fd == -1) {
-                puts("Can't open file ");
+                puts("Can't open file \'");
                 puts(argv[1]);
-                puts("\n");
+                puts("\'\n");
                 continue;
             }
             YY_Dirent dirent;
@@ -256,9 +268,9 @@ void shell() {
             while (true) {
                 int64_t read = YY_ReadDirectory(fd, &dirent, 1);
                 if (read == -1) {
-                    puts("Can't read directory ");
+                    puts("Can't read directory \'");
                     puts(argv[1]);
-                    puts("\n");
+                    puts("\'\n");
                     break;
                 }
                 if (read == 0) {
@@ -272,24 +284,7 @@ void shell() {
                 newlinePrinted = true;
             }
             YY_CloseFile(fd);
-        } else if (streq(argv[0], "system")) {
-            YY_SystemInfo buf;
-            YY_GetSystemInfo(&buf);
-            puts(buf.hardwarePlatform);
-            puts(" ");
-            puts(buf.kernelName);
-            puts(" ");
-            puts(buf.kernelRelease);
-            puts(" ");
-            puts(buf.kernelVersion);
-            puts(" ");
-            puts(buf.machine);
-            puts(" ");
-            puts(buf.operatingSystem);
-            puts(" ");
-            puts(buf.processor);
-            puts("\n");
-        } else if (streq(argv[0], "print")) {
+        } else if (streq(argv[0], "echo")) {
             for (uint64_t i = 1; i < argc; ++i) {
                 puts(argv[i]);
                 puts(" ");
@@ -297,9 +292,9 @@ void shell() {
             if (argc != 1) {
                 puts("\n");
             }
-        } else if (streq(argv[0], "read")) {
+        } else if (streq(argv[0], "cat")) {
             if (argc != 2) {
-                puts("\'read\' requires one argument\n");
+                puts("\'cat\' requires one argument\n");
                 continue;
             }
             int64_t fd = YY_OpenFile(argv[1], false);
@@ -310,23 +305,70 @@ void shell() {
                 continue;
             }
             char filebuf[1024];
-            uint64_t read;
+            memset(filebuf, 1024, '\0');
+            int64_t read;
             while ((read = YY_ReadFile(fd, filebuf, 1024)) > 0) {
-                for (uint64_t i = 0; i < read; ++i) {
+                for (int64_t i = 0; i < read; ++i) {
                     putc(filebuf[i]);
                 }
+            }
+            if (read == -1) {
+                puts("Can't read from \'");
+                puts(argv[1]);
+                puts("\' file");
             }
             puts("\n");
         } else if ((streq(argv[0], "help"))) {
             puts("Builtins:\n");
             puts("help: print this message\n");
-            puts("system: print system info\n");
-            puts("read: read file contents\n");
-            puts("dir: output directory contents\n");
-            puts("print: print all arguments back\n");
+            puts("cat: read file contents\n");
+            puts("ls: output directory contents\n");
+            puts("echo: print all arguments back\n");
+            puts("exit: exit shell\n");
+            puts("clear: clear screen\n");
+            puts("?: check if last program terminated succesfully\n");
+            puts("everything else: run file \'everything else\' as an "
+                 "executable\n");
+        } else if (streq(argv[0], "exit")) {
+            if (argc != 1) {
+                puts("\'exit\' command does not take any arguments\n");
+                continue;
+            }
+            YY_ExitProcess();
+        } else if (streq(argv[0], "?")) {
+            if (argc != 1) {
+                puts("\'?\' command does not take any arguments\n");
+                continue;
+            }
+            if (success) {
+                puts("success\n");
+            } else {
+                puts("error\n");
+            }
+        } else if (streq(argv[0], "clear")) {
+            puts("\033[2J\033[H\e[?25l");
         } else {
-            puts("Unknown command. Executables support is not there yet.\n");
+            YY_ProcessStatus buf;
+            run(argv[0], argc, argv, &buf);
+            if (buf.status == YY_NonRecoverableError) {
+                puts("Non recoverable error happened while executing \'");
+                puts(argv[0]);
+                puts("\'\n");
+            } else if (buf.returnCode == 0xcafebabedeadbeef) {
+                puts("Failed to run \'");
+                puts(argv[0]);
+                puts("\' as an executable\n");
+            } else {
+                success = true;
+                if (buf.status != YY_ExitedAfterSyscall) {
+                    success = false;
+                }
+                if (buf.returnCode != 0) {
+                    success = false;
+                }
+            }
         }
+        memset(buf, 128, '\0');
     }
 }
 

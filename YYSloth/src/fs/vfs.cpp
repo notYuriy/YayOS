@@ -290,6 +290,9 @@ namespace fs {
         if (strlen(path, 3) != 3) {
             return nullptr;
         }
+        if (path[1] != ':' && path[2] != '\\') {
+            return nullptr;
+        }
         int64_t index = getIndex(path[0]);
         if (index == -1) {
             return nullptr;
@@ -298,6 +301,9 @@ namespace fs {
         m_rootMutex.lock();
         DEntry *root = m_fsTrees[index];
         m_rootMutex.unlock();
+        if (root == nullptr) {
+            return nullptr;
+        }
         DEntry *entry = root->walk(&iter);
         if (entry == nullptr) {
             return nullptr;

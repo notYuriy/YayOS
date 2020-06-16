@@ -9,7 +9,7 @@ Here are all of them
 
 ```c++
 //Exit process. Syscall number 0.
-void YY_ExitProcess();
+void YY_ExitProcess(int64_t exitCode);
 
 //Analogues to fork(). Syscall number 1.
 void YY_DuplicateProcess();
@@ -64,10 +64,21 @@ int64_t YY_VirtualFree(void* start, uint64_t pagesCount);
 //YY_QueryAPIInfo(3) //query max arguments length
 int64_t YY_QueryAPIInfo(uint64_t id);
 
+constexpr int64_t YY_Running = 1;
+constexpr int64_t YY_ExitedAfterSyscall = 2;
+constexpr int64_t YY_NonRecoverableError = 3;
+
+#pragma pack(1)
+    struct YY_ProcessStatus {
+        int64_t returnCode;
+        int64_t status;
+    };
+#pragma pack(0)
+
 //Get child proces status. Returns -1 if process is not
 //allowed to know this information, 0 if process is still running
 //and 1 if process has terminated. Syscall number 8.
-int64_t YY_GetProcessStatus(uint64_t pid);
+int64_t YY_GetProcessStatus(uint64_t pid, YY_ProcessStatus* stat);
 
 //Analogues to exec (except enviroment variables are not supported)
 //Syscall number 9.

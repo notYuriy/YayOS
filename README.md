@@ -1,6 +1,6 @@
 # YayOS
 
-![sorry, no pic for you](./Pictures/shell.png)
+![sorry, no pic for you](./Pictures/showcase.gif)
 
 ### What is this repo for?
 
