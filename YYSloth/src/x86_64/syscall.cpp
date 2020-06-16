@@ -27,6 +27,7 @@ namespace x86_64 {
         syscallHandlerTable[15] = (uint64_t)proc::YY_CloseFile;
         syscallHandlerTable[16] = (uint64_t)proc::YY_ReadDirectory;
         syscallHandlerTable[17] = (uint64_t)proc::YY_GetSystemTime;
+        syscallHandlerTable[18] = (uint64_t)proc::YY_RunCmdOnFile;
     }
     void SyscallTable::init() {
         memset(syscallHandlerTable, sizeof(syscallHandlerTable), 0);

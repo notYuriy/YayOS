@@ -46,6 +46,11 @@ namespace proc {
         return -1;
     }
 
+    int64_t IDescriptor::handleCmd(UNUSED int64_t request,
+                                   UNUSED void *pointer) {
+        return -1;
+    }
+
     int64_t IDescriptor::ltellg() { return -1; }
 
     void IDescriptor::flush() {}

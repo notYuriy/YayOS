@@ -468,4 +468,15 @@ namespace proc {
         drivers::RTC::read(buf);
         return 0;
     }
+    extern "C" int64_t YY_RunCmdOnFile(int64_t fd, int64_t cmd, void *buf) {
+        Process *proc = proc::ProcessManager::getRunningProcess();
+        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+            return -1;
+        }
+        proc->descriptors->at(fd)->mutex->lock();
+        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        int64_t result = desc->handleCmd(cmd, buf);
+        proc->descriptors->at(fd)->mutex->unlock();
+        return result;
+    }
 }; // namespace proc

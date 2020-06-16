@@ -94,6 +94,7 @@ namespace proc {
     typedef core::TimeInfo YY_TimeInfo;
 
     extern "C" int64_t YY_GetSystemTime(YY_TimeInfo *info);
+    extern "C" int64_t YY_RunCmdOnFile(int64_t fd, int64_t cmd, void *buf);
 
 }; // namespace proc
 

@@ -11,6 +11,7 @@ namespace proc {
         virtual int64_t readdir(int64_t count, fs::Dirent *buf);
         virtual int64_t lseek(int64_t offset, int64_t whence);
         virtual int64_t ltellg();
+        virtual int64_t handleCmd(int64_t cmd, void *buf);
         virtual void flush();
         virtual ~IDescriptor();
     };
