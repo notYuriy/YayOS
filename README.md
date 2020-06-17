@@ -1,6 +1,7 @@
 # YayOS
 
 ![sorry, no pic for you](./Pictures/showcase.gif)
+
 *Recorded from xterm. QEMU links stdin with COM1, that YayOS uses*
 
 ### What is this repo for?
@@ -9,7 +10,7 @@ YayOS is an operating system powered by YYSloth kernel.
 
 ### What is the system capable of doing?
 
-For now, it is only capable of runnning one executable from the ramdisk (stored in the file ```Y:\Binaries\init```).
+It is capable of running simple shell connected to a serial port. Shell can be used to run other applications on the ramdisk
 
 ### What is the kernel capable of doing?
 
