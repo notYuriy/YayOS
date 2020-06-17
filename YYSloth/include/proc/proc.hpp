@@ -22,12 +22,12 @@ namespace proc {
         uint64_t kernelStackSize;
         uint64_t kernelStackBase;
         memory::UserVirtualAllocator *usralloc;
-        core::DynArray<DescriptorHandle *> *descriptors;
+        DescriptorTable table;
         int64_t returnCode;
         int64_t status;
         uint64_t pad[2];
         bool setup(bool createUserAllocator = true);
-        void cleanup();
+        void cleanup(bool freeTable = true);
     };
 
     static_assert(sizeof(Process) % 64 == 0);

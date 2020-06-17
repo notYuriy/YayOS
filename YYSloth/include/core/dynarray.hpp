@@ -62,6 +62,25 @@ namespace core {
                 relocate(newCapacity);
             }
         }
+        INLINE bool resize(uint64_t size) {
+            if (m_size == size) {
+                return true;
+            }
+            if (size > m_size) {
+                m_size = size;
+                uint64_t newCapacity = calculcateCapacity(m_size);
+                relocate(newCapacity);
+                return true;
+            }
+            uint64_t prevSize = m_size;
+            m_size = size;
+            uint64_t newCapacity = calculcateCapacity(m_size);
+            if (!relocate(newCapacity)) {
+                m_size = prevSize;
+                return false;
+            }
+            return true;
+        }
         INLINE T &operator[](uint64_t index) { return at(index); }
         INLINE uint64_t size() { return m_size; }
         INLINE void dispose() {

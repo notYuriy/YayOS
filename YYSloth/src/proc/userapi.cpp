@@ -81,7 +81,6 @@ namespace proc {
         frame->rax = 0;
         newProc->state.generalRegs.copyFrom(frame);
         newProc->state.generalRegs.cr3 = memory::CoW::clonePageTable();
-        newProc->descriptors = nullptr;
         if (newProc->state.generalRegs.cr3 == 0) {
             ProcessManager::freePid(newProcessID);
             newProc->cleanup();
@@ -89,28 +88,12 @@ namespace proc {
             frame->rax = (uint64_t)(-1);
             return;
         }
-        newProc->descriptors = new core::DynArray<DescriptorHandle *>;
-        if (newProc->descriptors == nullptr) {
+        if (!currentProc->table.copy(&(newProc->table))) {
             ProcessManager::freePid(newProcessID);
             newProc->cleanup();
             StackPool::pushStack(newProc->kernelStackBase);
             frame->rax = (uint64_t)(-1);
             return;
-        }
-        for (uint64_t i = 0; i < currentProc->descriptors->size(); ++i) {
-            DescriptorHandle *copy;
-            if (currentProc->descriptors->at(i) == nullptr) {
-                copy = nullptr;
-            } else {
-                copy = currentProc->descriptors->at(i)->clone();
-            }
-            if (!(newProc->descriptors->pushBack(copy))) {
-                ProcessManager::freePid(newProcessID);
-                newProc->cleanup();
-                StackPool::pushStack(newProc->kernelStackBase);
-                frame->rax = (uint64_t)(-1);
-                return;
-            }
         }
         uint64_t stackOffset = currentProc->kernelStackTop - frame->rsp;
         uint64_t newStackLocation = newProc->kernelStackTop - stackOffset;
@@ -263,15 +246,15 @@ namespace proc {
         if (binary == nullptr) {
             goto failureArgsCleanup;
         }
-        proc->cleanup();
+        proc->cleanup(false);
         recovarable = false;
         proc->usralloc = memory::newUserVirtualAllocator();
-        proc->descriptors = new core::DynArray<DescriptorHandle *>;
+        proc->table.onExec();
         if (proc->usralloc == nullptr) {
             goto failureFileCleanup;
         }
         elf = parseElf(binary);
-        if (elf == nullptr || proc->descriptors == nullptr) {
+        if (elf == nullptr) {
             goto failureUsrallocCleanup;
         }
         if (!elf->load(binary, proc->usralloc)) {
@@ -329,37 +312,22 @@ namespace proc {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
-        int64_t ind = proc->descriptors->size();
-        for (int64_t i = 0; i < (int64_t)(proc->descriptors->size()); ++i) {
-            if (proc->descriptors->at(i) == nullptr) {
-                ind = i;
-                break;
-            }
-        }
-        bool newElem = false;
-        if (ind == (int64_t)(proc->descriptors->size())) {
-            if (!(proc->descriptors->pushBack(nullptr))) {
-                return -1;
-            }
-            newElem = true;
+        int64_t ind = proc->table.allocDescriptor();
+        if (ind == -1) {
+            return -1;
         }
         fs::IFile *file = fs::VFS::open(path, writable);
         if (file == nullptr) {
-            if (newElem) {
-                proc->descriptors->popBack();
-            }
+            proc->table.freeDescriptor(ind);
             return -1;
         }
         DescriptorHandle *handle = new DescriptorHandle(file);
         if (handle == nullptr) {
-            // core::log("Here\n\r");
             delete file;
-            if (newElem) {
-                proc->descriptors->popBack();
-            }
+            proc->table.freeDescriptor(ind);
             return -1;
         }
-        proc->descriptors->at(ind) = handle;
+        proc->table.freeDescriptor(ind);
         return ind;
     }
 
@@ -373,13 +341,14 @@ namespace proc {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
         int64_t result = desc->read(size, (uint8_t *)buf);
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->unlock();
         return result;
     }
 
@@ -389,30 +358,32 @@ namespace proc {
             return -1;
         }
         if (!memory::virtualRangeConditionCheck((memory::vaddr_t)buf, size,
-                                                true, false, false)) {
+                                                true, true, false)) {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
-        int64_t result = desc->write(size, (uint8_t *)buf);
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
+        int64_t result = desc->write(size, (const uint8_t *)buf);
+        handle->mutex->unlock();
         return result;
     }
 
     extern "C" int64_t YY_GetFilePos(int64_t fd) {
         // core::log("YY_GetFilePos(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
         int64_t result = desc->ltellg();
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->unlock();
         return result;
     }
 
@@ -420,23 +391,25 @@ namespace proc {
                                      int64_t whence) {
         // core::log("YY_SetFilePos(%lld, %lld, %lld)\n\r", fd, offset, whence);
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
         int64_t result = desc->lseek(offset, whence);
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->unlock();
         return result;
     }
     extern "C" int64_t YY_CloseFile(int64_t fd) {
         // core::log("YY_CloseFile(%lld)\n\r", fd);
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->release();
-        proc->descriptors->at(fd) = nullptr;
+        handle->release();
+        proc->table.freeDescriptor(fd);
         return 0;
     }
     extern "C" int64_t YY_ReadDirectory(int64_t fd, fs::Dirent *buf,
@@ -451,13 +424,14 @@ namespace proc {
             return -1;
         }
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
         int64_t result = desc->readdir(count, buf);
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->unlock();
         return result;
     }
     extern "C" int64_t YY_GetSystemTime(YY_TimeInfo *buf) {
@@ -470,13 +444,14 @@ namespace proc {
     }
     extern "C" int64_t YY_RunCmdOnFile(int64_t fd, int64_t cmd, void *buf) {
         Process *proc = proc::ProcessManager::getRunningProcess();
-        if (fd >= (int64_t)(proc->descriptors->size()) || fd < 0) {
+        DescriptorHandle *handle = proc->table.getDescriptor(fd);
+        if (handle == nullptr) {
             return -1;
         }
-        proc->descriptors->at(fd)->mutex->lock();
-        IDescriptor *desc = proc->descriptors->at(fd)->val;
+        handle->mutex->lock();
+        IDescriptor *desc = handle->val;
         int64_t result = desc->handleCmd(cmd, buf);
-        proc->descriptors->at(fd)->mutex->unlock();
+        handle->mutex->unlock();
         return result;
     }
 }; // namespace proc

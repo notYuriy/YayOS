@@ -95,7 +95,7 @@ extern "C" void kmain(uint64_t mbPointer, void (**ctorsStart)(),
     initProcessData->state.generalRegs.rip = (uint64_t)initProcess;
     initProcessData->state.generalRegs.rflags = getFlags();
     initProcessData->pid = initProcessPid;
-    initProcessData->descriptors = new core::DynArray<proc::DescriptorHandle *>;
+    initProcessData->table.reinit();
     initProcessData->ppid = 0;
     initProcessData->dead = 0;
     // This stack will only be used to setup the process

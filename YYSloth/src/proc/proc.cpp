@@ -121,19 +121,12 @@ namespace proc {
         enableInterrupts();
     }
 
-    void Process::cleanup() {
+    void Process::cleanup(bool freeTable) {
         if (usralloc != 0) {
             delete usralloc;
         }
-        if (descriptors != nullptr) {
-            for (uint64_t i = 0; i < descriptors->size(); ++i) {
-                DescriptorHandle *h = descriptors->at(i);
-                if (h != nullptr) {
-                    h->release();
-                }
-            }
-            delete descriptors;
-            descriptors = nullptr;
+        if (freeTable) {
+            table.clear();
         }
         memory::CoW::deallocateUserMemory();
     }
